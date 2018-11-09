@@ -24,9 +24,9 @@ class FileFsRef {
     await new Promise((resolve, reject) => {
       const dest = fs.createWriteStream(fsPath);
       stream.pipe(dest);
-      stream.on('error', (error) => reject(error));
-      dest.on('finish', () => resolve());
-      dest.on('error', (error) => reject(error));
+      stream.on('error', reject);
+      dest.on('finish', resolve);
+      dest.on('error', reject);
     });
 
     await fs.chmod(fsPath, mode.toString(8).slice(-3));
