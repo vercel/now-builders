@@ -25,8 +25,8 @@ class Bridge {
         path = event.path;
         headers = event.headers;
         if (event.body) {
-          assert(event.encoding === 'base64'); // do we support anything else?
-          body = Buffer.from(event.body, event.encoding);
+          assert(event.isBase64Encoded); // do we support anything else?
+          body = Buffer.from(event.body, 'base64');
         }
       } else {
         method = event.httpMethod;
