@@ -17,10 +17,47 @@ async function pipInstall(pipPath, srcDir, ...args) {
         '-t', srcDir,
         ...args
       ],
-      {stdio: 'inherit'}
+      { stdio: 'inherit' }
     )
   } catch (err) {
     console.log(`failed to run "pip install -t ${srcDir} ${args.join(' ')}"`)
+    throw err
+  }
+}
+
+async function pipInstall2(pipPath, ...args) {
+  console.log(`running "pip install --user ${args.join(' ')}"...`)
+  try {
+    await execa(
+      pipPath,
+      [
+        'install',
+        '--user',
+        ...args
+      ],
+      { stdio: 'inherit' }
+    )
+  } catch (err) {
+    console.log(`failed to run "pip install --user ${args.join(' ')}"`)
+    throw err
+  }
+}
+
+async function pipenvInstall(pyUserBase, srcDir) {
+  console.log(`running "pipenv install --deploy --system`)
+  process.chdir(srcDir)
+  try {
+    await execa(
+      path.join(pyUserBase, 'bin', 'pipenv'),
+      [
+        'install',
+        '--deploy',
+        '--system'
+      ],
+      { stdio: 'inherit' }
+    )
+  } catch (err) {
+    console.log(`failed to run "pipenv install --deploy --system"`)
     throw err
   }
 }
@@ -31,7 +68,7 @@ exports.build = async ({ files, entrypoint, config }) => {
   const srcDir = await getWritableDirectory()
 
   files = await download(files, srcDir)
-  
+
   // this is where `pip` will be installed to
   // we need it to be under `/tmp`
   const pyUserBase = await getWritableDirectory()
@@ -39,13 +76,20 @@ exports.build = async ({ files, entrypoint, config }) => {
 
   const pipPath = await downloadAndInstallPip()
 
-  await pipInstall(pipPath, srcDir, 'requests')
+  await pipInstall2(pipPath, 'pipenv')
 
   if (files['requirements.txt']) {
     console.log('found "requirements.txt"')
 
     const requirementsTxtPath = files['requirements.txt'].fsPath
     await pipInstall(pipPath, srcDir, '-r', requirementsTxtPath)
+  }
+
+  if (files['Pipfile.lock']) {
+    console.log('found "Pipfile.lock"')
+
+    await pipenvInstall(pyUserBase, srcDir)
+
   }
 
   const originalNowHandlerPyContents = await readFile(path.join(__dirname, 'now_handler.py'), 'utf8')
