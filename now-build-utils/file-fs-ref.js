@@ -37,7 +37,7 @@ class FileFsRef {
     await semaToPreventEMFILE.acquire();
     const release = () => semaToPreventEMFILE.release();
     const stream = fs.createReadStream(this.fsPath);
-    stream.on('end', release);
+    stream.on('close', release);
     stream.on('error', release);
     return stream;
   }
