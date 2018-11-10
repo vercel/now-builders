@@ -9,13 +9,6 @@ const downloadGit = require('lambda-git');
 const glob = require('@now/build-utils/fs/glob.js');
 const downloadGoBin = require('./download-go-bin');
 
-const goFilenames = new Set([
-  'go.mod',
-  'go.sum',
-  'Gopkg.lock',
-  'Gopkg.toml',
-]);
-
 // creates a `$GOPATH` direcotry tree, as per
 // `go help gopath`'s instructions.
 // without this, Go won't recognize the `$GOPATH`
@@ -24,7 +17,7 @@ async function createGoPathTree(goPath) {
   await mkdirp(path.join(goPath, 'pkg', 'linux_amd64'));
 }
 
-exports.build = async ({ files, entrypoint, config }) => {
+exports.build = async ({ files, entrypoint }) => {
   console.log('downloading files...');
 
   const gitPath = await getWritableDirectory();
@@ -34,7 +27,7 @@ exports.build = async ({ files, entrypoint, config }) => {
 
   await createGoPathTree(goPath);
 
-  files = await download(files, srcPath);
+  const downloadedFiles = await download(files, srcPath);
 
   console.log('downloading go binary...');
   const goBin = await downloadGoBin();
@@ -51,15 +44,15 @@ exports.build = async ({ files, entrypoint, config }) => {
     GOPATH: goPath,
   };
 
-  console.log(`parsing AST for \"${entrypoint}\"`);
+  console.log(`parsing AST for "${entrypoint}"`);
   let handlerFunctionName = '';
   try {
     handlerFunctionName = await execa.stdout(
       path.join(__dirname, 'bin', 'get-exported-function-name'),
-      [files[entrypoint].fsPath],
+      [downloadedFiles[entrypoint].fsPath],
     );
   } catch (err) {
-    console.log(`failed to parse AST for \"${entrypoint}\"`);
+    console.log(`failed to parse AST for "${entrypoint}"`);
     throw err;
   }
 
@@ -69,7 +62,7 @@ exports.build = async ({ files, entrypoint, config }) => {
     throw e;
   }
 
-  console.log(`Found exported function "${handlerFunctionName}" on \"${entrypoint}\"`);
+  console.log(`Found exported function "${handlerFunctionName}" on "${entrypoint}"`);
 
   const origianlMainGoContents = await readFile(path.join(__dirname, 'main.go'), 'utf8');
   const mainGoContents = origianlMainGoContents.replace('__NOW_HANDLER_FUNC_NAME', handlerFunctionName);
@@ -78,7 +71,7 @@ exports.build = async ({ files, entrypoint, config }) => {
 
   // we need `main.go` in the same dir as the entrypoint,
   // otherwise `go build` will refuse to build
-  const entrypointDirname = path.dirname(files[entrypoint].fsPath);
+  const entrypointDirname = path.dirname(downloadedFiles[entrypoint].fsPath);
 
   // Go doesn't like to build files in different directories,
   // so now we place `main.go` together with the user code
@@ -100,7 +93,7 @@ exports.build = async ({ files, entrypoint, config }) => {
     await execa(goBin, [
       'build',
       '-o', path.join(outDir, 'handler'),
-      path.join(entrypointDirname, mainGoFileName), files[entrypoint].fsPath,
+      path.join(entrypointDirname, mainGoFileName), downloadedFiles[entrypoint].fsPath,
     ], { env: goEnv, cwd: entrypointDirname, stdio: 'inherit' });
   } catch (err) {
     console.log('failed to `go build`');

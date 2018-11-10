@@ -16,7 +16,7 @@
     "fs-extra": "^7.0.0",
     "lambda-git": "^0.1.2",
     "mkdirp-promise": "5.0.1",
-    "now-fetch": "0.1.1",
+    "node-fetch": "^2.2.1",
     "tar": "4.4.6"
   },
   "devDependencies": {
