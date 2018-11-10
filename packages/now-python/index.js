@@ -81,8 +81,6 @@ exports.build = async ({ files, entrypoint, config }) => {
   // eslint-disable-next-line no-param-reassign
   files = await download(files, srcDir);
 
-  files = await download(files, srcDir)
-
   // this is where `pip` will be installed to
   // we need it to be under `/tmp`
   const pyUserBase = await getWritableDirectory()
