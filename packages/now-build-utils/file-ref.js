@@ -47,6 +47,7 @@ class FileRef {
   toStream() {
     let flag;
 
+    // eslint-disable-next-line consistent-return
     return new MultiStream((cb) => {
       if (flag) return cb();
       flag = true;
