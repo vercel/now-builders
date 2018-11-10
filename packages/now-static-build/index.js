@@ -17,14 +17,14 @@ exports.build = async ({ files, entrypoint, workPath }) => {
   if (path.basename(entrypoint) === 'package.json') {
     await runNpmInstall(entrypointFsDirname, ['--prefer-offline']);
     if (await runPackageJsonScript(entrypointFsDirname, 'now-build')) {
-      return await glob('**', distPath, mountpoint);
+      return glob('**', distPath, mountpoint);
     }
     throw new Error(`An error running "now-build" script in "${entrypoint}"`);
   }
 
   if (path.extname(entrypoint) === '.sh') {
     await runShellScript(path.join(workPath, entrypoint));
-    return await glob('**', distPath, mountpoint);
+    return glob('**', distPath, mountpoint);
   }
 
   return {};
