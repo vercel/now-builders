@@ -87,7 +87,6 @@ exports.build = async ({ files, entrypoint, config }) => {
   // we need it to be under `/tmp`
   const pyUserBase = await getWritableDirectory()
   process.env.PYTHONUSERBASE = pyUserBase
-  // pythonPath = '/usr/local/bin/python'
 
   const pipPath = await downloadAndInstallPip();
 
