@@ -88,14 +88,14 @@ exports.build = async ({ files, entrypoint, config }) => {
 
   const pipPath = await downloadAndInstallPip();
 
-  // Install pipenv.
-  await pipInstallUser(pipPath, 'pipenv')
-
   // Install requests and gunicorn.
   await pipInstall(pipPath, srcDir, 'requests', 'requests-wsgi-adapter')
 
   if (files['Pipfile.lock']) {
     console.log('found "Pipfile.lock"')
+
+    // Install pipenv.
+    await pipInstallUser(pipPath, 'pipenv')
 
     await pipenvInstall(pyUserBase, srcDir)
 
