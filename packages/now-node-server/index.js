@@ -49,8 +49,48 @@ async function commonForTwo({
   return [filesOnDisk, xRollupPath, entrypointFsDirname];
 }
 
+async function compile(workRollupPath, input) {
+  const rollup = require(path.join(workRollupPath, 'node_modules/rollup'));
+  const nodeResolve = require(path.join(workRollupPath, 'node_modules/rollup-plugin-node-resolve'));
+  const commonjs = require(path.join(workRollupPath, 'node_modules/rollup-plugin-commonjs'));
+  const json = require(path.join(workRollupPath, 'node_modules/rollup-plugin-json'));
+  const { terser } = require(path.join(workRollupPath, 'node_modules/rollup-plugin-terser'));
+  const builtins = require(path.join(workRollupPath, 'node_modules/builtins'))();
+
+  const bundle = await rollup.rollup({
+    input,
+    plugins: [
+      nodeResolve({
+        module: false,
+        jsnext: false,
+        browser: false,
+        preferBuiltins: true,
+      }),
+      json(),
+      commonjs(),
+      terser(),
+    ],
+    onwarn(error) {
+      if (/external dependency/.test(error.message)) {
+        const mod = error.message.split('\'')[1];
+        // ignore rollup warnings about known node.js modules
+        if (builtins.indexOf(mod) > -1) return;
+      }
+      console.error(error.message);
+    },
+  });
+
+  return (await bundle.generate({
+    format: 'cjs',
+  })).code;
+}
+
 exports.build = async ({ files, entrypoint, workPath }) => {
-  const [filesOnDisk, workRollupPath, entrypointFsDirname] = await commonForTwo({ files, entrypoint, workPath });
+  const [
+    filesOnDisk,
+    workRollupPath,
+    entrypointFsDirname,
+  ] = await commonForTwo({ files, entrypoint, workPath });
 
   console.log('running user script...');
   await runPackageJsonScript(entrypointFsDirname, 'now-build');
@@ -96,39 +136,3 @@ exports.prepareCache = async ({ files, entrypoint, cachePath }) => {
     ...await glob('rollup/yarn.lock', cachePath),
   };
 };
-
-async function compile(workRollupPath, input) {
-  const rollup = require(path.join(workRollupPath, 'node_modules/rollup'));
-  const nodeResolve = require(path.join(workRollupPath, 'node_modules/rollup-plugin-node-resolve'));
-  const commonjs = require(path.join(workRollupPath, 'node_modules/rollup-plugin-commonjs'));
-  const json = require(path.join(workRollupPath, 'node_modules/rollup-plugin-json'));
-  const { terser } = require(path.join(workRollupPath, 'node_modules/rollup-plugin-terser'));
-  const builtins = require(path.join(workRollupPath, 'node_modules/builtins'))();
-
-  const bundle = await rollup.rollup({
-    input,
-    plugins: [
-      nodeResolve({
-        module: false,
-        jsnext: false,
-        browser: false,
-        preferBuiltins: true,
-      }),
-      json(),
-      commonjs(),
-      terser(),
-    ],
-    onwarn(error) {
-      if (/external dependency/.test(error.message)) {
-        const mod = error.message.split('\'')[1];
-        // ignore rollup warnings about known node.js modules
-        if (builtins.indexOf(mod) > -1) return;
-      }
-      console.error(error.message);
-    },
-  });
-
-  return (await bundle.generate({
-    format: 'cjs',
-  })).code;
-}
