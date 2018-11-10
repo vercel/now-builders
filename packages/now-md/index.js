@@ -31,7 +31,7 @@ exports.build = async ({ files, entrypoint, config }) => {
 
   console.log(result.data.toString());
 
-  entrypoint = entrypoint.replace(/\.[^\.]+$/, '.html');
+  const replacedEntrypoint = entrypoint.replace(/\.[^.]+$/, '.html');
 
-  return { [entrypoint]: result };
+  return { [replacedEntrypoint]: result };
 };
