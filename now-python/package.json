@@ -1,6 +1,6 @@
 {
   "name": "@kennethreitz/python",
-  "version": "0.0.82",
+  "version": "0.0.91",
   "main": "index.js",
   "license": "MIT",
   "dependencies": {

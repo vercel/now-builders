@@ -44,20 +44,31 @@ async function pipInstall2(pipPath, ...args) {
 }
 
 async function pipenvInstall(pyUserBase, srcDir) {
-  console.log(`running "pipenv install --deploy --system`)
+  console.log(`running "pipenv --three`)
   process.chdir(srcDir)
   try {
     await execa(
       path.join(pyUserBase, 'bin', 'pipenv'),
       [
-        'install',
-        '--deploy',
-        '--system'
+        '--three',
       ],
       { stdio: 'inherit' }
     )
   } catch (err) {
-    console.log(`failed to run "pipenv install --deploy --system"`)
+    console.log(`failed to run "pipenv --three"`)
+    throw err
+  }
+  try {
+    await execa(
+      path.join(pyUserBase, 'bin', 'pipenv'),
+      [
+        'lock',
+        '-r',
+      ],
+      { stdio: 'inherit' }
+    )
+  } catch (err) {
+    console.log(`failed to run "pipenv lock -r"`)
     throw err
   }
 }
@@ -73,6 +84,7 @@ exports.build = async ({ files, entrypoint, config }) => {
   // we need it to be under `/tmp`
   const pyUserBase = await getWritableDirectory()
   process.env.PYTHONUSERBASE = pyUserBase
+  // pythonPath = '/usr/local/bin/python'
 
   const pipPath = await downloadAndInstallPip()
 
@@ -82,6 +94,13 @@ exports.build = async ({ files, entrypoint, config }) => {
   // Install requests and gunicorn.
   await pipInstall(pipPath, srcDir, 'requests', 'requests-wsgi-adapter')
 
+  if (files['Pipfile.lock']) {
+    console.log('found "Pipfile.lock"')
+
+    await pipenvInstall(pyUserBase, srcDir)
+
+  }
+
   if (files['requirements.txt']) {
     console.log('found "requirements.txt"')
 
@@ -89,12 +108,7 @@ exports.build = async ({ files, entrypoint, config }) => {
     await pipInstall(pipPath, srcDir, '-r', requirementsTxtPath)
   }
 
-  if (files['Pipfile.lock']) {
-    console.log('found "Pipfile.lock"')
 
-    await pipenvInstall(pyUserBase, srcDir)
-
-  }
 
   const originalNowHandlerPyContents = await readFile(path.join(__dirname, 'now_handler.py'), 'utf8')
   // will be used on `from $here import handler`
