@@ -1,10 +1,4 @@
 const fastStreamToBuffer = require('fast-stream-to-buffer');
+const { promisify } = require('util');
 
-module.exports = async function streamToBuffer (stream) {
-  return await new Promise((resolve, reject) => {
-    fastStreamToBuffer(stream, (error, buffer) => {
-      if (error) return reject(error);
-      resolve(buffer);
-    });
-  });
-};
+module.exports = promisify(fastStreamToBuffer);
