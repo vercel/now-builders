@@ -19,9 +19,10 @@ const mtime = new Date(1540000000000);
 async function createLambda({
   files, handler, runtime, environment = {},
 }) {
-  assert(typeof files === 'object');
-  assert(typeof handler === 'string');
-  assert(typeof runtime === 'string');
+  assert(typeof files === 'object', '"files" must be an object');
+  assert(typeof handler === 'string', '"handler" is not a string');
+  assert(typeof runtime === 'string', '"runtime" is not a string');
+  assert(typeof environment === 'object', '"environment" is not an object');
   const zipFile = new ZipFile();
 
   for (const name of Object.keys(files).sort()) {
