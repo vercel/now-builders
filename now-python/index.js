@@ -76,7 +76,11 @@ exports.build = async ({ files, entrypoint, config }) => {
 
   const pipPath = await downloadAndInstallPip()
 
+  // Install pipenv.
   await pipInstall2(pipPath, 'pipenv')
+
+  // Install requests and gunicorn.
+  await pipInstall(pipPath, srcDir, 'requests', 'requests-wsgi-adapter')
 
   if (files['requirements.txt']) {
     console.log('found "requirements.txt"')
@@ -112,7 +116,9 @@ exports.build = async ({ files, entrypoint, config }) => {
     files: await glob('**', srcDir),
     handler: nowHandlerPyFilename + '.now_handler',
     runtime: 'python3.6',
-    environment: {}
+    environment: {
+      'PATH': "{pyUserBase}/bin;" + process.PATH
+    }
   })
 
   return {
