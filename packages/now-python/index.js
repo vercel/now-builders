@@ -25,7 +25,7 @@ async function pipInstall(pipPath, srcDir, ...args) {
   }
 }
 
-exports.build = async ({ files, entrypoint, config }) => {
+exports.build = async ({ files, entrypoint }) => {
   console.log('downloading files...');
 
   const srcDir = await getWritableDirectory();
