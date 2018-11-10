@@ -25,7 +25,7 @@ async function pipInstall(pipPath, srcDir, ...args) {
   }
 }
 
-async function pipInstall2(pipPath, ...args) {
+async function pipInstallUser(pipPath, ...args) {
   console.log(`running "pip install --user ${args.join(' ')}"...`)
   try {
     await execa(
@@ -89,7 +89,7 @@ exports.build = async ({ files, entrypoint, config }) => {
   const pipPath = await downloadAndInstallPip()
 
   // Install pipenv.
-  await pipInstall2(pipPath, 'pipenv')
+  await pipInstallUser(pipPath, 'pipenv')
 
   // Install requests and gunicorn.
   await pipInstall(pipPath, srcDir, 'requests', 'requests-wsgi-adapter')
