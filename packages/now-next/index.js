@@ -13,19 +13,15 @@ function excludeFiles(files, matchFn) {
     if (matchFn(fileName)) {
       return newFiles;
     }
-    newFiles[fileName] = files[fileName];
-    return newFiles;
+    return {
+      ...newFiles,
+      [fileName]: files[fileName],
+    };
   }, {});
 }
 
-exports.build = async ({ files, workPath, entrypoint }) => {
-  if (!/package\.json$/.exec(entrypoint) && !/next\.config\.js$/.exec(entrypoint)) {
-    throw new Error('Specified "src" for "@now/next" has to be "package.json" or "next.config.js"');
-  }
-
-  const entryDirectory = path.dirname(entrypoint);
-  console.log('downloading user files...');
-  const filesToDownload = excludeFiles(files, (file) => {
+function shouldExcludeFile(entryDirectory) {
+  return (file) => {
     // If the file is not in the entry directory
     if (entryDirectory !== '.' && !file.startsWith(entryDirectory)) {
       return true;
@@ -45,18 +41,29 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     }
 
     return false;
-  });
-  files = await download(rename(filesToDownload, (file) => {
+  };
+}
+
+exports.build = async ({ files, workPath, entrypoint }) => {
+  if (!/package\.json$/.exec(entrypoint) && !/next\.config\.js$/.exec(entrypoint)) {
+    throw new Error('Specified "src" for "@now/next" has to be "package.json" or "next.config.js"');
+  }
+
+  console.log('downloading user files...');
+  const entryDirectory = path.dirname(entrypoint);
+  const filesToDownload = excludeFiles(files, shouldExcludeFile(entryDirectory));
+  const entrypointHandledFilesToDownload = rename(filesToDownload, (file) => {
     if (entryDirectory !== '.') {
       return file.replace(new RegExp(`^${entryDirectory}/`), '');
     }
     return file;
-  }), workPath);
+  });
+  let downloadedFiles = await download(entrypointHandledFilesToDownload, workPath);
 
   let packageJson = {};
-  if (files['package.json']) {
+  if (downloadedFiles['package.json']) {
     console.log('found package.json, overwriting');
-    const packageJsonPath = files['package.json'].fsPath;
+    const packageJsonPath = downloadedFiles['package.json'].fsPath;
     packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
   }
 
@@ -95,7 +102,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     console.log('found NPM_AUTH_TOKEN in environement, creating .npmrc');
     await writeFile(path.join(workPath, '.npmrc'), `//registry.npmjs.org/:_authToken=${process.env.NPM_AUTH_TOKEN}`);
   }
-  files = await glob('**', workPath);
+  downloadedFiles = await glob('**', workPath);
 
   console.log('running npm install...');
   await runNpmInstall(workPath, ['--prefer-offline']);
@@ -106,7 +113,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   if (process.env.NPM_AUTH_TOKEN) {
     await unlink(path.join(workPath, '.npmrc'));
   }
-  files = await glob('**', workPath);
+  downloadedFiles = await glob('**', workPath);
 
   console.log('preparing lambda files...');
   let buildId;
@@ -126,23 +133,23 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   const nextFiles = {
     ...nodeModules, ...dotNextRootFiles, ...dotNextServerRootFiles, ...launcherFiles,
   };
-  if (files['next.config.js']) {
-    nextFiles['next.config.js'] = files['next.config.js'];
+  if (downloadedFiles['next.config.js']) {
+    nextFiles['next.config.js'] = downloadedFiles['next.config.js'];
   }
   const pages = await glob('**/*.js', path.join(workPath, '.next', 'server', 'static', buildId, 'pages'));
 
   const lambdas = {};
-  for (const page in pages) {
-    // These default pages don't have to be handled a rendering, they'd always 404
+  await Promise.all(Object.keys(pages).map(async (page) => {
+    // These default pages don't have to be handled as they'd always 404
     if (['_app.js', '_error.js', '_document.js'].includes(page)) {
-      continue;
+      return;
     }
 
     const pageFiles = {
-      [`.next/server/static/${buildId}/pages/_document.js`]: files[`.next/server/static/${buildId}/pages/_document.js`],
-      [`.next/server/static/${buildId}/pages/_app.js`]: files[`.next/server/static/${buildId}/pages/_app.js`],
-      [`.next/server/static/${buildId}/pages/_error.js`]: files[`.next/server/static/${buildId}/pages/_error.js`],
-      [`.next/server/static/${buildId}/pages/${page}`]: files[`.next/server/static/${buildId}/pages/${page}`],
+      [`.next/server/static/${buildId}/pages/_document.js`]: downloadedFiles[`.next/server/static/${buildId}/pages/_document.js`],
+      [`.next/server/static/${buildId}/pages/_app.js`]: downloadedFiles[`.next/server/static/${buildId}/pages/_app.js`],
+      [`.next/server/static/${buildId}/pages/_error.js`]: downloadedFiles[`.next/server/static/${buildId}/pages/_error.js`],
+      [`.next/server/static/${buildId}/pages/${page}`]: downloadedFiles[`.next/server/static/${buildId}/pages/${page}`],
     };
 
     lambdas[path.join(entryDirectory, page.replace(/\.js$/, ''))] = await createLambda({
@@ -150,13 +157,13 @@ exports.build = async ({ files, workPath, entrypoint }) => {
       handler: 'now__launcher.launcher',
       runtime: 'nodejs8.10',
     });
-  }
+  }));
 
   const nextStaticFiles = await glob('**', path.join(workPath, '.next', 'static'));
-  const staticFiles = {};
-  for (const staticFile in nextStaticFiles) {
-    staticFiles[path.join(entryDirectory, `_next/static/${staticFile}`)] = nextStaticFiles[staticFile];
-  }
+  const staticFiles = Object.keys(nextStaticFiles).reduce((mappedFiles, file) => ({
+    ...mappedFiles,
+    [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[file],
+  }), {});
 
   return { ...lambdas, ...staticFiles };
 };
