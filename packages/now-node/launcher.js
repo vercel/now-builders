@@ -1,5 +1,5 @@
-const { Bridge } = require('./bridge.js');
 const { Server } = require('http');
+const { Bridge } = require('./bridge.js');
 
 const bridge = new Bridge();
 bridge.port = 3000;
