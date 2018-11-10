@@ -95,7 +95,6 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   // in case the user has `next` on their `dependencies`, we remove it
   delete packageJson.dependencies.next;
 
-  console.log('>>>>>>', JSON.stringify(packageJson));
   await writeFile(path.join(workPath, 'package.json'), JSON.stringify(packageJson, null, 2));
 
   if (process.env.NPM_AUTH_TOKEN) {
