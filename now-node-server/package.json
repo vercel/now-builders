@@ -1,7 +1,0 @@
-{
-  "name": "@now/node-server",
-  "version": "0.4.20",
-  "dependencies": {
-    "@now/node-bridge": "0.1.5"
-  }
-}

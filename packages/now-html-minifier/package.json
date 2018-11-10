@@ -1,0 +1,10 @@
+{
+  "name": "@now/html-minifier",
+  "version": "1.0.3-canary.3",
+  "dependencies": {
+    "html-minifier": "3.5.21"
+  },
+  "peerDependencies": {
+    "@now/build-utils": ">=0.0.1"
+  }
+}
