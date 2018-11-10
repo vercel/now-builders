@@ -30,6 +30,7 @@ exports.build = async ({ files, entrypoint }) => {
 
   const srcDir = await getWritableDirectory();
 
+  // eslint-disable-next-line no-param-reassign
   files = await download(files, srcDir);
 
   // this is where `pip` will be installed to
