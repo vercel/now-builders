@@ -11,8 +11,5 @@
     "multistream": "2.1.1",
     "node-fetch": "2.2.0",
     "yazl": "2.4.3"
-  },
-  "peerDependencies": {
-    "@now/build-utils": ">=0.0.1"
   }
 }
