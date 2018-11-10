@@ -25,11 +25,11 @@ async function createLambda({
   assert(typeof environment === 'object', '"environment" is not an object');
   const zipFile = new ZipFile();
 
-  for (const name of Object.keys(files).sort()) {
+  Object.keys(files).sort().forEach((name) => {
     const file = files[name];
     const stream = file.toStream();
     zipFile.addReadStream(stream, name, { mode: file.mode, mtime });
-  }
+  });
 
   zipFile.end();
   const zipBuffer = await streamToBuffer(zipFile.outputStream);

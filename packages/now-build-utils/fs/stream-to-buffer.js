@@ -1,8 +1,8 @@
-const streamToBuffer = require('fast-stream-to-buffer');
+const fastStreamToBuffer = require('fast-stream-to-buffer');
 
-module.exports = async function (stream) {
+module.exports = async function streamToBuffer (stream) {
   return await new Promise((resolve, reject) => {
-    streamToBuffer(stream, (error, buffer) => {
+    fastStreamToBuffer(stream, (error, buffer) => {
       if (error) return reject(error);
       resolve(buffer);
     });
