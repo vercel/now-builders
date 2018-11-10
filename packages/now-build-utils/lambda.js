@@ -17,13 +17,11 @@ class Lambda {
 const mtime = new Date(1540000000000);
 
 async function createLambda({
-  files, handler, runtime, environment,
+  files, handler, runtime, environment = {},
 }) {
   assert(typeof files === 'object');
   assert(typeof handler === 'string');
   assert(typeof runtime === 'string');
-  if (environment === undefined) environment = {};
-  assert(typeof environment === 'object');
   const zipFile = new ZipFile();
 
   for (const name of Object.keys(files).sort()) {
