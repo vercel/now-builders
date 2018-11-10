@@ -2,11 +2,11 @@ const assert = require('assert');
 const http = require('http');
 
 class Bridge {
-  constructor () {
+  constructor() {
     this.launcher = this.launcher.bind(this);
   }
 
-  launcher (event) {
+  launcher(event) {
     return new Promise((resolve, reject) => {
       if (this.userError) {
         console.error('Error while initializing entrypoint:', this.userError);
@@ -17,7 +17,8 @@ class Bridge {
         return resolve({ statusCode: 504, body: '' });
       }
 
-      let method, path, headers, body;
+      let method; let path; let headers; let
+        body;
 
       if (event.Action === 'Invoke') {
         event = JSON.parse(event.body);
@@ -40,13 +41,13 @@ class Bridge {
         port: this.port,
         path,
         method,
-        headers
+        headers,
       };
 
       const req = http.request(opts, (resp) => {
         const respBodyChunks = [];
-        resp.on('data', (chunk) => respBodyChunks.push(Buffer.from(chunk)));
-        resp.on('error', (error) => reject(error));
+        resp.on('data', chunk => respBodyChunks.push(Buffer.from(chunk)));
+        resp.on('error', error => reject(error));
         resp.on('end', () => {
           delete resp.headers.connection;
           delete resp.headers['content-length'];
@@ -55,7 +56,7 @@ class Bridge {
             statusCode: resp.statusCode,
             headers: resp.headers,
             body: Buffer.concat(respBodyChunks).toString('base64'),
-            encoding: 'base64'
+            encoding: 'base64',
           });
         });
       });
@@ -67,5 +68,5 @@ class Bridge {
 }
 
 module.exports = {
-  Bridge
+  Bridge,
 };
