@@ -8,10 +8,10 @@ jobs:
       - checkout
       - run:
           name: Updating apt-get list
-          command: apt-get update
+          command: sudo apt-get update
       - run:
           name: Installing the latest version of Go
-          command: apt-get install golang-go
+          command: sudo apt-get install golang-go
       - run:
           name: Installing dependencies
           command: yarn install
