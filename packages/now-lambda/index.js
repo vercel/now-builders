@@ -7,6 +7,7 @@ exports.build = async ({ files, entrypoint }) => {
   // handler=launcher.main!runtime=nodejs8.10!name.zip
   const config = path.basename(entrypoint).split('!').reduce((a, c) => {
     const [k, v] = c.split('=');
+    // eslint-disable-next-line no-param-reassign
     if (v) a[k] = v;
     return a;
   }, {});
