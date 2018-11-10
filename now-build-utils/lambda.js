@@ -3,7 +3,9 @@ const { ZipFile } = require('yazl');
 const streamToBuffer = require('./fs/stream-to-buffer.js');
 
 class Lambda {
-  constructor ({ zipBuffer, handler, runtime, environment }) {
+  constructor({
+    zipBuffer, handler, runtime, environment,
+  }) {
     this.type = 'Lambda';
     this.zipBuffer = zipBuffer;
     this.handler = handler;
@@ -14,7 +16,9 @@ class Lambda {
 
 const mtime = new Date(1540000000000);
 
-async function createLambda ({ files, handler, runtime, environment }) {
+async function createLambda({
+  files, handler, runtime, environment,
+}) {
   assert(typeof files === 'object');
   assert(typeof handler === 'string');
   assert(typeof runtime === 'string');
@@ -30,10 +34,12 @@ async function createLambda ({ files, handler, runtime, environment }) {
 
   zipFile.end();
   const zipBuffer = await streamToBuffer(zipFile.outputStream);
-  return new Lambda({ zipBuffer, handler, runtime, environment });
+  return new Lambda({
+    zipBuffer, handler, runtime, environment,
+  });
 }
 
 module.exports = {
   Lambda,
-  createLambda
+  createLambda,
 };

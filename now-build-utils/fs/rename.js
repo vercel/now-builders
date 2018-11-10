@@ -1,4 +1,4 @@
-module.exports = function rename (files, delegate) {
+module.exports = function rename(files, delegate) {
   const files2 = {};
 
   for (const name in files) {

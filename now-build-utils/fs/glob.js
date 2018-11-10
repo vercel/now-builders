@@ -1,9 +1,9 @@
 const assert = require('assert');
-const FileFsRef = require('../file-fs-ref.js');
 const path = require('path');
 const vanillaGlob = require('glob');
+const FileFsRef = require('../file-fs-ref.js');
 
-module.exports = function glob (pattern, opts = {}, mountpoint) {
+module.exports = function glob(pattern, opts = {}, mountpoint) {
   return new Promise((resolve, reject) => {
     if (typeof opts === 'string') {
       opts = { cwd: opts };

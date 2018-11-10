@@ -6,7 +6,7 @@ exports.build = async ({ files, entrypoint }) => {
 
   // handler=launcher.main!runtime=nodejs8.10!name.zip
   const config = path.basename(entrypoint).split('!').reduce((a, c) => {
-    const [ k, v ] = c.split('=');
+    const [k, v] = c.split('=');
     if (v) a[k] = v;
     return a;
   }, {});
@@ -17,7 +17,7 @@ exports.build = async ({ files, entrypoint }) => {
   const lambda = new Lambda({
     zipStream: files[entrypoint].toStream(), // TODO zipBuffer
     handler: config.handler,
-    runtime: config.runtime
+    runtime: config.runtime,
   });
 
   return { [entrypoint]: lambda };
