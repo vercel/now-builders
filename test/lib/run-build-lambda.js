@@ -1,5 +1,5 @@
 const getWritableDirectory = require('../../packages/now-build-utils/fs/get-writable-directory.js');
-const getInputFiles = require('./get-input-files')
+const glob = require('../../packages/now-build-utils/fs/glob.js');
 
 function runAnalyze(wrapper, context) {
   if(wrapper.analyze) {
@@ -10,7 +10,7 @@ function runAnalyze(wrapper, context) {
 }
 
 async function runBuildLambda(inputPath) {
-  const inputFiles = await getInputFiles(inputPath)
+  const inputFiles = await glob('**', directory)
   const nowJsonRef = inputFiles['now.json'];
   expect(nowJsonRef).toBeDefined()
   const nowJson = require(nowJsonRef.fsPath);
