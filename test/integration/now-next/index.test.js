@@ -8,7 +8,7 @@ it('Should build the standard example', async () => {
   expect(buildResult['index']).toBeDefined()
   const filePaths = Object.keys(buildResult)
   const hasUnderScoreAppStaticFile = filePaths.some((filePath) => filePath.match(/static.*\/pages\/_app\.js$/))
-  const hasUnderScoreErrorStaticFile = filePaths.some((filePath) => filePath.match(/static.*\/pages\/_app\.js$/))
+  const hasUnderScoreErrorStaticFile = filePaths.some((filePath) => filePath.match(/static.*\/pages\/_error\.js$/))
   expect(hasUnderScoreAppStaticFile).toBeTruthy()
   expect(hasUnderScoreErrorStaticFile).toBeTruthy()
 }, TWO_MINUTES)
