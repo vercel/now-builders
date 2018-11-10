@@ -4,7 +4,7 @@ const FileFsRef = require('../file-fs-ref.js');
 async function downloadFile(file, fsPath) {
   const { mode } = file;
   const stream = file.toStream();
-  return await FileFsRef.fromStream({ mode, stream, fsPath });
+  return FileFsRef.fromStream({ mode, stream, fsPath });
 }
 
 module.exports = async function download(files, basePath) {
