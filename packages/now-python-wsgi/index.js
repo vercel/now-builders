@@ -44,32 +44,16 @@ async function pipInstallUser(pipPath, ...args) {
 }
 
 async function pipenvInstall(pyUserBase, srcDir) {
-  console.log('running "pipenv --three');
+  console.log('running "pipenv_to_requirements -f');
   process.chdir(srcDir);
   try {
     await execa(
-      path.join(pyUserBase, 'bin', 'pipenv'),
-      [
-        '--three',
-      ],
+      path.join(pyUserBase, 'bin', 'pipenv_to_requirements'),
+      ['-f'],
       { stdio: 'inherit' },
     );
   } catch (err) {
-    console.log('failed to run "pipenv --three"');
-    throw err;
-  }
-  try {
-    requirements = await execa.stdout(
-      path.join(pyUserBase, 'bin', 'pipenv'),
-      [
-        'lock',
-        '-r',
-      ],
-      { stdio: 'inherit' },
-    );
-    writeFile(path.join(srcDir, 'requirements.txt'), requirements);
-  } catch (err) {
-    console.log('failed to run "pipenv lock -r"');
+    console.log('failed to run "pipenv_to_requirements -f"');
     throw err;
   }
 }
@@ -97,7 +81,7 @@ exports.build = async ({ files, entrypoint, config }) => {
     console.log('found "Pipfile.lock"');
 
     // Install pipenv.
-    await pipInstallUser(pipPath, 'pipenv');
+    await pipInstallUser(pipPath, ' pipenv_to_requirements');
 
     await pipenvInstall(pyUserBase, srcDir);
   }
