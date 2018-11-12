@@ -1,41 +1,19 @@
-import os
+from http.server import HTTPServer
 import json
+import requests
+from __NOW_HANDLER_FILENAME import handler
 import _thread
 
-import requests
-# import requests-wsgi-adapter
-import wsgiadapter
-
-
-
-os.environ['PORT'] = '3000'
-
-import __NOW_HANDLER_FILENAME as app
-
-session = requests.Session()
-
-try:
-    app = app.api
-    session = app.api.requests
-except AttributeError:
-    app = app.app
-    session.mount('http://;/', wsgiadapter.WSGIAdapter(app))
-except AttributeError:
-    app = app.application
-    session.mount('http://;/', wsgiadapter.WSGIAdapter(app))
-
-
+server = HTTPServer(('', 3000), handler)
 
 def now_handler(event, context):
-
-
+    _thread.start_new_thread(server.handle_request, ())
     payload = json.loads(event['body'])
     path = payload['path']
     headers = payload['headers']
     method = payload['method']
 
-
-    res = session.request(method, 'http://;' + path, headers=headers)
+    res = requests.request(method, 'http://0.0.0.0:3000' + path, headers=headers)
 
     return {
         'statusCode': res.status_code,
