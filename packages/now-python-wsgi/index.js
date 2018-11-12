@@ -102,6 +102,8 @@ exports.build = async ({ files, entrypoint, config }) => {
     await pipenvInstall(pyUserBase, srcDir);
   }
 
+  files = await glob('**', srcDir)
+
   if (files['requirements.txt']) {
     console.log('found "requirements.txt"');
 
