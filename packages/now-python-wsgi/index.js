@@ -17,8 +17,8 @@ async function pipInstall(pipPath, srcDir, ...args) {
         '-t', srcDir,
         ...args,
       ],
-      { stdio: 'inherit' }
-    )
+      { stdio: 'inherit' },
+    );
   } catch (err) {
     console.log(`failed to run "pip install -t ${srcDir} ${args.join(' ')}"`);
     throw err;
@@ -26,37 +26,37 @@ async function pipInstall(pipPath, srcDir, ...args) {
 }
 
 async function pipInstallUser(pipPath, ...args) {
-  console.log(`running "pip install --user ${args.join(' ')}"...`)
+  console.log(`running "pip install --user ${args.join(' ')}"...`);
   try {
     await execa(
       pipPath,
       [
         'install',
         '--user',
-        ...args
+        ...args,
       ],
-      { stdio: 'inherit' }
-    )
+      { stdio: 'inherit' },
+    );
   } catch (err) {
-    console.log(`failed to run "pip install --user ${args.join(' ')}"`)
-    throw err
+    console.log(`failed to run "pip install --user ${args.join(' ')}"`);
+    throw err;
   }
 }
 
 async function pipenvInstall(pyUserBase, srcDir) {
-  console.log(`running "pipenv --three`)
-  process.chdir(srcDir)
+  console.log('running "pipenv --three');
+  process.chdir(srcDir);
   try {
     await execa(
       path.join(pyUserBase, 'bin', 'pipenv'),
       [
         '--three',
       ],
-      { stdio: 'inherit' }
-    )
+      { stdio: 'inherit' },
+    );
   } catch (err) {
-    console.log(`failed to run "pipenv --three"`)
-    throw err
+    console.log('failed to run "pipenv --three"');
+    throw err;
   }
   try {
     requirements = await execa.stdout(
@@ -65,19 +65,18 @@ async function pipenvInstall(pyUserBase, srcDir) {
         'lock',
         '-r',
       ],
-      { stdio: 'inherit' }
-    )
+      { stdio: 'inherit' },
+    );
+    writeFile(path.join(srcDir, 'requirements.txt'), requirements);
   } catch (err) {
-    console.log(`failed to run "pipenv lock -r"`)
-    throw err
+    console.log('failed to run "pipenv lock -r"');
+    throw err;
   }
-
-  writeFile(path.join(srcDir, 'requirements.txt'), requirements)
 }
 
 
 exports.build = async ({ files, entrypoint, config }) => {
-  console.log('downloading files...')
+  console.log('downloading files...');
 
   const srcDir = await getWritableDirectory();
 
@@ -86,22 +85,21 @@ exports.build = async ({ files, entrypoint, config }) => {
 
   // this is where `pip` will be installed to
   // we need it to be under `/tmp`
-  const pyUserBase = await getWritableDirectory()
-  process.env.PYTHONUSERBASE = pyUserBase
+  const pyUserBase = await getWritableDirectory();
+  process.env.PYTHONUSERBASE = pyUserBase;
 
   const pipPath = await downloadAndInstallPip();
 
   // Install requests and gunicorn.
-  await pipInstall(pipPath, srcDir, 'requests', 'requests-wsgi-adapter')
+  await pipInstall(pipPath, srcDir, 'requests', 'requests-wsgi-adapter');
 
   if (files['Pipfile.lock']) {
-    console.log('found "Pipfile.lock"')
+    console.log('found "Pipfile.lock"');
 
     // Install pipenv.
-    await pipInstallUser(pipPath, 'pipenv')
+    await pipInstallUser(pipPath, 'pipenv');
 
-    await pipenvInstall(pyUserBase, srcDir)
-
+    await pipenvInstall(pyUserBase, srcDir);
   }
 
   if (files['requirements.txt']) {
@@ -112,8 +110,7 @@ exports.build = async ({ files, entrypoint, config }) => {
   }
 
 
-
-  const originalNowHandlerPyContents = await readFile(path.join(__dirname, 'now_handler.py'), 'utf8')
+  const originalNowHandlerPyContents = await readFile(path.join(__dirname, 'now_handler.py'), 'utf8');
   // will be used on `from $here import handler`
   // for example, `from api.users import handler`
   console.log('entrypoint is', entrypoint);
