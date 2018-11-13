@@ -18,7 +18,7 @@ function normalizeEvent(event) {
       if (encoding === undefined) {
         body = Buffer.from(body);
       } else {
-        assert(false, JSON.stringify(event)); // do we support anything else?
+        throw new Error('Unsupported encoding: ' + encoding);
       }
     }
 
