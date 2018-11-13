@@ -19,3 +19,7 @@ For the canary channel use:
 ```
 yarn publish-canary
 ```
+
+### Community Builders
+
+- [now-parcel](https://github.com/sergiodxa/now-parcel) - Use [Parcel](https://parceljs.org) to build a deployment with a `.html` entrypoint 
