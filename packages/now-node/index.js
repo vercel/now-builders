@@ -108,6 +108,7 @@ exports.build = async ({ files, entrypoint, workPath }) => {
   launcherData = launcherData.replace('// PLACEHOLDER', [
     'process.chdir("./user");',
     `listener = require("./${path.join('user', entrypoint)}");`,
+    'if (listener.default) listener = listener.default;'
   ].join(' '));
 
   const launcherFiles = {
