@@ -6,7 +6,9 @@ function spawnAsync(command, args, cwd) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { stdio: 'inherit', cwd });
     child.on('error', reject);
-    child.on('close', (code, signal) => (code !== 0 ? reject(new Error(`Exited with ${code || signal}`)) : resolve()));
+    child.on('close', (code, signal) => (code !== 0
+      ? reject(new Error(`Exited with ${code || signal}`))
+      : resolve()));
   });
 }
 
@@ -55,7 +57,11 @@ async function runPackageJsonScript(destPath, scriptName) {
       await spawnAsync('npm', ['run', scriptName], destPath);
     } else {
       console.log(`running "yarn run ${scriptName}"`);
-      await spawnAsync('yarn', ['--cwd', destPath, 'run', scriptName], destPath);
+      await spawnAsync(
+        'yarn',
+        ['--cwd', destPath, 'run', scriptName],
+        destPath,
+      );
     }
   } catch (error) {
     console.log(error.message);

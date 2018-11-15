@@ -20,8 +20,8 @@
   "pre-commit": "lint-staged",
   "lint-staged": {
     "*.js": [
-      "eslint",
       "prettier --write --single-quote",
+      "eslint --fix",
       "git add"
     ]
   },

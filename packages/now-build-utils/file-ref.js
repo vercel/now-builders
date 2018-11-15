@@ -29,15 +29,18 @@ class FileRef {
     await semaToDownloadFromS3.acquire();
     console.time(`downloading ${url}`);
     try {
-      return await retry(async () => {
-        const resp = await fetch(url);
-        if (!resp.ok) {
-          const error = new Error(`${resp.status} ${resp.statusText}`);
-          if (resp.status === 403) error.bail = true;
-          throw error;
-        }
-        return resp.body;
-      }, { factor: 1, retries: 3 });
+      return await retry(
+        async () => {
+          const resp = await fetch(url);
+          if (!resp.ok) {
+            const error = new Error(`${resp.status} ${resp.statusText}`);
+            if (resp.status === 403) error.bail = true;
+            throw error;
+          }
+          return resp.body;
+        },
+        { factor: 1, retries: 3 },
+      );
     } finally {
       console.timeEnd(`downloading ${url}`);
       semaToDownloadFromS3.release();
@@ -52,11 +55,13 @@ class FileRef {
       if (flag) return cb();
       flag = true;
 
-      this.toStreamAsync().then((stream) => {
-        cb(undefined, stream);
-      }).catch((error) => {
-        cb(error);
-      });
+      this.toStreamAsync()
+        .then((stream) => {
+          cb(undefined, stream);
+        })
+        .catch((error) => {
+          cb(error);
+        });
     });
   }
 }
