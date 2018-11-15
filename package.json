@@ -26,6 +26,7 @@
     ]
   },
   "devDependencies": {
+    "@types/node": "^10.12.8",
     "eslint": "^5.9.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-prettier": "^3.1.0",
@@ -33,6 +34,7 @@
     "jest": "^23.6.0",
     "lint-staged": "^8.0.4",
     "pre-commit": "^1.2.2",
-    "prettier": "^1.15.2"
+    "prettier": "^1.15.2",
+    "typescript": "^3.1.6"
   }
 }
