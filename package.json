@@ -13,7 +13,7 @@
     "bootstrap": "lerna bootstrap",
     "publish-stable": "lerna version",
     "publish-canary": "lerna version prerelease --preid canary",
-    "lint": "eslint .",
+    "lint": "tsc && eslint .",
     "test": "jest",
     "lint-staged": "lint-staged"
   },
