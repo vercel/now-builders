@@ -8,7 +8,7 @@ const path = require('path');
 const { promisify } = require('util');
 const {
   runNpmInstall,
-  runPackageJsonScript
+  runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts.js');
 
 const readFile = promisify(fs.readFile);
@@ -36,7 +36,7 @@ const readFile = promisify(fs.readFile);
  */
 async function downloadInstallAndBundle(
   { files, entrypoint, workPath },
-  { npmArguments = [] }
+  { npmArguments = [] },
 ) {
   const userPath = path.join(workPath, 'user');
   const rollupPath = path.join(workPath, 'rollup');
@@ -59,12 +59,12 @@ async function downloadInstallAndBundle(
             'rollup-plugin-commonjs': '9.2.0',
             'rollup-plugin-json': '3.1.0',
             'rollup-plugin-node-resolve': '3.4.0',
-            'rollup-plugin-terser': '3.0.0'
-          }
-        })
-      })
+            'rollup-plugin-terser': '3.0.0',
+          },
+        }),
+      }),
     },
-    rollupPath
+    rollupPath,
   );
 
   console.log('running npm install for rollup...');
@@ -76,23 +76,23 @@ async function compile(workRollupPath, input) {
   const rollup = require(path.join(workRollupPath, 'node_modules/rollup'));
   const nodeResolve = require(path.join(
     workRollupPath,
-    'node_modules/rollup-plugin-node-resolve'
+    'node_modules/rollup-plugin-node-resolve',
   ));
   const commonjs = require(path.join(
     workRollupPath,
-    'node_modules/rollup-plugin-commonjs'
+    'node_modules/rollup-plugin-commonjs',
   ));
   const json = require(path.join(
     workRollupPath,
-    'node_modules/rollup-plugin-json'
+    'node_modules/rollup-plugin-json',
   ));
   const { terser } = require(path.join(
     workRollupPath,
-    'node_modules/rollup-plugin-terser'
+    'node_modules/rollup-plugin-terser',
   ));
   const builtins = require(path.join(
     workRollupPath,
-    'node_modules/builtins'
+    'node_modules/builtins',
   ))();
 
   const bundle = await rollup.rollup({
@@ -102,11 +102,11 @@ async function compile(workRollupPath, input) {
         module: false,
         jsnext: false,
         browser: false,
-        preferBuiltins: true
+        preferBuiltins: true,
       }),
       json(),
       commonjs(),
-      terser()
+      terser(),
     ],
     onwarn(error) {
       if (/external dependency/.test(error.message)) {
@@ -115,11 +115,11 @@ async function compile(workRollupPath, input) {
         if (builtins.indexOf(mod) > -1) return;
       }
       console.error(error.message);
-    }
+    },
   });
 
   return (await bundle.generate({
-    format: 'cjs'
+    format: 'cjs',
   })).code;
 }
 
@@ -128,10 +128,10 @@ exports.build = async ({ files, entrypoint, workPath }) => {
   const [
     filesOnDisk,
     workRollupPath,
-    entrypointFsDirname
+    entrypointFsDirname,
   ] = await downloadInstallAndBundle(
     { files, entrypoint, workPath },
-    { npmArguments: ['--prefer-offline'] }
+    { npmArguments: ['--prefer-offline'] },
   );
 
   console.log('running user script...');
@@ -151,19 +151,19 @@ exports.build = async ({ files, entrypoint, workPath }) => {
     '// PLACEHOLDER',
     [
       'process.chdir("./user");',
-      `listener = require("./${path.join('user', entrypoint)}");`
-    ].join(' ')
+      `listener = require("./${path.join('user', entrypoint)}");`,
+    ].join(' '),
   );
 
   const launcherFiles = {
     'launcher.js': new FileBlob({ data: launcherData }),
-    'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') })
+    'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
   };
 
   const lambda = await createLambda({
     files: { ...compiledFiles, ...launcherFiles },
     handler: 'launcher.launcher',
-    runtime: 'nodejs8.10'
+    runtime: 'nodejs8.10',
   });
 
   return { [entrypoint]: lambda };
@@ -178,6 +178,6 @@ exports.prepareCache = async ({ files, entrypoint, cachePath }) => {
     ...(await glob('user/yarn.lock', cachePath)),
     ...(await glob('rollup/node_modules/**', cachePath)),
     ...(await glob('rollup/package-lock.json', cachePath)),
-    ...(await glob('rollup/yarn.lock', cachePath))
+    ...(await glob('rollup/yarn.lock', cachePath)),
   };
 };
