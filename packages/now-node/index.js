@@ -13,13 +13,7 @@ const {
 
 const readFile = promisify(fs.readFile);
 
-/**
- * @typedef FileRef
- * @property {string} type
- * @property {integer} mode
- * @property {string} digest
- */
-
+/** @typedef { import('@now/build-utils/file-ref') } FileRef */
 /** @typedef {{[filePath: string]: FileRef}} Files */
 
 /**
@@ -123,7 +117,10 @@ async function compile(workRollupPath, input) {
   })).code;
 }
 
-/** @param {BuildType} buildParams */
+/**
+ * @param {BuildType} buildParams
+ * @returns {Promise<Files>}
+ */
 exports.build = async ({ files, entrypoint, workPath }) => {
   const [
     filesOnDisk,

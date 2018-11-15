@@ -26,6 +26,7 @@
     ]
   },
   "devDependencies": {
+    "@types/multistream": "^2.1.1",
     "@types/node": "^10.12.8",
     "eslint": "^5.9.0",
     "eslint-config-airbnb-base": "^13.1.0",

@@ -11,6 +11,7 @@
     "esModuleInterop": true
   },
   "include": [
-    "./packages/now-node/index.js"
+    "./packages/now-node/index.js",
+    "./packages/now-build-utils/file-ref.js"
   ]
 }
