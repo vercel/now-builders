@@ -17,14 +17,14 @@ const readFile = promisify(fs.readFile);
 /** @typedef {{[filePath: string]: FileRef}} Files */
 
 /**
- * @typedef {Object} BuildType
+ * @typedef {Object} BuildParamsType
  * @property {Files} files - Files object
  * @property {string} entrypoint - Entrypoint specified for the builder
  * @property {string} workPath - Working directory for this build
  */
 
 /**
- * @param {BuildType} buildParams
+ * @param {BuildParamsType} buildParams
  * @param {Object} [options]
  * @param {string[]} [options.npmArguments]
  */
@@ -118,7 +118,7 @@ async function compile(workRollupPath, input) {
 }
 
 /**
- * @param {BuildType} buildParams
+ * @param {BuildParamsType} buildParams
  * @returns {Promise<Files>}
  */
 exports.build = async ({ files, entrypoint, workPath }) => {

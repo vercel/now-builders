@@ -6,6 +6,14 @@ const Sema = require('async-sema');
 
 const semaToDownloadFromS3 = new Sema(10);
 
+class BailableError extends Error {
+  constructor(...args) {
+    super(...args);
+    /** @type {boolean} */
+    this.bail = false;
+  }
+}
+
 /**
  * @constructor
  * @argument {Object} options
@@ -45,7 +53,9 @@ class FileRef {
         async () => {
           const resp = await fetch(url);
           if (!resp.ok) {
-            const error = new Error(`${resp.status} ${resp.statusText}`);
+            const error = new BailableError(
+              `${resp.status} ${resp.statusText}`,
+            );
             if (resp.status === 403) error.bail = true;
             throw error;
           }
