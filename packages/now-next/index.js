@@ -36,11 +36,11 @@ function shouldExcludeFile(entryDirectory) {
       return true;
     }
 
-    if (file === 'package-lock.json') {
+    if (file === path.join(entryDirectory, 'package-lock.json')) {
       return true;
     }
 
-    if (file === 'yarn.lock') {
+    if (file === path.join(entryDirectory, 'yarn.lock')) {
       return true;
     }
 
