@@ -1,5 +1,7 @@
 const { createLambda } = require('@now/build-utils/lambda.js');
 const glob = require('@now/build-utils/fs/glob.js');
+const download = require('@now/build-utils/fs/download.js');
+const getWritableDir = require('@now/build-utils/fs/get-writable-directory.js');
 const path = require('path');
 const rename = require('@now/build-utils/fs/rename.js');
 
@@ -7,9 +9,20 @@ exports.config = {
   maxLambdaSize: '10mb',
 };
 
-exports.build = async ({ files, entrypoint }) => {
+exports.build = async ({ files, entrypoint, config }) => {
+  // Fetch the included files config, or default (**)
+  const includedFilesGlob = (config ? config.include : false) || '**';
+  if (includedFilesGlob !== '**') {
+    // Download the files to run a glob against them
+    const tmpDir = getWritableDir();
+    await download(files, tmpDir);
+    const includedFiles = await glob(includedFilesGlob, tmpDir);
+  } else {
+    // No need to download them
+    const includedFiles = files;
+  }
   // move all user code to 'user' subdirectory
-  const userFiles = rename(files, name => path.join('user', name));
+  const userFiles = rename(includedFiles, name => path.join('user', name));
   const launcherFiles = await glob('**', path.join(__dirname, 'dist'));
   const zipFiles = { ...userFiles, ...launcherFiles };
 
