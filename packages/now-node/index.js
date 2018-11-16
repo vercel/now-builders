@@ -125,8 +125,7 @@ exports.config = {
  * @param {BuildParamsType} buildParams
  * @returns {Promise<Files>}
  */
-
-  exports.build = async ({ files, entrypoint, workPath }) => {
+exports.build = async ({ files, entrypoint, workPath }) => {
   const [
     filesOnDisk,
     workRollupPath,
