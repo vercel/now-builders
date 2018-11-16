@@ -6,20 +6,18 @@ const path = require('path');
 const rename = require('@now/build-utils/fs/rename.js');
 
 exports.config = {
-  maxLambdaSize: '10mb'
+  maxLambdaSize: '10mb',
 };
 
 exports.build = async ({ files, entrypoint, config }) => {
   // Fetch the included files config, or default (**)
   const includedFilesGlob = (config ? config.include : false) || '**';
+  let includedFiles = files;
   if (includedFilesGlob !== '**') {
     // Download the files to run a glob against them
     const tmpDir = getWritableDir();
     await download(files, tmpDir);
-    const includedFiles = await glob(includedFilesGlob, tmpDir);
-  } else {
-    // No need to download them
-    const includedFiles = files;
+    includedFiles = await glob(includedFilesGlob, tmpDir);
   }
   // move all user code to 'user' subdirectory
   const userFiles = rename(includedFiles, name => path.join('user', name));
