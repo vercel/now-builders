@@ -7,7 +7,7 @@ const Sema = require('async-sema');
 const semaToPreventEMFILE = new Sema(30);
 
 class FileFsRef {
-  constructor ({ mode = 0o100644, fsPath }) {
+  constructor({ mode = 0o100644, fsPath }) {
     assert(typeof mode === 'number');
     assert(typeof fsPath === 'string');
     this.type = 'FileFsRef';
@@ -15,7 +15,7 @@ class FileFsRef {
     this.fsPath = fsPath;
   }
 
-  static async fromStream ({ mode = 0o100644, stream, fsPath }) {
+  static async fromStream({ mode = 0o100644, stream, fsPath }) {
     assert(typeof mode === 'number');
     assert(typeof stream.pipe === 'function'); // is-stream
     assert(typeof fsPath === 'string');
@@ -33,7 +33,7 @@ class FileFsRef {
     return new FileFsRef({ mode, fsPath });
   }
 
-  async toStreamAsync () {
+  async toStreamAsync() {
     await semaToPreventEMFILE.acquire();
     const release = () => semaToPreventEMFILE.release();
     const stream = fs.createReadStream(this.fsPath);
@@ -42,9 +42,10 @@ class FileFsRef {
     return stream;
   }
 
-  toStream () {
+  toStream() {
     let flag;
 
+    // eslint-disable-next-line consistent-return
     return new MultiStream((cb) => {
       if (flag) return cb();
       flag = true;
