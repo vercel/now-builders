@@ -12,6 +12,8 @@
   },
   "include": [
     "./packages/now-node/index.js",
-    "./packages/now-build-utils/file-ref.js"
+    "./packages/now-build-utils/file-ref.js",
+    "./packages/now-build-utils/fs/rename.js",
+    "./packages/now-next"
   ]
 }
