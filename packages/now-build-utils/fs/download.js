@@ -3,11 +3,11 @@ const FileFsRef = require('../file-fs-ref.js');
 
 /** @typedef {import('../file-ref')} FileRef */
 /** @typedef {import('../file-fs-ref')} FileFsRef */
-/** @typedef {import('../file-ref').Files} Files */
+/** @typedef {{[filePath: string]: FileRef|FileFsRef}} Files */
 /** @typedef {{[filePath: string]: FileFsRef}|{}} DownloadedFiles */
 
 /**
- * @param {FileRef} file
+ * @param {FileRef|FileFsRef} file
  * @param {string} fsPath
  * @returns {Promise<FileFsRef>}
  */

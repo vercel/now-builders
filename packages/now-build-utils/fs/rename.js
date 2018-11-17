@@ -1,4 +1,6 @@
-/** @typedef { import('@now/build-utils/file-ref').Files } Files */
+/** @typedef { import('@now/build-utils/file-ref') } FileRef */
+/** @typedef { import('@now/build-utils/file-fs-ref') } FileFsRef */
+/** @typedef {{[filePath: string]: FileRef|FileFsRef}} Files */
 
 /**
  * @callback delegate

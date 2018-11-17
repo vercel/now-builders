@@ -4,6 +4,8 @@ const multiStream = require('multistream');
 const path = require('path');
 const Sema = require('async-sema');
 
+/** @typedef {{[filePath: string]: FileFsRef}} FsFiles */
+
 const semaToPreventEMFILE = new Sema(30);
 
 /**

@@ -23,6 +23,13 @@ const {
 /** @typedef { import('@now/build-utils/fs/download').DownloadedFiles } DownloadedFiles */
 
 /**
+ * @typedef {Object} BuildParamsType
+ * @property {Files} files - Files object
+ * @property {string} entrypoint - Entrypoint specified for the builder
+ * @property {string} workPath - Working directory for this build
+ */
+
+/**
  * Read package.json from files
  * @param {DownloadedFiles} files
  */
@@ -59,6 +66,10 @@ async function writeNpmRc(workPath, token) {
   );
 }
 
+/**
+ * @param {BuildParamsType} buildParams
+ * @returns {Promise<Files>}
+ */
 exports.build = async ({ files, workPath, entrypoint }) => {
   validateEntrypoint(entrypoint);
 
@@ -98,6 +109,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   if (process.env.NPM_AUTH_TOKEN) {
     await unlink(path.join(workPath, '.npmrc'));
   }
+
   downloadedFiles = await glob('**', workPath);
 
   console.log('preparing lambda files...');
