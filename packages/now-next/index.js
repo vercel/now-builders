@@ -20,10 +20,11 @@ const {
 } = require('./utils');
 
 /** @typedef { import('@now/build-utils/file-ref').Files } Files */
+/** @typedef { import('@now/build-utils/fs/download').DownloadedFiles } DownloadedFiles */
 
 /**
  * Read package.json from files
- * @param {Files} files
+ * @param {DownloadedFiles} files
  */
 async function readPackageJson(files) {
   if (!files['package.json']) {
@@ -78,7 +79,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   let downloadedFiles = await download(filesWithoutStaticDirectory, workPath);
 
   console.log('normalizing package.json');
-  const packageJson = normalizePackageJson(readPackageJson(files));
+  const packageJson = normalizePackageJson(readPackageJson(downloadedFiles));
   await writePackageJson(workPath, packageJson);
 
   if (process.env.NPM_AUTH_TOKEN) {
