@@ -1,10 +1,11 @@
 const fs = require('fs');
+const glob = require('util').promisify(require('glob'));
 const path = require('path');
 const { spawn } = require('child_process');
 const nowDeploy = require('./now-deploy.js');
 
 async function main () {
-  const dirToPack = path.resolve('..');
+  const dirToPack = path.resolve(__dirname, '..');
   const tgzName = (await spawnAsync('npm', [ '--loglevel', 'warn', 'pack' ], {
     stdio: [ 'ignore', 'pipe', 'inherit' ],
     cwd: dirToPack
@@ -14,6 +15,20 @@ async function main () {
   const tgzUrl = await nowDeployIndexTgz(tgzPath);
   fs.unlinkSync(tgzPath);
   console.log('tgzUrl', tgzUrl);
+
+  const fixtureDir = path.resolve(__dirname, 'fixtures/01');
+  const globResult = await glob(`${fixtureDir}/**`, { nodir: true });
+  const bodies = globResult.reduce((b, f) => {
+    const r = path.relative(fixtureDir, f);
+    b[r] = fs.readFileSync(f);
+    return b;
+  }, {});
+
+  const nowJson = JSON.parse(bodies['now.json']);
+  for (const build of nowJson.builds) build.use = `https://${tgzUrl}`;
+  bodies['now.json'] = Buffer.from(JSON.stringify(nowJson));
+
+  console.log(await nowDeploy(bodies));
 }
 
 async function nowDeployIndexTgz (file) {
