@@ -7,9 +7,5 @@
   },
   "peerDependencies": {
     "@now/build-utils": ">=0.0.1"
-  },
-  "devDependencies": {
-    "glob": "7.1.3",
-    "node-fetch": "2.3.0"
   }
 }

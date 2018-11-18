@@ -5,7 +5,7 @@ async function main() {
   const builderPath = path.resolve(__dirname, '..');
   await testDeployment(
     builderPath,
-    path.resolve(__dirname, 'fixtures/01-cowsay'),
+    path.resolve(__dirname, 'fixtures/02-others'),
   );
   console.log('ok');
 }

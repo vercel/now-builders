@@ -8,9 +8,7 @@ const API_URL = 'https://api.zeit.co';
 
 async function nowDeploy (bodies) {
   const files = Object.keys(bodies)
-    .filter((n) => {
-      return n !== 'now.json';
-    })
+    .filter((n) => n !== 'now.json')
     .map((n) => ({
       sha: digestOfFile(bodies[n]),
       size: bodies[n].length,
@@ -38,11 +36,15 @@ async function nowDeploy (bodies) {
     if (json.error) throw new Error(json.error.message);
   }
 
+  let deploymentUrl;
+
   {
     const json = await deploymentPost(nowDeployPayload);
     if (json.error && json.error.code === 'missing_files') throw new Error('Missing files');
-    return json.url;
+    deploymentUrl = json.url;
   }
+
+  return deploymentUrl;
 }
 
 function digestOfFile (body) {
@@ -66,6 +68,7 @@ async function filePost (body, digest) {
     headers,
     body
   });
+
   return await resp.json();
 }
 

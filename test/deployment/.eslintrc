@@ -1,7 +1,7 @@
 {
   "overrides": [
     {
-      "files": ["test/**"],
+      "files": ["**"],
       "rules": {
         "array-bracket-spacing": [
           "error",
