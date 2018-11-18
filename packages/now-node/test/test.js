@@ -28,6 +28,15 @@ async function main () {
   for (const build of nowJson.builds) build.use = `https://${tgzUrl}`;
   bodies['now.json'] = Buffer.from(JSON.stringify(nowJson));
 
+  const randomness = Math.floor(Math.random() * 0x7fffffff).toString(16);
+  for (const file of Object.keys(bodies)) {
+    if ([ '.js', '.json' ].includes(path.extname(file))) {
+      bodies[file] = Buffer.from(
+        bodies[file].toString().replace(/RANDOMNESS_PLACEHOLDER/, randomness)
+      );
+    }
+  }
+
   console.log(await nowDeploy(bodies));
 }
 
