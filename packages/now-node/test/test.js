@@ -1,3 +1,5 @@
+const assert = require('assert');
+const fetch = require('node-fetch');
 const fs = require('fs');
 const glob = require('util').promisify(require('glob'));
 const path = require('path');
@@ -12,7 +14,7 @@ async function main () {
   })).trim();
   const tgzPath = path.join(dirToPack, tgzName);
   console.log('tgzPath', tgzPath);
-  const tgzUrl = await nowDeployIndexTgz(tgzPath);
+  const tgzUrl = `https://${await nowDeployIndexTgz(tgzPath)}`;
   fs.unlinkSync(tgzPath);
   console.log('tgzUrl', tgzUrl);
 
@@ -25,7 +27,7 @@ async function main () {
   }, {});
 
   const nowJson = JSON.parse(bodies['now.json']);
-  for (const build of nowJson.builds) build.use = `https://${tgzUrl}`;
+  for (const build of nowJson.builds) build.use = tgzUrl;
   bodies['now.json'] = Buffer.from(JSON.stringify(nowJson));
 
   const randomness = Math.floor(Math.random() * 0x7fffffff).toString(16);
@@ -37,7 +39,9 @@ async function main () {
     }
   }
 
-  console.log(await nowDeploy(bodies));
+  const deploymentUrl = `https://${await nowDeploy(bodies)}`;
+  const text = await waitForNon303(deploymentUrl);
+  assert(text.includes(randomness));
 }
 
 async function nowDeployIndexTgz (file) {
@@ -47,6 +51,16 @@ async function nowDeployIndexTgz (file) {
   };
 
   return await nowDeploy(bodies);
+}
+
+async function waitForNon303 (url) {
+  for (let i = 0; i < 30; i += 1) {
+    const resp = await fetch(url, { redirect: 'manual' });
+    if (resp.status !== 303) return await resp.text();
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+
+  return '';
 }
 
 async function spawnAsync (...args) {
