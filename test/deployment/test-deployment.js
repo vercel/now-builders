@@ -40,7 +40,7 @@ async function testDeployment (builderPath, fixturePath) {
   console.log('deploymentUrl', deploymentUrl);
 
   for (const probe of nowJson.probes) {
-    console.log(probe);
+    console.log('testing', JSON.stringify(probe));
     const text = await fetchUrlText(`https://${deploymentUrl}${probe.path}`, {
       method: probe.method,
       body: probe.body ? JSON.stringify(probe.body) : undefined,
@@ -53,6 +53,7 @@ async function testDeployment (builderPath, fixturePath) {
     } else {
       assert(false, 'probe must have a test condition');
     }
+    console.log('ok');
   }
 }
 

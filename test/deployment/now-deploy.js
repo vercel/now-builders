@@ -90,9 +90,9 @@ async function fetchWithAuth (url, opts = {}) {
 }
 
 async function fetchApiWithChecks (url, opts = {}) {
-  const { method = 'GET', body, prefix } = opts;
-  console.log(`[${prefix || ''}] fetch`, method, url);
-  if (body) console.log(encodeURIComponent(body).slice(0, 80));
+  // const { method = 'GET', body } = opts;
+  // console.log('fetch', method, url);
+  // if (body) console.log(encodeURIComponent(body).slice(0, 80));
   const resp = await fetch(url, opts);
   return resp;
 }

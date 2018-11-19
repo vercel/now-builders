@@ -7,7 +7,6 @@ async function main() {
     builderPath,
     path.resolve(__dirname, 'fixtures/02-others'),
   );
-  console.log('ok');
 }
 
 main().catch((error) => {
