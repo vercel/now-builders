@@ -1,5 +1,4 @@
 {
-  "name": "apollo",
   "dependencies": {
     "apollo-server-express": "^2.2.2",
     "express": "^4.16.4",

@@ -1,5 +1,4 @@
 {
-  "name": "cowsay",
   "dependencies": {
     "cowsay": "^1.3.1"
   }
