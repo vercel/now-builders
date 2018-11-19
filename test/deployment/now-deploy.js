@@ -24,7 +24,7 @@ async function nowDeploy (bodies) {
     name: 'test',
     files,
     builds: nowJson.builds,
-    routes: [],
+    routes: nowJson.routes || [],
     meta: {}
   };
 
