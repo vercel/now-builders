@@ -43,7 +43,10 @@ async function testDeployment (builderPath, fixturePath) {
     console.log(probe);
     const text = await fetchUrlText(`https://${deploymentUrl}${probe.path}`, {
       method: probe.method,
-      body: probe.body ? JSON.stringify(probe.body) : undefined
+      body: probe.body ? JSON.stringify(probe.body) : undefined,
+      headers: {
+        'content-type': 'application/json'
+      }
     });
     if (probe.mustInclude) {
       assert(text.includes(probe.mustInclude));
@@ -62,9 +65,9 @@ async function nowDeployIndexTgz (file) {
   return await nowDeploy(bodies);
 }
 
-async function fetchUrlText (url) {
+async function fetchUrlText (url, opts) {
   for (let i = 0; i < 30; i += 1) {
-    const resp = await fetch(url);
+    const resp = await fetch(url, opts);
     const text = await resp.text();
     if (!text.includes('Join Free')) return text;
     await new Promise((r) => setTimeout(r, 1000));

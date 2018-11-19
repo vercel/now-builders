@@ -3,7 +3,10 @@
   "builds": [
     { "src": "apollo/index.js", "use": "@now/node-server" }
   ],
+  "routes": [
+    { "src": "/.*", "dest": "apollo/index.js" }
+  ],
   "probes": [
-    { "path": "/apollo", "method": "POST", "body": { "query": "{hello}" }, "mustInclude": "RANDOMNESS_PLACEHOLDER" }
+    { "path": "/graphql", "method": "POST", "body": { "query": "{hello}" }, "mustInclude": "RANDOMNESS_PLACEHOLDER" }
   ]
 }
