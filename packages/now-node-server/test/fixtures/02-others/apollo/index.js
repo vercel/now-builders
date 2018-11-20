@@ -9,7 +9,7 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    hello: () => 'RANDOMNESS_PLACEHOLDER',
+    hello: () => 'apollo:RANDOMNESS_PLACEHOLDER',
   },
 };
 
