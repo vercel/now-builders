@@ -6,17 +6,20 @@ const path = require('path');
 const { spawn } = require('child_process');
 const nowDeploy = require('./now-deploy.js');
 
-async function testDeployment (builderPath, fixturePath) {
+async function packAndDeploy (builderPath) {
   const tgzName = (await spawnAsync('npm', [ '--loglevel', 'warn', 'pack' ], {
     stdio: [ 'ignore', 'pipe', 'inherit' ],
     cwd: builderPath
   })).trim();
   const tgzPath = path.join(builderPath, tgzName);
   console.log('tgzPath', tgzPath);
-  const tgzUrl = await nowDeployIndexTgz(tgzPath);
+  const url = await nowDeployIndexTgz(tgzPath);
   fs.unlinkSync(tgzPath);
-  console.log('tgzUrl', tgzUrl);
+  console.log('builderUrl', url);
+  return url;
+}
 
+async function testDeployment (builderUrl, fixturePath) {
   const globResult = await glob(`${fixturePath}/**`, { nodir: true });
   const bodies = globResult.reduce((b, f) => {
     const r = path.relative(fixturePath, f);
@@ -34,7 +37,7 @@ async function testDeployment (builderPath, fixturePath) {
   }
 
   const nowJson = JSON.parse(bodies['now.json']);
-  for (const build of nowJson.builds) build.use = `https://${tgzUrl}`;
+  for (const build of nowJson.builds) build.use = `https://${builderUrl}`;
   bodies['now.json'] = Buffer.from(JSON.stringify(nowJson));
   const deploymentUrl = await nowDeploy(bodies);
   console.log('deploymentUrl', deploymentUrl);
@@ -106,4 +109,7 @@ async function spawnAsync (...args) {
   });
 }
 
-module.exports = testDeployment;
+module.exports = {
+  packAndDeploy,
+  testDeployment
+};

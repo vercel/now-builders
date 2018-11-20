@@ -1,16 +1,20 @@
 const path = require('path');
-const testDeployment = require('../../../test/deployment/test-deployment.js');
+const {
+  packAndDeploy,
+  testDeployment,
+} = require('../../../test/deployment/test-deployment.js');
 
 async function main() {
   const builderPath = path.resolve(__dirname, '..');
+  const builderUrl = await packAndDeploy(builderPath);
 
   await testDeployment(
-    builderPath,
+    builderUrl,
     path.resolve(__dirname, 'fixtures/01-cowsay'),
   );
 
   await testDeployment(
-    builderPath,
+    builderUrl,
     path.resolve(__dirname, 'fixtures/02-others'),
   );
 }
