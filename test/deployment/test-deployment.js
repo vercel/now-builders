@@ -14,6 +14,7 @@ async function packAndDeploy (builderPath) {
   const tgzPath = path.join(builderPath, tgzName);
   console.log('tgzPath', tgzPath);
   const url = await nowDeployIndexTgz(tgzPath);
+  await fetchBuilderUrl(`https://${url}`);
   fs.unlinkSync(tgzPath);
   console.log('builderUrl', url);
   return url;
@@ -44,13 +45,16 @@ async function testDeployment (builderUrl, fixturePath) {
 
   for (const probe of nowJson.probes) {
     console.log('testing', JSON.stringify(probe));
-    const text = await fetchUrlText(`https://${deploymentUrl}${probe.path}`, {
-      method: probe.method,
-      body: probe.body ? JSON.stringify(probe.body) : undefined,
-      headers: {
-        'content-type': 'application/json'
+    const text = await fetchDeploymentUrl(
+      `https://${deploymentUrl}${probe.path}`,
+      {
+        method: probe.method,
+        body: probe.body ? JSON.stringify(probe.body) : undefined,
+        headers: {
+          'content-type': 'application/json'
+        }
       }
-    });
+    );
     if (probe.mustContain) {
       if (!text.includes(probe.mustContain)) {
         fs.writeFileSync('failed-page.txt', text);
@@ -72,7 +76,7 @@ async function nowDeployIndexTgz (file) {
   return await nowDeploy(bodies);
 }
 
-async function fetchUrlText (url, opts) {
+async function fetchDeploymentUrl (url, opts) {
   let text;
 
   for (let i = 0; i < 60; i += 1) {
@@ -84,6 +88,17 @@ async function fetchUrlText (url, opts) {
 
   console.error(`Failed to wait for deployment READY. Url is ${url}`);
   return text;
+}
+
+async function fetchBuilderUrl (url) {
+  for (let i = 0; i < 60; i += 1) {
+    const resp = await fetch(url);
+    const buffer = await resp.buffer();
+    if (buffer[0] === 0x1f) return; // tar beginning
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+
+  console.error(`Failed to wait for builder url READY. Url is ${url}`);
 }
 
 async function spawnAsync (...args) {
