@@ -7,6 +7,6 @@
     { "src": "/.*", "dest": "apollo/index.js" }
   ],
   "probes": [
-    { "path": "/graphql", "method": "POST", "body": { "query": "{hello}" }, "mustInclude": "RANDOMNESS_PLACEHOLDER" }
+    { "path": "/graphql", "method": "POST", "body": { "query": "{hello}" }, "mustContain": "RANDOMNESS_PLACEHOLDER" }
   ]
 }

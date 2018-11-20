@@ -48,8 +48,11 @@ async function testDeployment (builderPath, fixturePath) {
         'content-type': 'application/json'
       }
     });
-    if (probe.mustInclude) {
-      assert(text.includes(probe.mustInclude));
+    if (probe.mustContain) {
+      if (!text.includes(probe.mustContain)) {
+        fs.writeFileSync('failed-text.txt', text);
+        throw new Error(`Fetched page does not contain ${probe.mustContain}`);
+      }
     } else {
       assert(false, 'probe must have a test condition');
     }
@@ -67,14 +70,17 @@ async function nowDeployIndexTgz (file) {
 }
 
 async function fetchUrlText (url, opts) {
+  let text;
+
   for (let i = 0; i < 30; i += 1) {
     const resp = await fetch(url, opts);
-    const text = await resp.text();
+    text = await resp.text();
     if (!text.includes('Join Free')) return text;
     await new Promise((r) => setTimeout(r, 1000));
   }
 
-  return '';
+  console.error(`Failed to wait for deployment READY. Url is ${url}`);
+  return text;
 }
 
 async function spawnAsync (...args) {

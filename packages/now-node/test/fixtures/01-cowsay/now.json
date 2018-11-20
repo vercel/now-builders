@@ -5,7 +5,7 @@
     { "src": "subdirectory/index.js", "use": "@now/node" }
   ],
   "probes": [
-    { "path": "/", "mustInclude": "RANDOMNESS_PLACEHOLDER" },
-    { "path": "/subdirectory", "mustInclude": "RANDOMNESS_PLACEHOLDER" }
+    { "path": "/", "mustContain": "RANDOMNESS_PLACEHOLDER" },
+    { "path": "/subdirectory", "mustContain": "RANDOMNESS_PLACEHOLDER" }
   ]
 }
