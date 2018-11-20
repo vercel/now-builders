@@ -63,7 +63,6 @@ async function testDeployment (builderUrl, fixturePath) {
     } else {
       assert(false, 'probe must have a test condition');
     }
-    console.log('ok');
   }
 }
 
@@ -79,7 +78,7 @@ async function nowDeployIndexTgz (file) {
 async function fetchDeploymentUrl (url, opts) {
   let text;
 
-  for (let i = 0; i < 60; i += 1) {
+  for (let i = 0; i < 500; i += 1) {
     const resp = await fetch(url, opts);
     text = await resp.text();
     if (!text.includes('Join Free')) return text;
@@ -91,7 +90,7 @@ async function fetchDeploymentUrl (url, opts) {
 }
 
 async function fetchBuilderUrl (url) {
-  for (let i = 0; i < 60; i += 1) {
+  for (let i = 0; i < 500; i += 1) {
     const resp = await fetch(url);
     const buffer = await resp.buffer();
     if (buffer[0] === 0x1f) return; // tar beginning
