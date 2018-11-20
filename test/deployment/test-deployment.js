@@ -50,7 +50,7 @@ async function testDeployment (builderPath, fixturePath) {
     });
     if (probe.mustContain) {
       if (!text.includes(probe.mustContain)) {
-        fs.writeFileSync('failed-text.txt', text);
+        fs.writeFileSync('failed-page.txt', text);
         throw new Error(`Fetched page does not contain ${probe.mustContain}`);
       }
     } else {
@@ -72,7 +72,7 @@ async function nowDeployIndexTgz (file) {
 async function fetchUrlText (url, opts) {
   let text;
 
-  for (let i = 0; i < 30; i += 1) {
+  for (let i = 0; i < 60; i += 1) {
     const resp = await fetch(url, opts);
     text = await resp.text();
     if (!text.includes('Join Free')) return text;
