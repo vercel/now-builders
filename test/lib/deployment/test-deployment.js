@@ -1,6 +1,6 @@
 const assert = require('assert');
 const fetch = require('node-fetch');
-const fs = require('fs');
+const fs = require('fs-extra');
 const glob = require('util').promisify(require('glob'));
 const path = require('path');
 const { spawn } = require('child_process');
@@ -15,7 +15,7 @@ async function packAndDeploy (builderPath) {
   console.log('tgzPath', tgzPath);
   const url = await nowDeployIndexTgz(tgzPath);
   await fetchBuilderUrl(`https://${url}`);
-  fs.unlinkSync(tgzPath);
+  await fs.unlink(tgzPath);
   console.log('builderUrl', url);
   return url;
 }
@@ -57,7 +57,7 @@ async function testDeployment (builderUrl, fixturePath) {
     );
     if (probe.mustContain) {
       if (!text.includes(probe.mustContain)) {
-        fs.writeFileSync('failed-page.txt', text);
+        await fs.writeFile(path.join(__dirname, 'failed-page.txt'), text);
         throw new Error(`Fetched page does not contain ${probe.mustContain}`);
       }
     } else {
@@ -68,7 +68,7 @@ async function testDeployment (builderUrl, fixturePath) {
 
 async function nowDeployIndexTgz (file) {
   const bodies = {
-    'index.tgz': fs.readFileSync(file),
+    'index.tgz': await fs.readFile(file),
     'now.json': Buffer.from(JSON.stringify({ version: 2 }))
   };
 

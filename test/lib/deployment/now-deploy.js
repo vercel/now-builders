@@ -1,7 +1,7 @@
 const assert = require('assert');
 const { createHash } = require('crypto');
 const fetch = require('node-fetch');
-const fs = require('fs');
+const fs = require('fs-extra');
 const { homedir } = require('os');
 const path = require('path');
 
@@ -86,8 +86,9 @@ async function deploymentPost (payload) {
 async function fetchWithAuth (url, opts = {}) {
   if (!opts.headers) opts.headers = {};
   const authJsonPath = path.join(homedir(), '.now/auth.json');
-  if (!fs.existsSync(authJsonPath)) {
-    fs.writeFileSync(
+  if (!(await fs.exists(authJsonPath))) {
+    await fs.mkdirp(path.dirname(authJsonPath));
+    await fs.writeFile(
       authJsonPath,
       JSON.stringify({
         token: process.env.NOW_AUTH_TOKEN
