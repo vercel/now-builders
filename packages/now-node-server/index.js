@@ -5,6 +5,7 @@ const FileFsRef = require('@now/build-utils/file-fs-ref.js');
 const fs = require('fs-extra');
 const glob = require('@now/build-utils/fs/glob.js');
 const path = require('path');
+const rename = require('@now/build-utils/fs/rename.js');
 const {
   runNpmInstall,
   runPackageJsonScript,
@@ -17,6 +18,7 @@ const {
  * @typedef {Object} BuildParamsType
  * @property {Files} files - Files object
  * @property {string} entrypoint - Entrypoint specified for the builder
+ * @property {Object} config - User-passed config from now.json
  * @property {string} workPath - Working directory for this build
  */
 
@@ -71,7 +73,9 @@ exports.config = {
  * @param {BuildParamsType} buildParams
  * @returns {Promise<Files>}
  */
-exports.build = async ({ files, entrypoint, workPath }) => {
+exports.build = async ({
+  files, entrypoint, config, workPath,
+}) => {
   const [
     downloadedFiles,
     workNccPath,
@@ -84,16 +88,23 @@ exports.build = async ({ files, entrypoint, workPath }) => {
   console.log('running user script...');
   await runPackageJsonScript(entrypointFsDirname, 'now-build');
 
-  console.log('compiling entrypoint with ncc...');
-  const data = await compile(workNccPath, downloadedFiles[entrypoint].fsPath);
-  const blob = new FileBlob({ data });
-
   console.log('preparing lambda files...');
-  // move all user code to 'user' subdirectory
-  const preparedFiles = { [path.join('user', entrypoint)]: blob };
+  let preparedFiles;
+
+  if (config && config.bundle === false) {
+    // move all user code to 'user' subdirectory
+    preparedFiles = await glob('**', workPath);
+    preparedFiles = rename(preparedFiles, name => path.join('user', name));
+  } else {
+    console.log('compiling entrypoint with ncc...');
+    const data = await compile(workNccPath, downloadedFiles[entrypoint].fsPath);
+    const blob = new FileBlob({ data });
+    // move all user code to 'user' subdirectory
+    preparedFiles = { [path.join('user', entrypoint)]: blob };
+  }
+
   const launcherPath = path.join(__dirname, 'launcher.js');
   let launcherData = await fs.readFile(launcherPath, 'utf8');
-
   launcherData = launcherData.replace(
     '// PLACEHOLDER',
     [
