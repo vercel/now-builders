@@ -19,6 +19,12 @@ it('should build 01-cowsay', async () => {
   ).resolves.toBe(undefined);
 });
 
+it('should build 02-env-vars', async () => {
+  await expect(
+    testDeployment(builderUrl, path.resolve(__dirname, 'fixtures/02-env-vars')),
+  ).resolves.toBe(undefined);
+});
+
 it('should build 10-others', async () => {
   await expect(
     testDeployment(builderUrl, path.resolve(__dirname, 'fixtures/10-others')),
