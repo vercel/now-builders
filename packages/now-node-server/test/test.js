@@ -19,8 +19,8 @@ it('should build 01-cowsay', async () => {
   ).resolves.toBe(undefined);
 });
 
-it('should build 02-others', async () => {
+it('should build 10-others', async () => {
   await expect(
-    testDeployment(builderUrl, path.resolve(__dirname, 'fixtures/02-others')),
+    testDeployment(builderUrl, path.resolve(__dirname, 'fixtures/10-others')),
   ).resolves.toBe(undefined);
 });
