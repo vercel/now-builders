@@ -1,18 +1,18 @@
 package main
 
 import (
-	"os"
-	"fmt"
-	"net"
-	"strings"
-	"io/ioutil"
-	"net/http"
-	"net/http/cgi"
-	"path/filepath"
-	"encoding/json"
 	b64 "encoding/base64"
+	"encoding/json"
+	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"net/http/cgi"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 type Request struct {
@@ -69,8 +69,8 @@ func (h *CgiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cgih := cgi.Handler{
 		Path: h.Script,
 		Root: "/" + h.Script,
-		Dir: h.Dir,
-		Env: []string{"SERVER_PORT=443", "HTTPS=on", "SERVER_SOFTWARE=@now/cgi"},
+		Dir:  h.Dir,
+		Env:  []string{"SERVER_PORT=443", "HTTPS=on", "SERVER_SOFTWARE=@now/cgi"},
 	}
 	cgih.ServeHTTP(w, r)
 }
