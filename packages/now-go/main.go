@@ -95,7 +95,14 @@ func main() {
 			}
 		}
 
-		client := &http.Client{}
+		client := &http.Client{
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				// we don't want to follow any redirects. that's something the actual client
+				// (i.e., the end user) should do. this internal request is just an implementation detail
+				// that acts like a proxy, so it shouldn't do things that are supposed to be done by the client
+				return http.ErrUseLastResponse
+			},
+		}
 		internalRes, err := client.Do(internalReq)
 		if err != nil {
 			fmt.Println(err)
