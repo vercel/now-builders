@@ -91,7 +91,7 @@ func main() {
 		for k, v := range req.Headers {
 			internalReq.Header.Add(k, v)
 			if strings.ToLower(k) == "host" {
-				req.Host = v
+				internalReq.Host = v
 			}
 		}
 
