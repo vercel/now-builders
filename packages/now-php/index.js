@@ -1,7 +1,6 @@
 const { createLambda } = require('@now/build-utils/lambda.js');
 const glob = require('@now/build-utils/fs/glob.js');
-const download = require('@now/build-utils/fs/download.js');
-const getWritableDir = require('@now/build-utils/fs/get-writable-directory.js');
+const minimatch = require('minimatch');
 const path = require('path');
 const rename = require('@now/build-utils/fs/rename.js');
 
@@ -14,10 +13,15 @@ exports.build = async ({ files, entrypoint, config }) => {
   const includedFilesGlob = (config ? config.include : false) || '**';
   let includedFiles = files;
   if (includedFilesGlob !== '**') {
-    // Download the files to run a glob against them
-    const tmpDir = getWritableDir();
-    await download(files, tmpDir);
-    includedFiles = await glob(includedFilesGlob, tmpDir);
+    // match the files with the glob
+    includedFiles = Object.keys(files)
+      .filter(minimatch.filter(includedFilesGlob))
+      .reduce((res, key) => {
+        res[key] = files[key];
+        return res;
+      }, {});
+    // explicit and always include the entrypoint
+    includedFiles[entrypoint] = files[entrypoint];
   }
   // move all user code to 'user' subdirectory
   const userFiles = rename(includedFiles, name => path.join('user', name));

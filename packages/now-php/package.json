@@ -6,5 +6,8 @@
   },
   "scripts": {
     "test": "jest"
+  },
+  "dependencies": {
+    "minimatch": "^3.0.4"
   }
 }
