@@ -91,6 +91,9 @@ func main() {
 		for k, v := range req.Headers {
 			internalReq.Header.Add(k, v)
 			if strings.ToLower(k) == "host" {
+				// we need to set `Host` in the request
+				// because Go likes to ignore the `Host` header
+				// see https://github.com/golang/go/issues/7682
 				internalReq.Host = v
 			}
 		}
