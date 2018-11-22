@@ -108,6 +108,11 @@ func main() {
 		internalReq, err := http.NewRequest(req.Method, url, strings.NewReader(req.Body))
 		if err != nil {
 			fmt.Println(err)
+			return createErrorResponse("Bad gateway", "bad_gateway", 502)
+		}
+
+		if err != nil {
+			fmt.Println(err)
 			return createErrorResponse("Bad gateway internal req failed", "bad_gateway", 502)
 		}
 
