@@ -2,17 +2,13 @@ const { createLambda } = require('@now/build-utils/lambda.js');
 const download = require('@now/build-utils/fs/download.js');
 const FileBlob = require('@now/build-utils/file-blob.js');
 const FileFsRef = require('@now/build-utils/file-fs-ref.js');
-const fsExtra = require('fs-extra');
-const fs = require('fs');
+const fs = require('fs-extra');
 const glob = require('@now/build-utils/fs/glob.js');
 const path = require('path');
-const { promisify } = require('util');
 const {
   runNpmInstall,
   runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts.js');
-
-const readFile = promisify(fs.readFile);
 
 /** @typedef { import('@now/build-utils/file-ref') } FileRef */
 /** @typedef {{[filePath: string]: FileRef}} Files */
@@ -96,7 +92,7 @@ exports.build = async ({ files, entrypoint, workPath }) => {
   // move all user code to 'user' subdirectory
   const compiledFiles = { [path.join('user', entrypoint)]: blob };
   const launcherPath = path.join(__dirname, 'launcher.js');
-  let launcherData = await readFile(launcherPath, 'utf8');
+  let launcherData = await fs.readFile(launcherPath, 'utf8');
 
   launcherData = launcherData.replace(
     '// PLACEHOLDER',
@@ -123,7 +119,7 @@ exports.build = async ({ files, entrypoint, workPath }) => {
 exports.prepareCache = async ({
   files, entrypoint, workPath, cachePath,
 }) => {
-  await fsExtra.remove(workPath);
+  await fs.remove(workPath);
   await downloadInstallAndBundle({ files, entrypoint, workPath: cachePath });
 
   return {
