@@ -57,7 +57,7 @@ async function downloadInstallAndBundle(
 
   console.log('running npm install for ncc...');
   await runNpmInstall(nccPath, npmArguments);
-  return [downloadedFiles, nccPath, entrypointFsDirname];
+  return [downloadedFiles, userPath, nccPath, entrypointFsDirname];
 }
 
 async function compile(workNccPath, input) {
@@ -78,6 +78,7 @@ exports.build = async ({
 }) => {
   const [
     downloadedFiles,
+    workUserPath,
     workNccPath,
     entrypointFsDirname,
   ] = await downloadInstallAndBundle(
@@ -93,7 +94,7 @@ exports.build = async ({
 
   if (config && config.bundle === false) {
     // move all user code to 'user' subdirectory
-    preparedFiles = await glob('**', workPath);
+    preparedFiles = await glob('**', workUserPath);
     preparedFiles = rename(preparedFiles, name => path.join('user', name));
   } else {
     console.log('compiling entrypoint with ncc...');
