@@ -64,7 +64,7 @@ async function compile(workNccPath, input) {
 }
 
 exports.config = {
-  maxLambdaSize: '15mb',
+  maxLambdaSize: '5mb',
 };
 
 /**
