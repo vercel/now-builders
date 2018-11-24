@@ -52,20 +52,20 @@ async function testDeployment ({ builderUrl, buildUtilsUrl }, fixturePath) {
 
   for (const probe of nowJson.probes) {
     console.log('testing', JSON.stringify(probe));
-    const text = await fetchDeploymentUrl(
-      `https://${deploymentUrl}${probe.path}`,
-      {
-        method: probe.method,
-        body: probe.body ? JSON.stringify(probe.body) : undefined,
-        headers: {
-          'content-type': 'application/json'
-        }
+    const probeUrl = `https://${deploymentUrl}${probe.path}`;
+    const text = await fetchDeploymentUrl(probeUrl, {
+      method: probe.method,
+      body: probe.body ? JSON.stringify(probe.body) : undefined,
+      headers: {
+        'content-type': 'application/json'
       }
-    );
+    });
     if (probe.mustContain) {
       if (!text.includes(probe.mustContain)) {
         await fs.writeFile(path.join(__dirname, 'failed-page.txt'), text);
-        throw new Error(`Fetched page does not contain ${probe.mustContain}`);
+        throw new Error(
+          `Fetched page ${probeUrl} does not contain ${probe.mustContain}`
+        );
       }
     } else {
       assert(false, 'probe must have a test condition');
