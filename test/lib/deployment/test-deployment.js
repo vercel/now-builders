@@ -16,11 +16,10 @@ async function packAndDeploy (builderPath) {
   const url = await nowDeployIndexTgz(tgzPath);
   await fetchBuilderUrl(`https://${url}`);
   await fs.unlink(tgzPath);
-  console.log('builderUrl', url);
   return url;
 }
 
-async function testDeployment (builderUrl, fixturePath) {
+async function testDeployment ({ builderUrl }, fixturePath) {
   const globResult = await glob(`${fixturePath}/**`, { nodir: true });
   const bodies = globResult.reduce((b, f) => {
     const r = path.relative(fixturePath, f);
