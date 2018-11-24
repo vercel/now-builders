@@ -39,8 +39,15 @@ async function testDeployment ({ builderUrl, buildUtilsUrl }, fixturePath) {
 
   const nowJson = JSON.parse(bodies['now.json']);
   for (const build of nowJson.builds) {
-    if (builderUrl) build.use = `https://${builderUrl}`;
+    if (builderUrl) {
+      build.use = `https://${builderUrl}`;
+      if (!buildUtilsUrl) {
+        build.config = build.config || {};
+        build.config.useBuildUtils = '@now/build-utils@canary';
+      }
+    }
     if (buildUtilsUrl) {
+      if (!builderUrl) build.use = `${build.use}@canary`;
       build.config = build.config || {};
       build.config.useBuildUtils = `https://${buildUtilsUrl}`;
     }
