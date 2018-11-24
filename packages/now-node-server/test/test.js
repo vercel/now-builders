@@ -7,7 +7,7 @@ const {
   testDeployment,
 } = require('../../../test/lib/deployment/test-deployment.js');
 
-jest.setTimeout(10 * 60 * 1000);
+jest.setTimeout(2 * 60 * 1000);
 let builderUrl;
 
 beforeAll(async () => {

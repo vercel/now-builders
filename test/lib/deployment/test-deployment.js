@@ -14,12 +14,13 @@ async function packAndDeploy (builderPath) {
   const tgzPath = path.join(builderPath, tgzName);
   console.log('tgzPath', tgzPath);
   const url = await nowDeployIndexTgz(tgzPath);
-  await fetchBuilderUrl(`https://${url}`);
+  await fetchTgzUrl(`https://${url}`);
   await fs.unlink(tgzPath);
   return url;
 }
 
-async function testDeployment ({ builderUrl }, fixturePath) {
+async function testDeployment ({ builderUrl, buildUtilsUrl }, fixturePath) {
+  console.log('testDeployment', fixturePath);
   const globResult = await glob(`${fixturePath}/**`, { nodir: true });
   const bodies = globResult.reduce((b, f) => {
     const r = path.relative(fixturePath, f);
@@ -37,7 +38,14 @@ async function testDeployment ({ builderUrl }, fixturePath) {
   }
 
   const nowJson = JSON.parse(bodies['now.json']);
-  for (const build of nowJson.builds) build.use = `https://${builderUrl}`;
+  for (const build of nowJson.builds) {
+    if (builderUrl) build.use = `https://${builderUrl}`;
+    if (buildUtilsUrl) {
+      build.config = build.config || {};
+      build.config.useBuildUtils = `https://${buildUtilsUrl}`;
+    }
+  }
+
   bodies['now.json'] = Buffer.from(JSON.stringify(nowJson));
   const deploymentUrl = await nowDeploy(bodies, randomness);
   console.log('deploymentUrl', deploymentUrl);
@@ -90,7 +98,7 @@ async function fetchDeploymentUrl (url, opts) {
   throw new Error(`Failed to wait for deployment READY. Url is ${url}`);
 }
 
-async function fetchBuilderUrl (url) {
+async function fetchTgzUrl (url) {
   for (let i = 0; i < 500; i += 1) {
     const resp = await fetch(url);
     if (resp.status === 200) {
