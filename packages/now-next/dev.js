@@ -1,38 +1,32 @@
-const { spawn } = require('child_process');
+const url = require('url');
 
-function spawnAsync(command, args, options = { stdio: ['inherit'] }) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, options);
-    child.on('error', reject);
-    child.on('close', (code, signal) => {
-      if (code) {
-        return reject(new Error(`Exited with ${code || signal}`));
-      }
+// ! __non_webpack_require__ didn't work, so hacking the hacky hacks
+const nodeRequire = eval('require'); /* eslint-disable-line */
 
-      return resolve();
-    });
+let app;
+
+// TODO Ensure, this happens only once
+module.exports.init = async function init() {
+  // TODO Install project dependencies, preferring offline
+
+  // Dynamically load next from the CWD
+  const nextPath = nodeRequire.resolve('next', {
+    paths: [process.cwd(), ...require.resolve.paths('next')],
   });
-}
+  const next = nodeRequire(nextPath);
 
-module.exports.init = async function init({ output }) {
-  // TODO Install these dependencies elsewhere, or via `--no-save`
-  await spawnAsync('yarn', ['add', 'add', 'next', 'react', 'react-dom'], {
-    stdio: [
-      'inherit',
-      output.debugEnabled ? 'inherit' : 'ignore',
-      output.debugEnabled ? 'inherit' : 'ignore',
-    ],
-  });
+  // TODO Use process.cwd()'s next.config.js
+  app = next({ dev: true });
+
+  return app.prepare();
 };
 
-module.exports.build = async function build({ output }) {
-  // TODO Because `yarn run` uses node_modules/.bin, this will break
-  // if `npm` is ran instead.
-  spawnAsync('yarn', ['run', 'next'], {
-    stdio: [
-      'inherit',
-      output.debugEnabled ? 'inherit' : 'ignore',
-      output.debugEnabled ? 'inherit' : 'ignore',
-    ],
-  });
+module.exports.build = async function build({ req, res }) {
+  if (!app) {
+    throw new Error('@now/next was not initialized');
+  }
+
+  const parsedUrl = url.parse(req.url, true);
+
+  return app.render(req, res, req.url, parsedUrl.query, parsedUrl);
 };
