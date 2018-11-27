@@ -63,25 +63,21 @@ async function runNpmInstall(destPath, args = []) {
     commandArgs = args.filter(a => a !== '--prefer-offline');
     await spawnAsync('npm', ['install'].concat(commandArgs), destPath);
     await spawnAsync('npm', ['cache', 'clean', '--force'], destPath);
+  } else if (process.env.AWS_EXECUTION_ENV) {
+    await spawnAsync(
+      'node',
+      [path.join(__dirname, 'bootstrap-yarn.js'), '--cwd', destPath].concat(
+        commandArgs,
+      ),
+      destPath,
+    );
   } else {
-    try {
-      await spawnAsync(
-        'node',
-        [path.join(__dirname, 'bootstrap-yarn.js'), '--cwd', destPath].concat(
-          commandArgs,
-        ),
-        destPath,
-      );
-    } catch (error) {
-      try {
-        console.log(
-          await fs.readFile(path.join(destPath, 'yarn-error.log'), 'utf8'),
-        );
-      } catch (error2) {
-        console.error(error2);
-      }
-      throw error;
-    }
+    await spawnAsync(
+      'yarn',
+      ['--cwd', destPath].concat(commandArgs),
+      destPath,
+    );
+    await spawnAsync('yarn', ['cache', 'clean'], destPath);
   }
 }
 
