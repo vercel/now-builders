@@ -14,7 +14,7 @@ const cachePath = spawnSync(yarnPath, ['cache', 'dir'])
 spawnSync(yarnPath, ['cache', 'clean']);
 const vfs = new MemoryFileSystem();
 
-function isInsideCachePath(filename) {
+function isOutsideCachePath(filename) {
   const relative = path.relative(cachePath, filename);
   return relative.startsWith('..');
 }
@@ -22,7 +22,7 @@ function isInsideCachePath(filename) {
 const saveCreateWriteStream = fs.createWriteStream;
 fs.createWriteStream = (...args) => {
   const filename = args[0];
-  if (isInsideCachePath(filename)) {
+  if (isOutsideCachePath(filename)) {
     return saveCreateWriteStream.call(fs, ...args);
   }
 
@@ -42,7 +42,7 @@ fs.createWriteStream = (...args) => {
 const saveReadFile = fs.readFile;
 fs.readFile = (...args) => {
   const filename = args[0];
-  if (isInsideCachePath(filename)) {
+  if (isOutsideCachePath(filename)) {
     return saveReadFile.call(fs, ...args);
   }
 
@@ -60,7 +60,7 @@ fs.readFile = (...args) => {
 const saveCopyFile = fs.copyFile;
 fs.copyFile = (...args) => {
   const src = args[0];
-  if (isInsideCachePath(src)) {
+  if (isOutsideCachePath(src)) {
     return saveCopyFile.call(fs, ...args);
   }
 
@@ -73,7 +73,7 @@ fs.copyFile = (...args) => {
 const saveWriteFile = fs.writeFile;
 fs.writeFile = (...args) => {
   const filename = args[0];
-  if (isInsideCachePath(filename)) {
+  if (isOutsideCachePath(filename)) {
     return saveWriteFile.call(fs, ...args);
   }
 
