@@ -10,14 +10,19 @@ const yarnPath = spawnSync('which', ['yarn'])
 const cachePath = spawnSync(yarnPath, ['cache', 'dir'])
   .stdout.toString()
   .trim();
+
 spawnSync(yarnPath, ['cache', 'clean']);
 const vfs = new MemoryFileSystem();
+
+function isInsideCachePath(filename) {
+  const relative = path.relative(cachePath, filename);
+  return relative.startsWith('..');
+}
 
 const saveCreateWriteStream = fs.createWriteStream;
 fs.createWriteStream = (...args) => {
   const filename = args[0];
-  const relative = path.relative(cachePath, filename);
-  if (relative.startsWith('..')) {
+  if (isInsideCachePath(filename)) {
     return saveCreateWriteStream.call(fs, ...args);
   }
 
@@ -37,8 +42,7 @@ fs.createWriteStream = (...args) => {
 const saveReadFile = fs.readFile;
 fs.readFile = (...args) => {
   const filename = args[0];
-  const relative = path.relative(cachePath, filename);
-  if (relative.startsWith('..')) {
+  if (isInsideCachePath(filename)) {
     return saveReadFile.call(fs, ...args);
   }
 
@@ -56,8 +60,7 @@ fs.readFile = (...args) => {
 const saveCopyFile = fs.copyFile;
 fs.copyFile = (...args) => {
   const src = args[0];
-  const relative = path.relative(cachePath, src);
-  if (relative.startsWith('..')) {
+  if (isInsideCachePath(src)) {
     return saveCopyFile.call(fs, ...args);
   }
 
@@ -70,8 +73,7 @@ fs.copyFile = (...args) => {
 const saveWriteFile = fs.writeFile;
 fs.writeFile = (...args) => {
   const filename = args[0];
-  const relative = path.relative(cachePath, filename);
-  if (relative.startsWith('..')) {
+  if (isInsideCachePath(filename)) {
     return saveWriteFile.call(fs, ...args);
   }
 
