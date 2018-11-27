@@ -2,9 +2,10 @@ const MemoryFileSystem = require('memory-fs');
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
-const yarnPath = require('shelljs')
-  .which('yarn')
-  .toString();
+
+const yarnPath = spawnSync('which', ['yarn'])
+  .stdout.toString()
+  .trim();
 
 const cachePath = spawnSync(yarnPath, ['cache', 'dir'])
   .stdout.toString()

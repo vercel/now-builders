@@ -11,7 +11,6 @@
     "memory-fs": "0.4.1",
     "multistream": "2.1.1",
     "node-fetch": "2.2.0",
-    "shelljs": "0.8.3",
     "yazl": "2.4.3"
   },
   "scripts": {
