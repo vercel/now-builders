@@ -3,9 +3,14 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const yarnPath = spawnSync('which', ['yarn'])
+let yarnPath = spawnSync('which', ['yarn'])
   .stdout.toString()
   .trim();
+
+const yarnPath2 = yarnPath.replace(/\/yarn$/, '/yarn.js');
+if (fs.existsSync(yarnPath2)) {
+  yarnPath = yarnPath2;
+}
 
 const cachePath = spawnSync(yarnPath, ['cache', 'dir'])
   .stdout.toString()
