@@ -1,5 +1,7 @@
 const path = require('path');
-const { mkdirp, readFile, writeFile } = require('fs-extra');
+const {
+  mkdirp, readFile, writeFile, move,
+} = require('fs-extra');
 
 const execa = require('execa');
 const { createLambda } = require('@now/build-utils/lambda.js');
@@ -68,6 +70,12 @@ exports.build = async ({ files, entrypoint }) => {
     throw e;
   }
 
+  const [packageName, handerFunc] = handlerFunctionName.split('.');
+  const isMainPkg = packageName === 'main';
+  if (isMainPkg) {
+    handlerFunctionName = handerFunc;
+  }
+
   console.log(
     `Found exported function "${handlerFunctionName}" on "${entrypoint}"`,
   );
@@ -76,16 +84,30 @@ exports.build = async ({ files, entrypoint }) => {
     path.join(__dirname, 'main.go'),
     'utf8',
   );
-  const mainGoContents = origianlMainGoContents.replace(
-    '__NOW_HANDLER_FUNC_NAME',
-    handlerFunctionName,
-  );
-  // in order to allow the user to have `main.go`, we need our `main.go` to be called something else
-  const mainGoFileName = 'main__now__go__.go';
+  const mainGoContents = origianlMainGoContents
+    .replace('__NOW_HANDLER_FUNC_NAME', handlerFunctionName)
+    .replace(
+      '__NOW_HANDLER_PACKAGE_NAME',
+      isMainPkg ? '' : `"lambda/${packageName}"`,
+    );
+
+  const mainGoFileName = isMainPkg ? 'main__now__go__.go' : 'main.go';
 
   // we need `main.go` in the same dir as the entrypoint,
   // otherwise `go build` will refuse to build
   const entrypointDirname = path.dirname(downloadedFiles[entrypoint].fsPath);
+  const entrypointBaseName = path.basename(downloadedFiles[entrypoint].fsPath);
+
+  if (!isMainPkg) {
+    // move the entrypoint to the package dir
+    const handlerFsPath = path.join(
+      entrypointDirname,
+      packageName,
+      entrypointBaseName,
+    );
+
+    await move(downloadedFiles[entrypoint].fsPath, handlerFsPath);
+  }
 
   // Go doesn't like to build files in different directories,
   // so now we place `main.go` together with the user code
@@ -106,18 +128,21 @@ exports.build = async ({ files, entrypoint }) => {
   }
 
   console.log('running go build...');
+  const buildArgs = [
+    'build',
+    '-o',
+    path.join(outDir, 'handler'),
+    path.join(entrypointDirname, mainGoFileName),
+  ];
+  if (isMainPkg) {
+    buildArgs.push(downloadedFiles[entrypoint].fsPath);
+  }
   try {
-    await execa(
-      goBin,
-      [
-        'build',
-        '-o',
-        path.join(outDir, 'handler'),
-        path.join(entrypointDirname, mainGoFileName),
-        downloadedFiles[entrypoint].fsPath,
-      ],
-      { env: goEnv, cwd: entrypointDirname, stdio: 'inherit' },
-    );
+    await execa(goBin, buildArgs, {
+      env: goEnv,
+      cwd: entrypointDirname,
+      stdio: 'inherit',
+    });
   } catch (err) {
     console.log('failed to `go build`');
     throw err;

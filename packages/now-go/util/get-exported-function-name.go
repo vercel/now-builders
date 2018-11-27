@@ -34,7 +34,7 @@ func main() {
 		if fn.Name.IsExported() == true {
 			// we found the first exported function
 			// we're done!
-			fmt.Print(fn.Name.Name)
+			fmt.Print(parsed.Name.Name + "." + fn.Name.Name)
 			os.Exit(0)
 		}
 	}

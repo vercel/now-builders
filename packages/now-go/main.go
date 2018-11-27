@@ -3,6 +3,7 @@ package main
 import (
 	now "../../utils/go/bridge"
 	"net/http"
+	__NOW_HANDLER_PACKAGE_NAME
 )
 
 func main() {
