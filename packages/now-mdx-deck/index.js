@@ -47,7 +47,7 @@ exports.build = async ({ files, entrypoint, workPath }) => {
 
 exports.prepareCache = async ({ cachePath }) => {
   console.log('writing package.json...');
-  const packageJson = { dependencies: { 'mdx-deck': '1.7.7' } };
+  const packageJson = { dependencies: { 'mdx-deck': '1.7.15' } };
   const packageJsonPath = path.join(cachePath, 'package.json');
   await writeFile(packageJsonPath, JSON.stringify(packageJson));
   console.log('running npm install...');
