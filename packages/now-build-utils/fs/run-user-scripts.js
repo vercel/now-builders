@@ -64,6 +64,7 @@ async function runNpmInstall(destPath, args = []) {
     await spawnAsync('npm', ['install'].concat(commandArgs), destPath);
     await spawnAsync('npm', ['cache', 'clean', '--force'], destPath);
   } else if (process.env.AWS_EXECUTION_ENV) {
+    console.log('using memory-fs for yarn cache');
     await spawnAsync(
       'node',
       [path.join(__dirname, 'bootstrap-yarn.js'), '--cwd', destPath].concat(
@@ -72,11 +73,7 @@ async function runNpmInstall(destPath, args = []) {
       destPath,
     );
   } else {
-    await spawnAsync(
-      'yarn',
-      ['--cwd', destPath].concat(commandArgs),
-      destPath,
-    );
+    await spawnAsync('yarn', ['--cwd', destPath].concat(commandArgs), destPath);
     await spawnAsync('yarn', ['cache', 'clean'], destPath);
   }
 }
