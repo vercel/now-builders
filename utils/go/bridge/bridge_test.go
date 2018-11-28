@@ -1,10 +1,10 @@
 package bridge
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"testing"
-	"encoding/base64"
 )
 
 type HttpHandler struct {
@@ -29,15 +29,15 @@ func TestServe(t *testing.T) {
 		"a",
 	}
 	res, err := Serve(h, req)
-  if err != nil {
-    t.Fail()
-  }
+	if err != nil {
+		t.Fail()
+	}
 	if res.StatusCode != 404 {
 		t.Fail()
 	}
 	fmt.Printf("status code: %d\n", res.StatusCode)
 	fmt.Printf("header: %v\n", res.Headers)
 	fmt.Printf("base64 body: %s\n", res.Body)
-  body, err := base64.StdEncoding.DecodeString(res.Body)
+	body, err := base64.StdEncoding.DecodeString(res.Body)
 	fmt.Printf("body: %s\n", body)
 }

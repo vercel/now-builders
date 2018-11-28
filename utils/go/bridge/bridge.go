@@ -2,12 +2,12 @@ package bridge
 
 import (
 	"bytes"
-	"strings"
 	"encoding/base64"
 	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"net/http"
+	"strings"
 )
 
 type Request struct {
