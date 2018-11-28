@@ -13,7 +13,8 @@ def now_handler(event, context):
     headers = payload['headers']
     method = payload['method']
     
-    res = requests.request(method, 'http://0.0.0.0:3000' + path, headers=headers)
+    res = requests.request(method, 'http://0.0.0.0:3000' + path,
+            headers=headers, data=payload['body'])
 
     return {
         'statusCode': res.status_code,
