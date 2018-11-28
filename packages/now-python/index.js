@@ -40,10 +40,10 @@ exports.build = async ({ files, entrypoint }) => {
 
   await pipInstall(pipPath, srcDir, 'requests');
 
-  if (files['requirements.txt']) {
+  if (files[`${srcDir}/requirements.txt`]) {
     console.log('found "requirements.txt"');
 
-    const requirementsTxtPath = files['requirements.txt'].fsPath;
+    const requirementsTxtPath = files[`${srcDir}/requirements.txt`].fsPath;
     await pipInstall(pipPath, srcDir, '-r', requirementsTxtPath);
   }
 
