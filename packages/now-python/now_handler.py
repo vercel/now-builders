@@ -12,9 +12,10 @@ def now_handler(event, context):
     path = payload['path']
     headers = payload['headers']
     method = payload['method']
+    data = payload['body']
     
     res = requests.request(method, 'http://0.0.0.0:3000' + path,
-            headers=headers, data=payload['body'])
+            headers=headers, data=data)
 
     return {
         'statusCode': res.status_code,
