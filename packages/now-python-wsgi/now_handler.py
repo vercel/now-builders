@@ -24,15 +24,6 @@ from werkzeug.wrappers import Response
 from __NOW_HANDLER_FILENAME import app
 
 
-TEXT_MIME_TYPES = [
-    'application/json',
-    'application/javascript',
-    'application/xml',
-    'application/vnd.api+json',
-    'image/svg+xml',
-]
-
-
 def now_handler(event, context):
     payload = json.loads(event['body'])
     
@@ -88,13 +79,7 @@ def now_handler(event, context):
     }
 
     if response.data:
-        mimetype = response.mimetype or 'text/plain'
-        if ((mimetype.startswith('text/') or mimetype in TEXT_MIME_TYPES)
-                and not response.headers.get('Content-Encoding', '')):
-            return_dict['body'] = response.get_data(as_text=True)
-        else:
-            return_dict['body'] = (
-                base64.b64encode(response.data).decode('utf-8'))
-            return_dict['encoding'] = 'base64'
+        return_dict['body'] = base64.b64encode(response.data).decode('utf-8')
+        return_dict['encoding'] = 'base64'
 
     return return_dict
