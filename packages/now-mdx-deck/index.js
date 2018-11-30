@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const download = require('@now/build-utils/fs/download.js');
 const fs = require('fs');
 const { promisify } = require('util');
@@ -6,18 +5,6 @@ const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory
 const glob = require('@now/build-utils/fs/glob.js');
 const path = require('path');
 const { runNpmInstall } = require('@now/build-utils/fs/run-user-scripts.js');
-
-exports.analyze = ({ files }) => {
-  const hashes = Object.keys(files)
-    .sort()
-    .map(filename => files[filename].digest)
-    .join('');
-
-  return crypto
-    .createHash('sha256')
-    .update(hashes)
-    .digest('hex');
-};
 
 const writeFile = promisify(fs.writeFile);
 
