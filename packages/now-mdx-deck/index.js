@@ -14,18 +14,24 @@ exports.build = async ({ files, entrypoint, workPath }) => {
   console.log('downloading user files...');
   const downloadedFiles = await download(files, workPath);
   console.log('writing package.json...');
-  const packageJson = { dependencies: { 'mdx-deck': '1.7.7' } };
+  const packageJson = { dependencies: { 'mdx-deck': '1.7.15' } };
   const packageJsonPath = path.join(workPath, 'package.json');
   await writeFile(packageJsonPath, JSON.stringify(packageJson));
   console.log('running npm install...');
   process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = '1'; // TODO opts argument for runNpmInstall
-  await runNpmInstall(path.dirname(packageJsonPath), ['--prod', '--prefer-offline']);
+  await runNpmInstall(path.dirname(packageJsonPath), [
+    '--prod',
+    '--prefer-offline',
+  ]);
   console.log('building...');
   const outDir = await getWritableDirectory();
   const entrypointFsPath = downloadedFiles[entrypoint].fsPath;
   const mountpoint = path.dirname(entrypoint);
 
-  const build = require(path.join(workPath, 'node_modules/mdx-deck/lib/build.js'));
+  const build = require(path.join(
+    workPath,
+    'node_modules/mdx-deck/lib/build.js',
+  ));
 
   await build({
     html: true,
@@ -41,15 +47,15 @@ exports.build = async ({ files, entrypoint, workPath }) => {
 
 exports.prepareCache = async ({ cachePath }) => {
   console.log('writing package.json...');
-  const packageJson = { dependencies: { 'mdx-deck': '1.7.7' } };
+  const packageJson = { dependencies: { 'mdx-deck': '1.7.15' } };
   const packageJsonPath = path.join(cachePath, 'package.json');
   await writeFile(packageJsonPath, JSON.stringify(packageJson));
   console.log('running npm install...');
   await runNpmInstall(path.dirname(packageJsonPath), ['--prod']);
 
   return {
-    ...await glob('node_modules/**', cachePath),
-    ...await glob('package-lock.json', cachePath),
-    ...await glob('yarn.lock', cachePath),
+    ...(await glob('node_modules/**', cachePath)),
+    ...(await glob('package-lock.json', cachePath)),
+    ...(await glob('yarn.lock', cachePath)),
   };
 };

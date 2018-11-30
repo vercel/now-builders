@@ -91,7 +91,10 @@ func main() {
 		for k, v := range req.Headers {
 			internalReq.Header.Add(k, v)
 			if strings.ToLower(k) == "host" {
-				req.Host = v
+				// we need to set `Host` in the request
+				// because Go likes to ignore the `Host` header
+				// see https://github.com/golang/go/issues/7682
+				internalReq.Host = v
 			}
 		}
 
@@ -108,12 +111,7 @@ func main() {
 		for k, v := range internalRes.Header {
 			// FIXME: support multiple values via concatenating with ','
 			// see RFC 7230, section 3.2.2
-			if strings.ToLower(k) == "x-now-response-encoding" {
-				// we don't want to send this header down
-				resEncoding = v[0]
-			} else {
-				resHeaders[k] = v[0]
-			}
+			resHeaders[k] = v[0]
 		}
 
 		bodyBytes, err := ioutil.ReadAll(internalRes.Body)
@@ -121,17 +119,12 @@ func main() {
 			return createErrorResponse("Bad gateway", "bad_gateway", 502)
 		}
 
-		var resBody string
-		if resEncoding == "base64" {
-			resBody = b64.StdEncoding.EncodeToString(bodyBytes)
-		} else {
-			resBody = string(bodyBytes)
-		}
+		resBody = b64.StdEncoding.EncodeToString(bodyBytes)
 
 		return Response{
 			StatusCode: internalRes.StatusCode,
 			Headers:    resHeaders,
-			Encoding:   resEncoding,
+			Encoding:   "base64",
 			Body:       resBody,
 		}, nil
 	}

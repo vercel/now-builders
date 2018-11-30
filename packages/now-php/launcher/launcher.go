@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -26,10 +25,17 @@ type Request struct {
 	Body     string            `json:"body"`
 }
 
+type Response struct {
+	StatusCode int               `json:"statusCode"`
+	Headers    map[string]string `json:"headers"`
+	Encoding   string            `json:"encoding,omitemtpy"`
+	Body       string            `json:"body"`
+}
+
 var phpScript = ""
 var phpScriptFull = ""
 
-func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(ctx context.Context, event events.APIGatewayProxyRequest) (Response, error) {
 	engine, _ := php.New()
 	context, _ := engine.NewContext()
 
@@ -79,10 +85,14 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 	context.Eval("$_SERVER[\"SERVER_NAME\"]=\"" + req.Host + "\";")
 	context.Eval("$_SERVER[\"SERVER_PORT\"]=\"443\";")
 	context.Eval("$_SERVER[\"HTTPS\"]=\"on\";")
+	context.Eval("http_response_code(200);")
 
 	var stdout bytes.Buffer
 	context.Output = &stdout
 	context.Exec(phpScriptFull)
+
+	statusCodeVal, _ := context.Eval("return http_response_code();")
+	statusCode := int(statusCodeVal.Int())
 
 	headers := make(map[string]string)
 	headers["content-type"] = "text/html"
@@ -92,14 +102,20 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		}
 	}
 
+	resBody := base64.StdEncoding.EncodeToString(stdout.Bytes())
+
 	engine.Destroy()
-	return events.APIGatewayProxyResponse{StatusCode: 200, Headers: headers, Body: stdout.String()}, nil
+	return Response{
+		StatusCode: statusCode,
+		Headers:    headers,
+		Encoding:   "base64",
+		Body:       resBody,
+	}, nil
 }
 
 func main() {
 	ex, _ := os.Executable()
 	phpScript = os.Getenv("NOW_PHP_SCRIPT")
 	phpScriptFull = path.Join(filepath.Dir(ex), phpScript)
-	fmt.Printf("phpScriptFull %s\n", phpScriptFull)
 	lambda.Start(handler)
 }

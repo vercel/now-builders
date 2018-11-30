@@ -2,7 +2,9 @@ const download = require('@now/build-utils/fs/download.js');
 const glob = require('@now/build-utils/fs/glob.js');
 const path = require('path');
 const {
-  runNpmInstall, runPackageJsonScript, runShellScript,
+  runNpmInstall,
+  runPackageJsonScript,
+  runShellScript,
 } = require('@now/build-utils/fs/run-user-scripts.js');
 
 exports.build = async ({
@@ -32,5 +34,5 @@ exports.build = async ({
     return glob('**', distPath, mountpoint);
   }
 
-  return {};
+  throw new Error('Proper build script must be specified as entrypoint');
 };
