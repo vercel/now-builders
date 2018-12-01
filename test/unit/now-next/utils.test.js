@@ -290,6 +290,30 @@ describe('normalizePackageJson', () => {
     });
   });
 
+  it('should consider srcDir option in now-build script', () => {
+    const defaultPackage = {
+      dependencies: {
+        react: 'latest',
+        'react-dom': 'latest',
+        next: 'latest',
+      },
+    };
+    const result = normalizePackageJson(defaultPackage, 'src');
+    expect(result).toEqual({
+      dependencies: {
+        'next-server': 'canary',
+        react: 'latest',
+        'react-dom': 'latest',
+      },
+      devDependencies: {
+        next: 'canary',
+      },
+      scripts: {
+        'now-build': 'next build src --lambdas',
+      },
+    });
+  });
+
   // https://github.com/zeit/next.js/issues/5700
   it('should normalize user report zeit/next.js#5700 correctly', () => {
     const defaultPackage = {

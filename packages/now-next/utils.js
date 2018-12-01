@@ -114,8 +114,9 @@ function excludeStaticDirectory(files) {
 /**
  * Enforce specific package.json configuration for smallest possible lambda
  * @param {{dependencies?: any, devDependencies?: any, scripts?: any}} defaultPackageJson
+ * @param {string=} srcDir
  */
-function normalizePackageJson(defaultPackageJson = {}) {
+function normalizePackageJson(defaultPackageJson = {}, srcDir) {
   const dependencies = {};
   const devDependencies = {
     ...defaultPackageJson.dependencies,
@@ -151,7 +152,7 @@ function normalizePackageJson(defaultPackageJson = {}) {
     },
     scripts: {
       ...defaultPackageJson.scripts,
-      'now-build': 'next build --lambdas',
+      'now-build': `next build${srcDir ? ` ${srcDir}` : ''} --lambdas`,
     },
   };
 }

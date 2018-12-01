@@ -27,6 +27,7 @@ const {
  * @property {Files} files - Files object
  * @property {string} entrypoint - Entrypoint specified for the builder
  * @property {string} workPath - Working directory for this build
+ * @property {Object} config - User-passed config from now.json
  */
 
 /**
@@ -74,7 +75,9 @@ exports.config = {
  * @param {BuildParamsType} buildParams
  * @returns {Promise<Files>}
  */
-exports.build = async ({ files, workPath, entrypoint }) => {
+exports.build = async ({
+  files, workPath, entrypoint, config,
+}) => {
   validateEntrypoint(entrypoint);
 
   console.log('downloading user files...');
@@ -96,6 +99,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   console.log('normalizing package.json');
   const packageJson = normalizePackageJson(
     await readPackageJson(downloadedFiles),
+    config && config.srcDir,
   );
   console.log('normalized package.json result: ', packageJson);
   await writePackageJson(workPath, packageJson);
