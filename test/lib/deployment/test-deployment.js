@@ -61,7 +61,7 @@ async function testDeployment ({ builderUrl, buildUtilsUrl }, fixturePath) {
   }
 
   bodies['now.json'] = Buffer.from(JSON.stringify(nowJson));
-  const deploymentUrl = await nowDeploy(bodies, randomness);
+  const { deploymentId, deploymentUrl } = await nowDeploy(bodies, randomness);
   console.log('deploymentUrl', deploymentUrl);
 
   for (const probe of nowJson.probes) {
@@ -85,6 +85,8 @@ async function testDeployment ({ builderUrl, buildUtilsUrl }, fixturePath) {
       assert(false, 'probe must have a test condition');
     }
   }
+
+  return { deploymentId, deploymentUrl };
 }
 
 async function nowDeployIndexTgz (file) {
@@ -93,7 +95,7 @@ async function nowDeployIndexTgz (file) {
     'now.json': Buffer.from(JSON.stringify({ version: 2 }))
   };
 
-  return await nowDeploy(bodies);
+  return (await nowDeploy(bodies)).deploymentUrl;
 }
 
 async function fetchDeploymentUrl (url, opts) {
