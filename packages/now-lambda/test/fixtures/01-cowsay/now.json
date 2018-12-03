@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "index.zip", "use": "@now/lambda", "config": { "handler": "index.handler", "runtime": "nodejs8.10" } },
+    { "src": "subdirectory/index.zip", "use": "@now/lambda", "config": { "handler": "index.handler", "runtime": "nodejs8.10" } }
+  ],
+  "probes": [
+    { "path": "/", "mustContain": "cow:RANDOMNESS_PLACEHOLDER" },
+    { "path": "/subdirectory/", "mustContain": "yoda:RANDOMNESS_PLACEHOLDER" }
+  ]
+}
