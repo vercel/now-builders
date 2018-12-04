@@ -1,0 +1,968 @@
+{
+  "10.0.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-0-0:11"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-0-0:9"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-0-0:11"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-0-0:12"
+    ]
+  },
+  "10.1.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-1-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-1-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-1-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-1-0:1"
+    ]
+  },
+  "10.10.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-10-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-10-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-10-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-10-0:1"
+    ]
+  },
+  "10.11.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-11-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-11-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-11-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-11-0:1"
+    ]
+  },
+  "10.12.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-12-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-12-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-12-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-12-0:1"
+    ]
+  },
+  "10.13.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-13-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-13-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-13-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-13-0:1"
+    ]
+  },
+  "10.14.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-14-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-14-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-14-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-14-0:1"
+    ]
+  },
+  "10.14.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-14-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-14-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-14-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-14-1:2"
+    ]
+  },
+  "10.2.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-2-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-2-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-2-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-2-0:1"
+    ]
+  },
+  "10.2.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-2-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-2-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-2-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-2-1:1"
+    ]
+  },
+  "10.3.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-3-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-3-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-3-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-3-0:1"
+    ]
+  },
+  "10.4.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-4-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-4-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-4-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-4-0:1"
+    ]
+  },
+  "10.4.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-4-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-4-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-4-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-4-1:1"
+    ]
+  },
+  "10.5.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-5-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-5-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-5-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-5-0:1"
+    ]
+  },
+  "10.6.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-6-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-6-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-6-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-6-0:1"
+    ]
+  },
+  "10.7.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-7-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-7-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-7-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-7-0:1"
+    ]
+  },
+  "10.8.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-8-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-8-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-8-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-8-0:1"
+    ]
+  },
+  "10.9.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-10-9-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-10-9-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-10-9-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-10-9-0:1"
+    ]
+  },
+  "11.0.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-11-0-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-11-0-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-11-0-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-11-0-0:2"
+    ]
+  },
+  "11.1.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-11-1-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-11-1-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-11-1-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-11-1-0:1"
+    ]
+  },
+  "11.2.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-11-2-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-11-2-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-11-2-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-11-2-0:1"
+    ]
+  },
+  "11.3.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-11-3-0:2"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-11-3-0:2"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-11-3-0:2"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-11-3-0:3"
+    ]
+  },
+  "8.0.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-0-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-0-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-0-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-0-0:1"
+    ]
+  },
+  "8.1.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-1-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-1-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-1-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-1-0:1"
+    ]
+  },
+  "8.1.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-1-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-1-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-1-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-1-1:1"
+    ]
+  },
+  "8.1.2": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-1-2:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-1-2:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-1-2:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-1-2:1"
+    ]
+  },
+  "8.1.3": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-1-3:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-1-3:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-1-3:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-1-3:1"
+    ]
+  },
+  "8.1.4": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-1-4:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-1-4:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-1-4:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-1-4:1"
+    ]
+  },
+  "8.10.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-10-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-10-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-10-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-10-0:1"
+    ]
+  },
+  "8.11.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-11-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-11-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-11-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-11-0:1"
+    ]
+  },
+  "8.11.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-11-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-11-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-11-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-11-1:1"
+    ]
+  },
+  "8.11.2": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-11-2:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-11-2:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-11-2:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-11-2:1"
+    ]
+  },
+  "8.11.3": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-11-3:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-11-3:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-11-3:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-11-3:1"
+    ]
+  },
+  "8.11.4": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-11-4:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-11-4:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-11-4:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-11-4:1"
+    ]
+  },
+  "8.12.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-12-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-12-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-12-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-12-0:1"
+    ]
+  },
+  "8.13.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-13-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-13-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-13-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-13-0:1"
+    ]
+  },
+  "8.14.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-14-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-14-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-14-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-14-0:1"
+    ]
+  },
+  "8.2.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-2-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-2-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-2-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-2-0:1"
+    ]
+  },
+  "8.2.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-2-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-2-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-2-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-2-1:1"
+    ]
+  },
+  "8.3.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-3-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-3-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-3-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-3-0:1"
+    ]
+  },
+  "8.4.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-4-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-4-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-4-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-4-0:1"
+    ]
+  },
+  "8.5.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-5-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-5-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-5-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-5-0:1"
+    ]
+  },
+  "8.6.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-6-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-6-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-6-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-6-0:1"
+    ]
+  },
+  "8.7.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-7-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-7-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-7-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-7-0:1"
+    ]
+  },
+  "8.8.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-8-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-8-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-8-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-8-0:1"
+    ]
+  },
+  "8.8.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-8-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-8-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-8-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-8-1:1"
+    ]
+  },
+  "8.9.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-9-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-9-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-9-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-9-0:1"
+    ]
+  },
+  "8.9.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-9-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-9-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-9-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-9-1:1"
+    ]
+  },
+  "8.9.2": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-9-2:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-9-2:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-9-2:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-9-2:1"
+    ]
+  },
+  "8.9.3": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-9-3:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-9-3:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-9-3:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-9-3:1"
+    ]
+  },
+  "8.9.4": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-8-9-4:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-8-9-4:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-8-9-4:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-8-9-4:1"
+    ]
+  },
+  "9.0.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-0-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-0-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-0-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-0-0:1"
+    ]
+  },
+  "9.1.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-1-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-1-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-1-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-1-0:1"
+    ]
+  },
+  "9.10.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-10-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-10-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-10-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-10-0:1"
+    ]
+  },
+  "9.10.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-10-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-10-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-10-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-10-1:1"
+    ]
+  },
+  "9.11.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-11-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-11-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-11-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-11-0:1"
+    ]
+  },
+  "9.11.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-11-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-11-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-11-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-11-1:1"
+    ]
+  },
+  "9.11.2": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-11-2:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-11-2:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-11-2:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-11-2:1"
+    ]
+  },
+  "9.2.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-2-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-2-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-2-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-2-0:1"
+    ]
+  },
+  "9.2.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-2-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-2-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-2-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-2-1:1"
+    ]
+  },
+  "9.3.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-3-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-3-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-3-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-3-0:1"
+    ]
+  },
+  "9.4.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-4-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-4-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-4-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-4-0:1"
+    ]
+  },
+  "9.5.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-5-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-5-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-5-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-5-0:1"
+    ]
+  },
+  "9.6.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-6-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-6-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-6-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-6-0:1"
+    ]
+  },
+  "9.6.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-6-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-6-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-6-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-6-1:1"
+    ]
+  },
+  "9.7.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-7-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-7-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-7-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-7-0:1"
+    ]
+  },
+  "9.7.1": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-7-1:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-7-1:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-7-1:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-7-1:1"
+    ]
+  },
+  "9.8.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-8-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-8-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-8-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-8-0:1"
+    ]
+  },
+  "9.9.0": {
+    "bru1": [
+      "arn:aws:lambda:eu-central-1:977805900156:layer:node-9-9-0:1"
+    ],
+    "gru1": [
+      "arn:aws:lambda:sa-east-1:977805900156:layer:node-9-9-0:1"
+    ],
+    "iad1": [
+      "arn:aws:lambda:us-east-1:977805900156:layer:node-9-9-0:1"
+    ],
+    "sfo1": [
+      "arn:aws:lambda:us-west-1:977805900156:layer:node-9-9-0:1"
+    ]
+  }
+}
