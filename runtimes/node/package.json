@@ -1,0 +1,17 @@
+{
+  "name": "lambda-nodejs-runtime",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "2.3.0"
+  },
+  "devDependencies": {
+    "@zeit/ncc": "0.1.18"
+  },
+  "scripts": {
+    "build": "scripts/build.sh",
+    "create-binary-layer": "scripts/create-binary-layer.sh",
+    "create-runtime-layer": "yarn run build && scripts/create-runtime-layer.sh"
+  }
+}
