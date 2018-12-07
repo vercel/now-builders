@@ -2,6 +2,7 @@
   "version": 2,
   "builds": [
     { "src": "index.php", "use": "https://test-b5ua63zy3.now.sh" },
+    { "src": "insight.php", "use": "https://test-b5ua63zy3.now.sh" },
     { "src": "wp-config.php", "use": "https://test-b5ua63zy3.now.sh" },
     { "src": "wp-login.php", "use": "https://test-b5ua63zy3.now.sh" },
     { "src": "wp-admin/install.php", "use": "https://test-b5ua63zy3.now.sh" },
