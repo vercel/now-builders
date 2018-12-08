@@ -60,7 +60,8 @@ func (h *PhpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cookieMap := make(map[string]string)
 	for _, c := range cookies {
 		k, _ := url.QueryUnescape(c.Name)
-		s := "'" + c.Value + "'" // TODO escape quotes
+		v, _ := url.QueryUnescape(c.Value)
+		s := "'" + v + "'" // TODO escape quotes
 		if strings.HasSuffix(k, "[]") {
 			if value, exists := cookieMap[k]; exists {
 				cookieMap[k] = value + "," + s
@@ -93,6 +94,7 @@ func (h *PhpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	context.Eval("$_SERVER['REQUEST_METHOD']='" + r.Method + "';")
 	context.Eval("$_SERVER['REQUEST_URI']='" + r.URL.RequestURI() + "';") // TODO must be unescaped to align with php
 	context.Eval("$_SERVER['HTTP_HOST']='" + r.Host + "';") // no port needed
+	context.Eval("$_SERVER['SERVER_PROTOCOL']='" + r.Proto + "';");
 	context.Eval("$_SERVER['SERVER_NAME']='" + r.Host + "';")
 	context.Eval("$_SERVER['SERVER_PORT']='443';")
 	context.Eval("$_SERVER['HTTPS']='on';")
