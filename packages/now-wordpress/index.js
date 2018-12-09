@@ -4,7 +4,7 @@ const path = require('path');
 const rename = require('@now/build-utils/fs/rename.js');
 
 exports.config = {
-  maxLambdaSize: '15mb',
+  maxLambdaSize: '20mb',
 };
 
 exports.build = async ({ files, entrypoint }) => {
