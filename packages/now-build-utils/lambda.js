@@ -1,7 +1,7 @@
 const assert = require('assert');
 const Sema = require('async-sema');
-const streamToBuffer = require('./fs/stream-to-buffer.js');
 const { ZipFile } = require('yazl');
+const streamToBuffer = require('./fs/stream-to-buffer.js');
 
 class Lambda {
   constructor({
