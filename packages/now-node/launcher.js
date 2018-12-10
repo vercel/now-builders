@@ -20,3 +20,12 @@ const server = new Server(listener);
 server.listen(bridge.port);
 
 exports.launcher = bridge.launcher;
+
+// When running in a process, we can receive events directly for execution
+// instead of waiting on a listener.
+if (process.send) {
+  process.on('message', async (event) => {
+    const response = await bridge.launcher(event);
+    process.send(response);
+  });
+}
