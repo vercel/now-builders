@@ -43,6 +43,15 @@ function normalizeEvent(event) {
 class Bridge {
   constructor() {
     this.launcher = this.launcher.bind(this);
+
+    // When running in a process, we can receive events directly for execution
+    // instead of waiting on a listener.
+    if (process.send) {
+      process.on('message', async (event) => {
+        const response = await this.launcher(event);
+        process.send(response);
+      });
+    }
   }
 
   launcher(event) {
