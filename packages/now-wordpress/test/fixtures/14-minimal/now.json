@@ -3,6 +3,7 @@
   "builds": [
     { "src": "index.php", "use": "https://test-85fohqhlk.now.sh" },
     { "src": "insight.php", "use": "https://test-85fohqhlk.now.sh" },
+    { "src": "insight-no-wp.php", "use": "https://test-85fohqhlk.now.sh" },
     { "src": "wp-config.php", "use": "https://test-85fohqhlk.now.sh" },
     { "src": "wp-login.php", "use": "https://test-85fohqhlk.now.sh" },
     { "src": "wp-admin/admin-ajax.php", "use": "https://test-85fohqhlk.now.sh" },
