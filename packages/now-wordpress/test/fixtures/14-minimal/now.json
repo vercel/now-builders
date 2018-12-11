@@ -29,9 +29,9 @@
     { "src": "wp-content/themes/twentynineteen/js/**", "use": "@now/static" }
   ],
   "env": {
-    "DB_NAME": "wordpress_db",
-    "DB_USER": "wordpress_user",
-    "DB_PASSWORD": "",
-    "DB_HOST": "104.248.245.166"
+    "DB_NAME": "wordpressdb",
+    "DB_USER": "wordpressuser",
+    "DB_PASSWORD": "Cn",
+    "DB_HOST": "SG-wps"
   }
 }
