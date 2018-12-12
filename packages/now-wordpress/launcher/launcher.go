@@ -3,7 +3,7 @@ package main
 import (
 	now "./utils"
 	"bytes"
-	php "github.com/deuill/go-php"
+	php "github.com/igorklopov/go-php"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -130,7 +130,6 @@ func (h *PhpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(stdout.Bytes())
-
 	engine.Destroy()
 }
 

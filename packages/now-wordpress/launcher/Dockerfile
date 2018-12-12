@@ -1,7 +1,7 @@
 FROM library/centos:6.8
 RUN yum -y install wget git
 RUN rpm -Uvh https://mirror.webtatic.com/yum/el6/latest.rpm
-RUN yum -y install php71w-cli php71w-devel php71w-embedded php71w-mbstring php71w-mysql
+RUN yum -y install php71w-cli php71w-devel php71w-embedded php71w-mbstring php71w-mysql php71w-opcache
 RUN yum -y install epel-release
 RUN yum -y install golang patchelf
 
@@ -9,7 +9,7 @@ RUN mkdir -p /root/go/app/public
 
 RUN go get -v github.com/aws/aws-lambda-go/lambda
 RUN go get -v github.com/aws/aws-lambda-go/events
-RUN go get -v github.com/deuill/go-php
+RUN go get -v github.com/igorklopov/go-php
 
 WORKDIR /root/go/app
 COPY ./utils/bridge.go /root/go/app/utils/bridge.go

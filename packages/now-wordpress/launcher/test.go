@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	php "github.com/deuill/go-php"
+	php "github.com/igorklopov/go-php"
 )
 
 func main() {

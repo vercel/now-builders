@@ -13,5 +13,6 @@ docker run now-wordpress-docker-image /bin/cat /usr/lib64/php/modules/json.so > 
 docker run now-wordpress-docker-image /bin/cat /usr/lib64/php/modules/mbstring.so > ../dist/modules/mbstring.so
 docker run now-wordpress-docker-image /bin/cat /usr/lib64/php/modules/mysqli.so > ../dist/modules/mysqli.so
 docker run now-wordpress-docker-image /bin/cat /usr/lib64/mysql/libmysqlclient.so.16 > ../dist/modules/libmysqlclient.so.16
+docker run now-wordpress-docker-image /bin/cat /usr/lib64/php/modules/opcache.so > ../dist/modules/opcache.so
 chmod +x ../dist/launcher
 rm -rf ./utils
