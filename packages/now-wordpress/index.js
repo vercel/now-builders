@@ -18,10 +18,15 @@ exports.build = async ({ files, entrypoint }) => {
   ini.data = ini.data.toString().replace(/\/root\/go\/app\/modules/g, '/var/task/native/modules');
   nativeFiles['native/php.ini'] = ini;
 
+  const filterBody = '<?php\n'
+    + '$_SERVER[\'HTTPS\'] = \'on\';\n'
+    + 'return FALSE;\n';
+
   const launcherFiles = {
     'launcher.js': new FileFsRef({ fsPath: path.join(__dirname, 'launcher.js') }),
     'bridge.js': new FileFsRef({ fsPath: path.join(__dirname, 'bridge.js') }),
     'port.js': new FileFsRef({ fsPath: path.join(__dirname, 'port.js') }),
+    'filter.php': new FileBlob({ data: filterBody }),
   };
 
   const lambda = await createLambda({

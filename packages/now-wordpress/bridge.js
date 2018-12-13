@@ -15,7 +15,8 @@ function startPhp(cb) {
     './php',
     ['-c', 'php.ini',
       '-t', pathJoin(__dirname, 'user'),
-      '-S', '127.0.0.1:9000'],
+      '-S', '127.0.0.1:9000',
+      pathJoin(__dirname, 'filter.php')],
     {
       stdio: 'inherit',
       cwd: pathJoin(__dirname, 'native'),
