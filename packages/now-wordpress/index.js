@@ -20,7 +20,7 @@ exports.build = async ({ files, entrypoint }) => {
 
   const launcherFiles = {
     'launcher.js': new FileFsRef({ fsPath: path.join(__dirname, 'launcher.js') }),
-    'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
+    'bridge.js': new FileFsRef({ fsPath: path.join(__dirname, 'bridge.js') }),
   };
 
   const lambda = await createLambda({
