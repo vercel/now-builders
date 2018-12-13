@@ -1,6 +1,7 @@
 const { join: pathJoin } = require('path');
 const http = require('http');
 const { spawn } = require('child_process');
+const { whenPortOpensCallback } = require('./port.js');
 
 let phpServer;
 
@@ -21,8 +22,6 @@ function startPhp(cb) {
     },
   );
 
-  console.log(phpServer);
-
   phpServer.on('exit', () => {
     console.error('php exited');
     process.exit();
@@ -33,7 +32,7 @@ function startPhp(cb) {
     process.exit();
   });
 
-  setTimeout(cb, 1500);
+  whenPortOpensCallback(9000, 400, cb);
 }
 
 function normalizeEvent(event) {
