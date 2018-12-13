@@ -12,6 +12,7 @@ COPY ./php.ini /root/go/app/php.ini
 COPY ./test.php /root/go/app/test.php
 COPY ./test.sh /root/go/app/test.sh
 
+RUN patchelf --set-rpath '$ORIGIN' /usr/bin/php
 RUN patchelf --set-rpath '$ORIGIN' /usr/lib64/php/modules/mysqli.so
 
 CMD ["/bin/bash", "test.sh"]
