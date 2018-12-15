@@ -8,6 +8,7 @@ RUN yum -y install patchelf
 RUN mkdir -p /root/app/public
 
 WORKDIR /root/app
+COPY ./fpm.ini /root/app/fpm.ini
 COPY ./php.ini /root/app/php.ini
 COPY ./test.php /root/app/test.php
 COPY ./test.sh /root/app/test.sh

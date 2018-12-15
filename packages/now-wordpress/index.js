@@ -4,6 +4,7 @@ const FileFsRef = require('@now/build-utils/file-fs-ref.js');
 const glob = require('@now/build-utils/fs/glob.js');
 const path = require('path');
 const rename = require('@now/build-utils/fs/rename.js');
+const { spawnSync } = require('child_process');
 
 exports.config = {
   maxLambdaSize: '20mb',
@@ -14,9 +15,16 @@ exports.build = async ({ files, entrypoint }) => {
   const userFiles = rename(files, name => path.join('user', name));
   const nativeFiles = await glob('native/**', __dirname);
 
-  const ini = await FileBlob.fromStream({ stream: nativeFiles['native/php.ini'].toStream() });
-  ini.data = ini.data.toString().replace(/\/root\/app\/modules/g, '/var/task/native/modules');
-  nativeFiles['native/php.ini'] = ini;
+  const fpmConfig = await FileBlob.fromStream({ stream: nativeFiles['native/fpm.ini'].toStream() });
+  fpmConfig.data = fpmConfig.data.toString()
+    .replace('$chroot', '/var/task/user')
+    .replace('$user', spawnSync('whoami', [], { stdio: 'pipe' }).stdout.toString().trim());
+  nativeFiles['native/fpm.ini'] = fpmConfig;
+
+  const phpConfig = await FileBlob.fromStream({ stream: nativeFiles['native/php.ini'].toStream() });
+  phpConfig.data = phpConfig.data.toString()
+    .replace(/\/root\/app\/modules/g, '/var/task/native/modules');
+  nativeFiles['native/php.ini'] = phpConfig;
 
   const launcherFiles = {
     'fastcgi/connection.js': new FileFsRef({ fsPath: require.resolve('fastcgi-client/lib/connection.js') }),

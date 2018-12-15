@@ -1,5 +1,4 @@
 const assert = require('assert');
-const { join: pathJoin } = require('path');
 const { spawn } = require('child_process');
 const { connect, query } = require('./fastcgi/index.js');
 const { whenPortOpens } = require('./port.js');
@@ -12,12 +11,11 @@ async function startPhp() {
   const child = spawn(
     './php-fpm',
     ['-c', 'php.ini',
-      '-t', pathJoin(__dirname, 'user'),
-      '-S', '127.0.0.1:9000',
-      pathJoin(__dirname, 'filter.php')],
+      '--fpm-config', '/var/task/native/fpm.ini',
+      '--nodaemonize'],
     {
       stdio: 'inherit',
-      cwd: pathJoin(__dirname, 'native'),
+      cwd: '/var/task/native',
     },
   );
 
