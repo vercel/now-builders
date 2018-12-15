@@ -81,14 +81,29 @@ function transformFromAwsRequest({
 }
 
 function transformToAwsResponse({ tuples, body }) {
-/*
-[ 'Status',
-  '408 Request Timeout',
-  'X-Powered-By',
-  'PHP/7.2.10-0ubuntu0.18.04.1',
-  'Content-type',
-  'text/html; charset=UTF-8' ]
-*/
+  let statusCode = 200;
+  const headers = {};
+  // eslint-disable-next-line no-param-reassign
+  if (!body) body = Buffer.alloc(0);
+  assert(Buffer.isBuffer(body));
+
+  for (let i = 0; i < tuples.length; i += 2) {
+    const k = tuples[i].toLowerCase();
+    const v = tuples[i + 1];
+    if (k === 'status') {
+      statusCode = Number(v.split(' ')[0]); // '408 Request Timeout'
+    } else {
+      if (!headers[k]) headers[k] = [];
+      headers[k].push(v);
+    }
+  }
+
+  return {
+    statusCode,
+    headers,
+    body: body.toString('base64'),
+    encoding: 'base64',
+  };
 }
 
 async function launcher(event) {
@@ -104,3 +119,12 @@ async function launcher(event) {
 }
 
 exports.launcher = launcher;
+
+/*
+(async function() {
+  console.log(await launcher({
+    httpMethod: 'GET',
+    path: '/phpinfo.php'
+  }));
+})();
+*/

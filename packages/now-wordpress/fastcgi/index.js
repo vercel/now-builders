@@ -18,7 +18,7 @@ async function connect() {
   assert(!connection);
 
   const newConnection = createConnection({
-    _host: '104.248.245.166',
+    _host: '127.0.0.1',
     _port: 9000,
   });
 
@@ -108,3 +108,12 @@ module.exports = {
   connect,
   query,
 };
+
+/*
+(async function() {
+  await connect();
+  console.log(await query({ params: {
+    REQUEST_METHOD: 'GET', SCRIPT_FILENAME: '/phpinfo.php'
+  } }));
+})();
+*/
