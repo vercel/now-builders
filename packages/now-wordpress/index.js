@@ -19,9 +19,10 @@ exports.build = async ({ files, entrypoint }) => {
   nativeFiles['native/php.ini'] = ini;
 
   const launcherFiles = {
-    'fastcgi/connection.js': new FileFsRef({ fsPath: path.join(__dirname, 'fastcgi/connection.js') }),
-    'fastcgi/consts.js': new FileFsRef({ fsPath: path.join(__dirname, 'fastcgi/consts.js') }),
-    'fastcgi/stringifykv.js': new FileFsRef({ fsPath: path.join(__dirname, 'fastcgi/stringifykv.js') }),
+    'fastcgi/connection.js': new FileFsRef({ fsPath: require.resolve('fastcgi-client/lib/connection.js') }),
+    'fastcgi/consts.js': new FileFsRef({ fsPath: require.resolve('fastcgi-client/lib/consts.js') }),
+    'fastcgi/stringifykv.js': new FileFsRef({ fsPath: require.resolve('fastcgi-client/lib/stringifykv.js') }),
+    'fastcgi/index.js': new FileFsRef({ fsPath: path.join(__dirname, 'fastcgi/index.js') }),
     'launcher.js': new FileFsRef({ fsPath: path.join(__dirname, 'launcher.js') }),
     'bridge.js': new FileFsRef({ fsPath: path.join(__dirname, 'bridge.js') }),
     'port.js': new FileFsRef({ fsPath: path.join(__dirname, 'port.js') }),
