@@ -15,7 +15,7 @@ exports.build = async ({ files, entrypoint }) => {
   const nativeFiles = await glob('native/**', __dirname);
 
   const ini = await FileBlob.fromStream({ stream: nativeFiles['native/php.ini'].toStream() });
-  ini.data = ini.data.toString().replace(/\/root\/go\/app\/modules/g, '/var/task/native/modules');
+  ini.data = ini.data.toString().replace(/\/root\/app\/modules/g, '/var/task/native/modules');
   nativeFiles['native/php.ini'] = ini;
 
   const launcherFiles = {

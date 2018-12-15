@@ -5,12 +5,12 @@ RUN yum -y install php71w-cli php71w-fpm php71w-mbstring php71w-mysql php71w-opc
 RUN yum -y install epel-release
 RUN yum -y install patchelf
 
-RUN mkdir -p /root/go/app/public
+RUN mkdir -p /root/app/public
 
-WORKDIR /root/go/app
-COPY ./php.ini /root/go/app/php.ini
-COPY ./test.php /root/go/app/test.php
-COPY ./test.sh /root/go/app/test.sh
+WORKDIR /root/app
+COPY ./php.ini /root/app/php.ini
+COPY ./test.php /root/app/test.php
+COPY ./test.sh /root/app/test.sh
 
 RUN patchelf --set-rpath '$ORIGIN' /usr/bin/php
 RUN patchelf --set-rpath '$ORIGIN' /usr/sbin/php-fpm

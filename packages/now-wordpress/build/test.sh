@@ -1,12 +1,12 @@
-mkdir -p /root/go/app/modules
-cp /usr/bin/php /root/go/app/php
-cp /usr/sbin/php-fpm /root/go/app/php-fpm
-cp /usr/lib64/php/modules/curl.so /root/go/app/modules/curl.so
-cp /usr/lib64/php/modules/json.so /root/go/app/modules/json.so
-cp /usr/lib64/php/modules/mbstring.so /root/go/app/modules/mbstring.so
-cp /usr/lib64/php/modules/mysqli.so /root/go/app/modules/mysqli.so
-cp /usr/lib64/mysql/libmysqlclient.so.16 /root/go/app/modules/libmysqlclient.so.16
-cp /usr/lib64/php/modules/opcache.so /root/go/app/modules/opcache.so
+mkdir -p /root/app/modules
+cp /usr/bin/php /root/app/php
+cp /usr/sbin/php-fpm /root/app/php-fpm
+cp /usr/lib64/php/modules/curl.so /root/app/modules/curl.so
+cp /usr/lib64/php/modules/json.so /root/app/modules/json.so
+cp /usr/lib64/php/modules/mbstring.so /root/app/modules/mbstring.so
+cp /usr/lib64/php/modules/mysqli.so /root/app/modules/mysqli.so
+cp /usr/lib64/mysql/libmysqlclient.so.16 /root/app/modules/libmysqlclient.so.16
+cp /usr/lib64/php/modules/opcache.so /root/app/modules/opcache.so
 rm -rf $(which php)
 rm -rf $(which php-fpm)
 rm -rf /usr/lib64/php
