@@ -91,10 +91,15 @@ function isDirectory(p) {
 async function transformFromAwsRequest({
   method, path, headers, body,
 }) {
-  const { pathname, path: requestUri, query: queryString } = parseUrl(path);
+  const { pathname, search, query: queryString } = parseUrl(path);
+  let requestUri = pathname + (search || '');
+
   let filename = pathJoin('/var/task/user', pathname);
   if (await isDirectory(filename)) {
-    if (!filename.endsWith('/')) filename += '/';
+    if (!filename.endsWith('/')) {
+      filename += '/';
+      requestUri = pathname + '/' + (search || '');
+    }
     filename += 'index.php';
   }
 

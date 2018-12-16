@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.php", "use": "https://test-odsh5knv3.now.sh" },
+    { "src": "index.php", "use": "https://test-q4gjge6x7.now.sh" },
     { "src": "wp-admin/css/**", "use": "@now/static" },
     { "src": "wp-admin/js/**", "use": "@now/static" },
     { "src": "wp-admin/images/**", "use": "@now/static" },
