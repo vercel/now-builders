@@ -4,7 +4,6 @@ const FileFsRef = require('@now/build-utils/file-fs-ref.js');
 const glob = require('@now/build-utils/fs/glob.js');
 const path = require('path');
 const rename = require('@now/build-utils/fs/rename.js');
-const { spawnSync } = require('child_process');
 
 exports.config = {
   maxLambdaSize: '20mb',
@@ -17,9 +16,7 @@ exports.build = async ({ files, entrypoint }) => {
 
   const fpmConfig = await FileBlob.fromStream({ stream: nativeFiles['native/fpm.ini'].toStream() });
   fpmConfig.data = fpmConfig.data.toString()
-    .replace('$error_log', '/tmp/fpm-error.log')
-    .replace('$chdir', '/var/task/user')
-    .replace('$user', spawnSync('whoami', [], { stdio: 'pipe' }).stdout.toString().trim());
+    .replace('$error_log', '/tmp/fpm-error.log');
   nativeFiles['native/fpm.ini'] = fpmConfig;
 
   const phpConfig = await FileBlob.fromStream({ stream: nativeFiles['native/php.ini'].toStream() });

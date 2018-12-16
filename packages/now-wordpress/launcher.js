@@ -1,4 +1,6 @@
 const assert = require('assert');
+const { join: pathJoin } = require('path');
+const { parse: parseUrl } = require('url');
 const { spawn } = require('child_process');
 const { connect, query } = require('./fastcgi/index.js');
 const { whenPortOpens } = require('./port.js');
@@ -70,10 +72,15 @@ function normalizeEvent(event) {
 function transformFromAwsRequest({
   method, path, headers, body,
 }) {
+  const { pathname } = parseUrl(path);
+  let filename = pathname;
+  if (filename.endsWith('/')) filename += 'index.php';
+  filename = pathJoin('/var/task/user', filename);
+
   return {
     params: {
       REQUEST_METHOD: method,
-      SCRIPT_FILENAME: path, // TODO only document
+      SCRIPT_FILENAME: filename,
     },
   };
 }
