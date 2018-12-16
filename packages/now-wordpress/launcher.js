@@ -77,12 +77,18 @@ function transformFromAwsRequest({
   if (filename.endsWith('/')) filename += 'index.php';
   filename = pathJoin('/var/task/user', filename);
 
-  return {
-    params: {
-      REQUEST_METHOD: method,
-      SCRIPT_FILENAME: filename,
-    },
-  };
+  const params = {};
+  params.REQUEST_METHOD = method;
+  params.SCRIPT_FILENAME = filename;
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const k of Object.keys(headers)) {
+    const v = headers[k];
+    const camel = k.toUpperCase().replace(/-/g, '_');
+    params[`HTTP_${camel}`] = v;
+  }
+
+  return { params };
 }
 
 function transformToAwsResponse({ tuples, body }) {
