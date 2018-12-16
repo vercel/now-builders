@@ -25,16 +25,20 @@ async function createLambda({
   assert(typeof environment === 'object', '"environment" is not an object');
   const zipFile = new ZipFile();
 
-  Object.keys(files)
-    .sort()
-    .forEach((name) => {
-      const file = files[name];
-      const stream = file.toStream();
-      zipFile.addReadStream(stream, name, { mode: file.mode, mtime });
-    });
+  const zipBuffer = await new Promise((resolve, reject) => {
+    Object.keys(files)
+      .sort()
+      .forEach((name) => {
+        const file = files[name];
+        const stream = file.toStream();
+        stream.on('error', reject);
+        zipFile.addReadStream(stream, name, { mode: file.mode, mtime });
+      });
 
-  zipFile.end();
-  const zipBuffer = await streamToBuffer(zipFile.outputStream);
+    zipFile.end();
+    streamToBuffer(zipFile.outputStream).then(resolve).catch(reject);
+  });
+
   return new Lambda({
     zipBuffer,
     handler,
