@@ -113,10 +113,13 @@ async function transformFromAwsRequest({
     params[`HTTP_${camel}`] = v;
     if (camel === 'HOST') {
       params.SERVER_NAME = v;
+    } else
+    if (['CONTENT_TYPE', 'CONTENT_LENGTH'].includes(camel)) {
+      params[camel] = v; // without HOST_ prepended
     }
   }
 
-  return { params };
+  return { params, stdin: body };
 }
 
 function transformToAwsResponse({ tuples, body }) {

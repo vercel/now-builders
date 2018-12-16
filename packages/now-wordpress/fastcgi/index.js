@@ -97,9 +97,11 @@ function query({ params, stdin }) {
     }
 
     curReqId += 1;
+    // TODO these things have callbacks. what to do with them?
     connection.send(MSG_TYPE.FCGI_BEGIN_REQUEST, curReqId, BEGIN_REQUEST_DATA_KEEP_CONN);
     connection.send(MSG_TYPE.FCGI_PARAMS, curReqId, params);
     connection.send(MSG_TYPE.FCGI_PARAMS, curReqId, null);
+    if (stdin) connection.send(MSG_TYPE.FCGI_STDIN, curReqId, stdin);
     connection.send(MSG_TYPE.FCGI_STDIN, curReqId, null);
   });
 }
