@@ -1,4 +1,5 @@
 const assert = require('assert');
+const fs = require('fs');
 const { join: pathJoin } = require('path');
 const { parse: parseUrl } = require('url');
 const { spawn } = require('child_process');
@@ -69,18 +70,38 @@ function normalizeEvent(event) {
   };
 }
 
-function transformFromAwsRequest({
+function isDirectory(p) {
+  return new Promise((resolve) => {
+    fs.stat(p, (error, s) => {
+      if (error) {
+        resolve(false);
+        return;
+      }
+
+      if (s.isDirectory()) {
+        resolve(true);
+        return;
+      }
+
+      resolve(false);
+    });
+  });
+}
+
+async function transformFromAwsRequest({
   method, path, headers, body,
 }) {
   const { pathname, path: requestUri, query: queryString } = parseUrl(path);
-  let filename = pathname;
-  if (filename.endsWith('/')) filename += 'index.php';
-  filename = pathJoin('/var/task/user', filename);
+  let filename = pathJoin('/var/task/user', pathname);
+  if (await isDirectory(filename)) {
+    if (!filename.endsWith('/')) filename += '/';
+    filename += 'index.php';
+  }
 
   const params = {};
   params.REQUEST_METHOD = method;
   params.REQUEST_URI = requestUri;
-  params.QUERY_STRING = queryString;
+  params.QUERY_STRING = queryString || ''; // can be null
   params.SCRIPT_FILENAME = filename;
   params.SERVER_PROTOCOL = 'HTTP/1.1';
   params.SERVER_PORT = 443;
@@ -131,7 +152,7 @@ async function launcher(event) {
   }
 
   const awsRequest = normalizeEvent(event);
-  const input = transformFromAwsRequest(awsRequest);
+  const input = await transformFromAwsRequest(awsRequest);
   const output = await query(input);
   return transformToAwsResponse(output);
 }
