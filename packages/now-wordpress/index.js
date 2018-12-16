@@ -17,7 +17,7 @@ exports.build = async ({ files, entrypoint }) => {
 
   const fpmConfig = await FileBlob.fromStream({ stream: nativeFiles['native/fpm.ini'].toStream() });
   fpmConfig.data = fpmConfig.data.toString()
-    .replace('$error_log', '/var/task/fpm-error.log')
+    .replace('$error_log', '/tmp/fpm-error.log')
     .replace('$chdir', '/var/task/user')
     .replace('$user', spawnSync('whoami', [], { stdio: 'pipe' }).stdout.toString().trim());
   nativeFiles['native/fpm.ini'] = fpmConfig;
