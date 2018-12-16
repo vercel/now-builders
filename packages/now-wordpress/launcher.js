@@ -72,20 +72,27 @@ function normalizeEvent(event) {
 function transformFromAwsRequest({
   method, path, headers, body,
 }) {
-  const { pathname } = parseUrl(path);
+  const { pathname, path: requestUri, query: queryString } = parseUrl(path);
   let filename = pathname;
   if (filename.endsWith('/')) filename += 'index.php';
   filename = pathJoin('/var/task/user', filename);
 
   const params = {};
   params.REQUEST_METHOD = method;
+  params.REQUEST_URI = requestUri;
+  params.QUERY_STRING = queryString;
   params.SCRIPT_FILENAME = filename;
+  params.SERVER_PROTOCOL = 'HTTP/1.1';
+  params.SERVER_PORT = 443;
+  params.HTTPS = 'on';
 
   // eslint-disable-next-line no-restricted-syntax
-  for (const k of Object.keys(headers)) {
-    const v = headers[k];
+  for (const [k, v] of Object.entries(headers)) {
     const camel = k.toUpperCase().replace(/-/g, '_');
     params[`HTTP_${camel}`] = v;
+    if (camel === 'HOST') {
+      params.SERVER_NAME = v;
+    }
   }
 
   return { params };
