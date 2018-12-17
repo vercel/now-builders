@@ -4,8 +4,8 @@ docker rmi now-wordpress-docker-image --force
 docker build . -t now-wordpress-docker-image
 docker run now-wordpress-docker-image
 docker run now-wordpress-docker-image /bin/cat /usr/sbin/php-fpm > ../native/php-fpm
-docker run now-wordpress-docker-image /bin/cat /root/app/fpm.ini > ../native/fpm.ini
 docker run now-wordpress-docker-image /bin/cat /root/app/php.ini > ../native/php.ini
+docker run now-wordpress-docker-image /bin/cat /root/app/php-fpm.ini > ../native/php-fpm.ini
 docker run now-wordpress-docker-image /bin/cat /usr/lib64/php/modules/curl.so > ../native/modules/curl.so
 docker run now-wordpress-docker-image /bin/cat /usr/lib64/php/modules/json.so > ../native/modules/json.so
 docker run now-wordpress-docker-image /bin/cat /usr/lib64/php/modules/mbstring.so > ../native/modules/mbstring.so

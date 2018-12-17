@@ -14,11 +14,6 @@ exports.build = async ({ files, entrypoint }) => {
   const userFiles = rename(files, name => path.join('user', name));
   const nativeFiles = await glob('native/**', __dirname);
 
-  const fpmConfig = await FileBlob.fromStream({ stream: nativeFiles['native/fpm.ini'].toStream() });
-  fpmConfig.data = fpmConfig.data.toString()
-    .replace('$error_log', '/tmp/fpm-error.log');
-  nativeFiles['native/fpm.ini'] = fpmConfig;
-
   const phpConfig = await FileBlob.fromStream({ stream: nativeFiles['native/php.ini'].toStream() });
   phpConfig.data = phpConfig.data.toString()
     .replace(/\/root\/app\/modules/g, '/var/task/native/modules');
