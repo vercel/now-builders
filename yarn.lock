@@ -2839,6 +2839,11 @@ fast-stream-to-buffer@1.0.0:
   dependencies:
     end-of-stream "^1.4.1"
 
+fastcgi-client@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/fastcgi-client/-/fastcgi-client-0.0.1.tgz#1046d42ff2cee2a9ac03fea04695b3ef7311861c"
+  integrity sha1-EEbUL/LO4qmsA/6gRpWz73MRhhw=
+
 fb-watchman@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/fb-watchman/-/fb-watchman-2.0.0.tgz#54e9abf7dfa2f26cd9b1636c588c1afc05de5d58"

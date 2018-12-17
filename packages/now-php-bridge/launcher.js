@@ -1,40 +1,10 @@
+/* eslint-disable prefer-template */
+
 const assert = require('assert');
 const fs = require('fs');
 const { join: pathJoin } = require('path');
 const { parse: parseUrl } = require('url');
-const { spawn } = require('child_process');
-const { connect, query } = require('./fastcgi/index.js');
-const { whenPortOpens } = require('./port.js');
-
-let running;
-
-async function startPhp() {
-  assert(!running);
-
-  const child = spawn(
-    './php-fpm',
-    ['-c', 'php.ini',
-      '--fpm-config', '/var/task/native/php-fpm.ini',
-      '--nodaemonize'],
-    {
-      stdio: 'inherit',
-      cwd: '/var/task/native',
-    },
-  );
-
-  child.on('exit', () => {
-    console.error('php exited');
-    process.exit();
-  });
-
-  child.on('error', (error) => {
-    console.error(error);
-    process.exit();
-  });
-
-  await whenPortOpens(9000, 400);
-  await connect();
-}
+const { query } = require('./fastcgi/index.js');
 
 function normalizeEvent(event) {
   if (event.Action === 'Invoke') {
@@ -154,11 +124,6 @@ function transformToAwsResponse({ tuples, body }) {
 }
 
 async function launcher(event) {
-  if (!running) {
-    await startPhp();
-    running = true;
-  }
-
   const awsRequest = normalizeEvent(event);
   const input = await transformFromAwsRequest(awsRequest);
   const output = await query(input);

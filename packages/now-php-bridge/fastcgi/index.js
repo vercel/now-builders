@@ -2,8 +2,10 @@
 
 const assert = require('assert');
 const { freeParser } = require('_http_common');
+const { spawn } = require('child_process');
 const createConnection = require('./connection.js');
 const { MSG_TYPE, PROTOCOL_STATUS } = require('./consts.js');
+const { whenPortOpens } = require('./port.js');
 
 const { HTTPParser } = process.binding('http_parser');
 const BEGIN_REQUEST_DATA_KEEP_CONN = Buffer.from('\0\x01\x01\0\0\0\0\0'); // FCGI_ROLE_RESPONDER && FCGI_KEEP_CONN
@@ -14,8 +16,31 @@ const MESSAGE_FCGI_END_REQUEST = `message-${MSG_TYPE.FCGI_END_REQUEST}`;
 let curReqId = 0;
 let connection;
 
-async function connect() {
+async function startPhp() {
   assert(!connection);
+
+  const child = spawn(
+    './php-fpm',
+    ['-c', 'php.ini',
+      '--fpm-config', '/var/task/native/php-fpm.ini',
+      '--nodaemonize'],
+    {
+      stdio: 'inherit',
+      cwd: '/var/task/native',
+    },
+  );
+
+  child.on('exit', () => {
+    console.error('php exited');
+    process.exit(1);
+  });
+
+  child.on('error', (error) => {
+    console.error(error);
+    process.exit(1);
+  });
+
+  await whenPortOpens(9000, 400);
 
   const newConnection = createConnection({
     _host: '127.0.0.1',
@@ -42,7 +67,11 @@ async function connect() {
   });
 }
 
-function query({ params, stdin }) {
+async function query({ params, stdin }) {
+  if (!connection) {
+    await startPhp();
+  }
+
   return new Promise((resolve) => {
     assert(connection);
 
@@ -51,7 +80,8 @@ function query({ params, stdin }) {
     ];
 
     function onError(error) {
-      // TODO resolve 500 + error.message
+      console.error(error);
+      process.exit(1);
     }
     function onStdout(reqId, data) {
       chunks.push(data);
@@ -63,7 +93,7 @@ function query({ params, stdin }) {
       const protocolStatus = data.readUInt8(4, true);
       if (protocolStatus !== PROTOCOL_STATUS.FCGI_REQUEST_COMPLETE) {
         console.error('protocolStatus', protocolStatus);
-        // TODO resolve 500
+        process.exit(1);
       }
 
       const response = Buffer.concat(chunks);
@@ -107,13 +137,11 @@ function query({ params, stdin }) {
 }
 
 module.exports = {
-  connect,
   query,
 };
 
 /*
 (async function() {
-  await connect();
   console.log(await query({ params: {
     REQUEST_METHOD: 'GET', SCRIPT_FILENAME: '/phpinfo.php'
   } }));
