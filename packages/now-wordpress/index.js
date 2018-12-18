@@ -64,7 +64,7 @@ function decompressBuffer(buffer) {
 }
 
 const staticRegexps = [
-  /\.css$/, /\.png$/, /\.jpg$/, /\.svg$/, /\.js$/,
+  /\.css$/, /\.gif$/, /\.js$/, /\.jpg$/, /\.png$/, /\.svg$/, /\.woff$/, /\.woff2$/,
 ];
 
 exports.build = async ({ files, entrypoint, config }) => {
