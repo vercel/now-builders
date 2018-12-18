@@ -68,6 +68,9 @@ const staticRegexps = [
 ];
 
 exports.build = async ({ files, entrypoint, config }) => {
+  if (config.entrypoint !== 'wp-config.php') {
+    throw new Error('Config.entrypoint must be "wp-config.php"');
+  }
   if (!config.releaseUrl) {
     throw new Error('Config must contain a "releaseUrl" for wordpress.zip');
   }
