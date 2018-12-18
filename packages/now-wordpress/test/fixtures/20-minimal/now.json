@@ -7,7 +7,7 @@
   ],
   "routes": [
     { "src": "/wp-admin/?", "dest": "index.php" },
-    { "src": "^\\\/.*\\.php", "dest": "index.php" }
+    { "src": ".*\\.php$", "dest": "index.php" }
   ],
   "env": {
     "DB_NAME": "@wordpress_db_name",
