@@ -68,8 +68,8 @@ const staticRegexps = [
 ];
 
 exports.build = async ({ files, entrypoint, config }) => {
-  if (config.entrypoint !== 'wp-config.php') {
-    throw new Error('Config.entrypoint must be "wp-config.php"');
+  if (entrypoint !== 'wp-config.php') {
+    throw new Error(`Entrypoint must be "wp-config.php". Currently it is ${entrypoint}`);
   }
   if (!config.releaseUrl) {
     throw new Error('Config must contain a "releaseUrl" for wordpress.zip');
@@ -80,6 +80,11 @@ exports.build = async ({ files, entrypoint, config }) => {
   console.log('decompressing release url...');
   const releaseFiles = await decompressBuffer(releaseBuffer);
   const mergedFiles = { ...releaseFiles, ...files };
+
+  const wpDbPhp = mergedFiles['wp-includes/wp-db.php'];
+  wpDbPhp.data = wpDbPhp.data.toString()
+    .replace(/mysqli_real_connect\( \$this->dbh, \$host,/g,
+      'mysqli_real_connect( $this->dbh, \'p:\' . $host,');
 
   const staticFiles = {};
   // eslint-disable-next-line no-restricted-syntax

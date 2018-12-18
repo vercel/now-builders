@@ -1,21 +1,8 @@
 {
   "version": 2,
   "builds": [
-    { "src": "wp-config.php", "use": "@now/wordpress", "config": { "releaseUrl": "https://wordpress.org/wordpress-5.0.1.zip" } },
-    { "src": "wp-admin/css/**", "use": "@now/static" },
-    { "src": "wp-admin/js/**", "use": "@now/static" },
-    { "src": "wp-admin/images/**", "use": "@now/static" },
-    { "src": "wp-includes/css/**", "use": "@now/static" },
-    { "src": "wp-includes/js/**", "use": "@now/static" },
-    { "src": "wp-includes/images/**", "use": "@now/static" },
-    { "src": "wp-content/themes/twentynineteen/**/*.css", "use": "@now/static" },
-    { "src": "wp-content/themes/twentynineteen/**/*.png", "use": "@now/static" },
-    { "src": "wp-content/themes/twentynineteen/**/*.jpg", "use": "@now/static" },
-    { "src": "wp-content/themes/twentynineteen/**/*.svg", "use": "@now/static" },
-    { "src": "wp-content/themes/twentynineteen/js/**", "use": "@now/static" },
-    { "src": "wp-content/themes/twentyseventeen/**/*.css", "use": "@now/static" },
-    { "src": "wp-content/themes/twentyseventeen/**/*.png", "use": "@now/static" },
-    { "src": "wp-content/themes/twentyseventeen/js/**", "use": "@now/static" }
+    { "src": "wp-config.php", "use": "@now/wordpress",
+      "config": { "releaseUrl": "https://wordpress.org/wordpress-5.0.1.zip" } }
   ],
   "routes": [
     { "src": "/", "dest": "wp-config.php" },
@@ -23,11 +10,5 @@
     { "src": "/wp-admin/", "dest": "wp-config.php" },
     { "src": "/wp-admin/index.php", "dest": "wp-config.php" },
     { "src": "^\\\/.*\\.php", "dest": "wp-config.php" }
-  ],
-  "env": {
-    "DB_NAME": "wordpressdb",
-    "DB_USER": "wordpressuser",
-    "DB_PASSWORD": "Cn",
-    "DB_HOST": "SG-wps-33"
-  }
+  ]
 }
