@@ -81,10 +81,12 @@ exports.build = async ({ files, entrypoint, config }) => {
   const releaseFiles = await decompressBuffer(releaseBuffer);
   const mergedFiles = { ...releaseFiles, ...files };
 
-  const wpDbPhp = mergedFiles['wp-includes/wp-db.php'];
-  wpDbPhp.data = wpDbPhp.data.toString()
-    .replace(/mysqli_real_connect\( \$this->dbh, \$host,/g,
-      'mysqli_real_connect( $this->dbh, \'p:\' . $host,');
+  if (config.patchForPersistentConnections) {
+    const wpDbPhp = mergedFiles['wp-includes/wp-db.php'];
+    wpDbPhp.data = wpDbPhp.data.toString()
+      .replace(/mysqli_real_connect\( \$this->dbh, \$host,/g,
+        'mysqli_real_connect( $this->dbh, \'p:\' . $host,');
+  }
 
   const staticFiles = {};
   // eslint-disable-next-line no-restricted-syntax

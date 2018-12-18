@@ -2,7 +2,8 @@
   "version": 2,
   "builds": [
     { "src": "wp-config.php", "use": "@now/wordpress",
-      "config": { "releaseUrl": "https://wordpress.org/wordpress-5.0.1.zip" } }
+      "config": { "releaseUrl": "https://wordpress.org/wordpress-5.0.1.zip",
+                  "patchForPersistentConnections": true } }
   ],
   "routes": [
     { "src": "/", "dest": "index.php" },
