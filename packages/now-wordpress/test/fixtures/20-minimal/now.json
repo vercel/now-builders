@@ -8,7 +8,6 @@
     { "src": "/", "dest": "wp-config.php" },
     { "src": "/wp-admin", "dest": "wp-config.php" },
     { "src": "/wp-admin/", "dest": "wp-config.php" },
-    { "src": "/wp-admin/index.php", "dest": "wp-config.php" },
     { "src": "^\\\/.*\\.php", "dest": "wp-config.php" }
   ]
 }
