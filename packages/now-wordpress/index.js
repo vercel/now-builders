@@ -104,5 +104,5 @@ exports.build = async ({ files, entrypoint, config }) => {
     runtime: 'nodejs8.10',
   });
 
-  return { [entrypoint]: lambda, ...staticFiles };
+  return { ...staticFiles, ...{ 'index.php': lambda } };
 };

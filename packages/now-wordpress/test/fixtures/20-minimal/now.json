@@ -5,9 +5,8 @@
       "config": { "releaseUrl": "https://wordpress.org/wordpress-5.0.1.zip" } }
   ],
   "routes": [
-    { "src": "/", "dest": "wp-config.php" },
-    { "src": "/wp-admin", "dest": "wp-config.php" },
-    { "src": "/wp-admin/", "dest": "wp-config.php" },
-    { "src": "^\\\/.*\\.php", "dest": "wp-config.php" }
+    { "src": "/", "dest": "index.php" },
+    { "src": "/wp-admin/?", "dest": "index.php" },
+    { "src": "^\\\/.*\\.php", "dest": "index.php" }
   ]
 }
