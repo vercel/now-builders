@@ -6,7 +6,6 @@
                   "patchForPersistentConnections": true } }
   ],
   "routes": [
-    { "src": "/", "dest": "index.php" },
     { "src": "/wp-admin/?", "dest": "index.php" },
     { "src": "^\\\/.*\\.php", "dest": "index.php" }
   ]
