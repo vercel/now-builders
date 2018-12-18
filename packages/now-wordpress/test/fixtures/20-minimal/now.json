@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.php", "use": "https://test-j2z2ra50y.now.sh" },
+    { "src": "wp-config.php", "use": "@now/wordpress", "config": { "releaseUrl": "https://wordpress.org/wordpress-5.0.1.zip" } },
     { "src": "wp-admin/css/**", "use": "@now/static" },
     { "src": "wp-admin/js/**", "use": "@now/static" },
     { "src": "wp-admin/images/**", "use": "@now/static" },
@@ -18,10 +18,11 @@
     { "src": "wp-content/themes/twentyseventeen/js/**", "use": "@now/static" }
   ],
   "routes": [
-    { "src": "/wp-admin", "dest": "index.php" },
-    { "src": "/wp-admin/", "dest": "index.php" },
-    { "src": "/wp-admin/index.php", "dest": "index.php" },
-    { "src": "^\\\/.*\\.php", "dest": "index.php" }
+    { "src": "/", "dest": "wp-config.php" },
+    { "src": "/wp-admin", "dest": "wp-config.php" },
+    { "src": "/wp-admin/", "dest": "wp-config.php" },
+    { "src": "/wp-admin/index.php", "dest": "wp-config.php" },
+    { "src": "^\\\/.*\\.php", "dest": "wp-config.php" }
   ],
   "env": {
     "DB_NAME": "wordpressdb",
