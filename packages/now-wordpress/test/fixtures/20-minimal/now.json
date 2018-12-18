@@ -8,5 +8,11 @@
   "routes": [
     { "src": "/wp-admin/?", "dest": "index.php" },
     { "src": "^\\\/.*\\.php", "dest": "index.php" }
-  ]
+  ],
+  "env": {
+    "DB_NAME": "@wordpress_db_name",
+    "DB_USER": "@wordpress_db_user",
+    "DB_PASSWORD": "@wordpress_db_password",
+    "DB_HOST": "@wordpress_db_host"
+  }
 }
