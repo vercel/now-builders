@@ -63,6 +63,10 @@ function decompressBuffer(buffer) {
   });
 }
 
+const staticRegexps = [
+  /\.css$/, /\.png$/, /\.jpg$/, /\.svg$/, /\.js$/,
+];
+
 exports.build = async ({ files, entrypoint, config }) => {
   if (!config.releaseUrl) {
     throw new Error('Config must contain a "releaseUrl" for wordpress.zip');
@@ -74,6 +78,14 @@ exports.build = async ({ files, entrypoint, config }) => {
   const releaseFiles = await decompressBuffer(releaseBuffer);
   const mergedFiles = { ...releaseFiles, ...files };
 
+  const staticFiles = {};
+  // eslint-disable-next-line no-restricted-syntax
+  for (const [k, v] of Object.entries(mergedFiles)) {
+    if (staticRegexps.some(r => r.test(k))) {
+      staticFiles[k] = v;
+    }
+  }
+
   // move all code to 'user' subdirectory
   const userFiles = rename(mergedFiles, name => path.join('user', name));
   const bridgeFiles = await getFiles();
@@ -84,5 +96,5 @@ exports.build = async ({ files, entrypoint, config }) => {
     runtime: 'nodejs8.10',
   });
 
-  return { [entrypoint]: lambda };
+  return { [entrypoint]: lambda, ...staticFiles };
 };
