@@ -39,7 +39,6 @@ _lambda_runtime_next() {
 
 	local request_id
 	request_id="$(grep -Fi Lambda-Runtime-Aws-Request-Id "$headers" | tr -d '[:space:]' | cut -d: -f2)"
-	echo "Request-Id: $request_id" >&2
 	rm -f "$headers"
 
 	# Execute the handler function from the script
