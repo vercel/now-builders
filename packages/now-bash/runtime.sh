@@ -69,11 +69,11 @@ _lambda_runtime_next() {
 			--arg body "$(base64 --wrap=0 < "$body")" \
 			'{statusCode:$statusCode|tonumber, headers:$headers, encoding:"base64", body:$body}')"
 		rm -f "$body" "$_HEADERS"
-		_lambda_runtime_api "invocation/$request_id/response" -X POST -d "$response"
+		_lambda_runtime_api "invocation/$request_id/response" -X POST -d "$response" > /dev/null
 	else
-		local error
-		error='{"exitCode":'"$exit_code"'}'
-		_lambda_runtime_api "invocation/$request_id/error" -X POST -d "$error"
+		echo "\`handler\` function return code: $exit_code"
+		local error='{"exitCode":'"$exit_code"'}'
+		_lambda_runtime_api "invocation/$request_id/error" -X POST -d "$error" > /dev/null
 	fi
 }
 
