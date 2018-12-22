@@ -27,7 +27,7 @@ echo "Caching imports in \"$ENTRYPOINT\"…"
 . "$ENTRYPOINT"
 echo "Done caching imports"
 
-# Run user build script
+# Run user `build` script
 if declare -f build > /dev/null; then
 	echo "Running \`build\` function in \"$ENTRYPOINT\"…"
 	build "$@"

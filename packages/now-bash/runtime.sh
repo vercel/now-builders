@@ -15,11 +15,15 @@ _lambda_runtime_init() {
 	# Initialize user code
 	. "$SCRIPT_FILENAME" || {
 		local exit_code="$?"
-		local error
-		error='{"exitCode":'"$exit_code"'}'
+		local error='{"exitCode":'"$exit_code"'}'
 		_lambda_runtime_api "init/error" -X POST -d "$error"
-		exit "$EXIT_CODE"
+		exit "$exit_code"
 	}
+
+	# Run user `start` script
+	if declare -f start > /dev/null; then
+		start "$@"
+	fi
 
 	# Process events
 	while true; do _lambda_runtime_next; done
