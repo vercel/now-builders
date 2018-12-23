@@ -179,3 +179,4 @@ module.exports = {
   excludeStaticDirectory,
   onlyStaticDirectory,
 };
+
