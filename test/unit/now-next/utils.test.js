@@ -258,7 +258,7 @@ describe('normalizePackageJson', () => {
       dependencies: {
         react: 'latest',
         'react-dom': 'latest',
-        next: 'v7.0.2-canary.49',
+        next: 'latest',
       },
     };
     const result = normalizePackageJson(defaultPackage);
@@ -283,7 +283,7 @@ describe('normalizePackageJson', () => {
       dependencies: {
         react: 'latest',
         'react-dom': 'latest',
-        next: 'v7.0.2-canary.49',
+        next: 'latest',
       },
     };
     const result = normalizePackageJson(defaultPackage);
