@@ -2,7 +2,6 @@
 const path = require('path');
 const runBuildLambda = require('../../lib/run-build-lambda');
 
-const TWO_MINUTES = 120000;
 const FOUR_MINUTES = 240000;
 
 it(
@@ -18,7 +17,7 @@ it(
     expect(hasUnderScoreAppStaticFile).toBeTruthy();
     expect(hasUnderScoreErrorStaticFile).toBeTruthy();
   },
-  TWO_MINUTES,
+  FOUR_MINUTES,
 );
 
 it(
