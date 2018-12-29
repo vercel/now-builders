@@ -8,7 +8,7 @@ it(
   'Should build the standard example',
   async () => {
     const { buildResult } = await runBuildLambda(
-      path.join(__dirname, 'standard'),
+      path.join(__dirname, 'legacy-standard'),
     );
     expect(buildResult.index).toBeDefined();
     const filePaths = Object.keys(buildResult);
@@ -24,7 +24,7 @@ it(
   'Should build the custom dependency test',
   async () => {
     const { buildResult } = await runBuildLambda(
-      path.join(__dirname, 'custom-dependency'),
+      path.join(__dirname, 'legacy-custom-dependency'),
     );
     expect(buildResult.index).toBeDefined();
   },
@@ -34,7 +34,7 @@ it(
 it('Should throw when package.json or next.config.js is not the "src"', async () => {
   try {
     await runBuildLambda(
-      path.join(__dirname, 'no-package-json-and-next-config'),
+      path.join(__dirname, 'legacy-no-package-json-and-next-config'),
     );
   } catch (err) {
     expect(err.message).toMatch(/package\.json/);
@@ -45,7 +45,7 @@ it(
   'Should build the static-files test',
   async () => {
     const { buildResult } = await runBuildLambda(
-      path.join(__dirname, 'static-files'),
+      path.join(__dirname, 'legacy-static-files'),
     );
     expect(buildResult['static/test.txt']).toBeDefined();
   },
