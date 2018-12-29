@@ -56,6 +56,19 @@ async function writePackageJson(workPath, packageJson) {
 }
 
 /**
+ * Read package.json from files
+ * @param {DownloadedFiles} files
+ */
+async function readNextConfig(files) {
+  if (!files['next.config.js']) {
+    return false;
+  }
+
+  const nextConfigPath = files['next.config.js'].fsPath;
+  return readFile(nextConfigPath, 'utf8');
+}
+
+/**
  * Write .npmrc with npm auth token
  * @param {string} workPath
  * @param {string} token
@@ -95,14 +108,32 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   const downloadedFiles = await download(filesWithoutStaticDirectory, workPath);
 
   const pkg = await readPackageJson(downloadedFiles);
+  const nextConfig = await readNextConfig(downloadedFiles);
+  let isLegacy = true;
+  if (nextConfig && nextConfig.includes('serverless')) {
+    isLegacy = false;
+  }
 
-  const isLegacy = true;
+  console.log('LEGACY', { isLegacy });
 
   if (isLegacy) {
+    console.warn(
+      "WARNING: your application is being deployed in @now/next's legacy mode.",
+    );
     console.log('normalizing package.json');
     const packageJson = normalizePackageJson(pkg);
     console.log('normalized package.json result: ', packageJson);
     await writePackageJson(workPath, packageJson);
+  } else if (!pkg.scripts || !pkg.scripts['now-build']) {
+    console.warn(
+      'WARNING: "now-build" script not found. Adding \'"now-build": "next build"\' to "package.json" automatically',
+    );
+    pkg.scripts = {
+      'now-build': 'next build',
+      ...(pkg.scripts || {}),
+    };
+    console.log('normalized package.json result: ', pkg);
+    await writePackageJson(workPath, pkg);
   }
 
   if (process.env.NPM_AUTH_TOKEN) {

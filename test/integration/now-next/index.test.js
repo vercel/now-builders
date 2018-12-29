@@ -8,6 +8,22 @@ it(
   'Should build the standard example',
   async () => {
     const { buildResult } = await runBuildLambda(
+      path.join(__dirname, 'standard'),
+    );
+    expect(buildResult.index).toBeDefined();
+    const filePaths = Object.keys(buildResult);
+    const hasUnderScoreAppStaticFile = filePaths.some(filePath => filePath.match(/static.*\/pages\/_app\.js$/));
+    const hasUnderScoreErrorStaticFile = filePaths.some(filePath => filePath.match(/static.*\/pages\/_error\.js$/));
+    expect(hasUnderScoreAppStaticFile).toBeTruthy();
+    expect(hasUnderScoreErrorStaticFile).toBeTruthy();
+  },
+  FOUR_MINUTES,
+);
+
+it(
+  'Should build the legacy standard example',
+  async () => {
+    const { buildResult } = await runBuildLambda(
       path.join(__dirname, 'legacy-standard'),
     );
     expect(buildResult.index).toBeDefined();
@@ -21,7 +37,7 @@ it(
 );
 
 it(
-  'Should build the custom dependency test',
+  'Should build the legacy custom dependency test',
   async () => {
     const { buildResult } = await runBuildLambda(
       path.join(__dirname, 'legacy-custom-dependency'),
@@ -34,8 +50,9 @@ it(
 it('Should throw when package.json or next.config.js is not the "src"', async () => {
   try {
     await runBuildLambda(
-      path.join(__dirname, 'legacy-no-package-json-and-next-config'),
+      path.join(__dirname, 'no-package-json-and-next-config'),
     );
+    throw new Error('did not throw');
   } catch (err) {
     expect(err.message).toMatch(/package\.json/);
   }
