@@ -239,6 +239,48 @@ exports.build = async ({ files, workPath, entrypoint }) => {
         console.log(`Created lambda for page: "${page}"`);
       }),
     );
+  } else {
+    console.log('preparing lambda files...');
+    const launcherFiles = {
+      'now__bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
+      'now__launcher.js': new FileFsRef({
+        fsPath: path.join(__dirname, 'launcher.js'),
+      }),
+    };
+    const pages = await glob(
+      '**/*.js',
+      path.join(workPath, '.next', 'serverless', 'pages'),
+    );
+
+    const pageKeys = Object.keys(pages);
+
+    if (pageKeys.length === 0) {
+      throw new Error(
+        'No serverless pages were built. https://err.sh/zeit/now-builders/now-next-no-serverless-pages-built',
+      );
+    }
+
+    await Promise.all(
+      pageKeys.map(async (page) => {
+        // These default pages don't have to be handled as they'd always 404
+        if (['_app.js', '_error.js', '_document.js'].includes(page)) {
+          return;
+        }
+
+        const pathname = page.replace(/\.js$/, '');
+
+        console.log(`Creating lambda for page: "${page}"...`);
+        lambdas[path.join(entryDirectory, pathname)] = await createLambda({
+          files: {
+            ...launcherFiles,
+            'page.js': pages[page],
+          },
+          handler: 'now__launcher.launcher',
+          runtime: 'nodejs8.10',
+        });
+        console.log(`Created lambda for page: "${page}"`);
+      }),
+    );
   }
 
   const nextStaticFiles = await glob(
