@@ -9,12 +9,13 @@ const {
   runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts.js');
 const glob = require('@now/build-utils/fs/glob.js');
+const semver = require('semver');
+const nextLegacyVersions = require('./legacy-versions');
 const {
   excludeFiles,
   validateEntrypoint,
   includeOnlyEntryDirectory,
   moveEntryDirectoryToRoot,
-  excludeLockFiles,
   normalizePackageJson,
   excludeStaticDirectory,
   onlyStaticDirectory,
@@ -56,19 +57,6 @@ async function writePackageJson(workPath, packageJson) {
 }
 
 /**
- * Read package.json from files
- * @param {DownloadedFiles} files
- */
-async function readNextConfig(files) {
-  if (!files['next.config.js']) {
-    return false;
-  }
-
-  const nextConfigPath = files['next.config.js'].fsPath;
-  return readFile(nextConfigPath, 'utf8');
-}
-
-/**
  * Write .npmrc with npm auth token
  * @param {string} workPath
  * @param {string} token
@@ -101,22 +89,69 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     filesOnlyEntryDirectory,
     entryDirectory,
   );
-  const filesWithoutLockfiles = excludeLockFiles(filesWithEntryDirectoryRoot);
   const filesWithoutStaticDirectory = excludeStaticDirectory(
-    filesWithoutLockfiles,
+    filesWithEntryDirectoryRoot,
   );
   const downloadedFiles = await download(filesWithoutStaticDirectory, workPath);
 
   const pkg = await readPackageJson(downloadedFiles);
-  const nextConfig = await readNextConfig(downloadedFiles);
-  let isLegacy = true;
-  if (nextConfig && nextConfig.includes('serverless')) {
-    isLegacy = false;
+
+  let nextVersion;
+  if (pkg.dependencies && pkg.dependencies.next) {
+    nextVersion = pkg.dependencies.next;
+  } else if (pkg.devDependencies && pkg.devDependencies.next) {
+    nextVersion = pkg.devDependencies.next;
   }
 
-  console.log('LEGACY', { isLegacy });
+  if (!nextVersion) {
+    throw new Error(
+      'No Next.js version could be detected in "package.json". Make sure `"next"` is installed in "dependencies" or "devDependencies"',
+    );
+  }
+
+  const isLegacy = (() => {
+    // If version is using the dist-tag instead of a version range
+    if (nextVersion === 'canary' || nextVersion === 'latest') {
+      return false;
+    }
+
+    // If the version is an exact match with the legacy versions
+    if (nextLegacyVersions.indexOf(nextVersion) !== -1) {
+      return true;
+    }
+
+    const maxSatisfying = semver.maxSatisfying(nextLegacyVersions, nextVersion);
+    // Matches latest canary
+    if (maxSatisfying === '7.0.2-canary.50') {
+      return false;
+    }
+
+    // When the version can't be matched with legacy versions, so it must be a newer version
+    if (maxSatisfying === null) {
+      return false;
+    }
+
+    // When 8.0.0 is released we can add it to the versions array
+    // and check if the semver notation matches 8.0.0 to opt into the new mode
+
+    return true;
+  })();
+
+  console.log(`MODE: ${isLegacy ? 'legacy' : 'serverless'}`);
 
   if (isLegacy) {
+    try {
+      await unlink(path.join(workPath, 'yarn.lock'));
+    } catch (err) {
+      console.log('no yarn.lock removed');
+    }
+
+    try {
+      await unlink(path.join(workPath, 'package-lock.json'));
+    } catch (err) {
+      console.log('no package-lock.json removed');
+    }
+
     console.warn(
       "WARNING: your application is being deployed in @now/next's legacy mode.",
     );
@@ -295,7 +330,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     {},
   );
 
-  const nextStaticDirectory = onlyStaticDirectory(filesWithoutLockfiles);
+  const nextStaticDirectory = onlyStaticDirectory(filesWithEntryDirectoryRoot);
   const staticDirectoryFiles = Object.keys(nextStaticDirectory).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
