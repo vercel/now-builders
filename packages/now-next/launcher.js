@@ -7,7 +7,7 @@ const page = require('./page.js');
 const bridge = new Bridge();
 bridge.port = 3000;
 
-const server = new Server(page.default);
+const server = new Server(page.render);
 server.listen(bridge.port);
 
 exports.launcher = bridge.launcher;

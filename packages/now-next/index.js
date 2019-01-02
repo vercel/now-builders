@@ -121,18 +121,10 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     }
 
     const maxSatisfying = semver.maxSatisfying(nextLegacyVersions, nextVersion);
-    // Matches latest canary
-    if (maxSatisfying === '7.0.2-canary.50') {
-      return false;
-    }
-
     // When the version can't be matched with legacy versions, so it must be a newer version
     if (maxSatisfying === null) {
       return false;
     }
-
-    // When 8.0.0 is released we can add it to the versions array
-    // and check if the semver notation matches 8.0.0 to opt into the new mode
 
     return true;
   })();
