@@ -3,6 +3,7 @@
   "version": "0.4.13-canary.1",
   "license": "MIT",
   "dependencies": {
+    "child_process": "^1.0.2",
     "fastcgi-client": "0.0.1"
   },
   "peerDependencies": {
