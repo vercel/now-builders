@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 const fs = require('fs');
-const { join: pathJoin } = require('path');
+const { join: pathJoin, basename } = require('path');
 const { parse: parseUrl } = require('url');
 const { query } = require('./fastcgi/index.js');
 
@@ -27,7 +27,10 @@ function normalizeEvent(event) {
     }
 
     return {
-      method, path, headers, body,
+      method,
+      path,
+      headers,
+      body,
     };
   }
 
@@ -36,7 +39,10 @@ function normalizeEvent(event) {
   } = event;
 
   return {
-    method, path, headers, body,
+    method,
+    path,
+    headers,
+    body,
   };
 }
 
@@ -78,6 +84,7 @@ async function transformFromAwsRequest({
   params.REQUEST_URI = requestUri;
   params.QUERY_STRING = queryString || ''; // can be null
   params.SCRIPT_FILENAME = filename;
+  params.SCRIPT_NAME = pathJoin('/', basename(filename));
   params.SERVER_PROTOCOL = 'HTTP/1.1';
   params.SERVER_PORT = 443;
   params.HTTPS = 'on';
@@ -88,8 +95,7 @@ async function transformFromAwsRequest({
     params[`HTTP_${camel}`] = v;
     if (camel === 'HOST') {
       params.SERVER_NAME = v;
-    } else
-    if (['CONTENT_TYPE', 'CONTENT_LENGTH'].includes(camel)) {
+    } else if (['CONTENT_TYPE', 'CONTENT_LENGTH'].includes(camel)) {
       params[camel] = v; // without HOST_ prepended
     }
   }
