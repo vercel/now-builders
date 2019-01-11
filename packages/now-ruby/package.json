@@ -9,4 +9,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "dependencies": {
+    "execa": "^1.0.0",
+    "fs-extra": "^7.0.1"
+  }
 }
