@@ -23,7 +23,7 @@ async function pipInstallUser(pipPath, ...args) {
   console.log(`running "pip install --user ${args.join(' ')}"...`);
   try {
     await execa(pipPath, ['install', '--user', ...args], {
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
   } catch (err) {
     console.log(`failed to run "pip install --user ${args.join(' ')}"`);
@@ -76,7 +76,8 @@ exports.build = async ({ files, entrypoint }) => {
     await pipenvInstall(pyUserBase, srcDir);
   }
 
-  files = await glob('**', srcDir)
+  // eslint-disable-next-line no-param-reassign
+  files = await glob('**', srcDir);
 
   if (files['requirements.txt']) {
     console.log('found "requirements.txt"');
