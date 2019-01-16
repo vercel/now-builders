@@ -1,7 +1,11 @@
 {
   "name": "@now/mdx-deck",
-  "version": "0.4.17-canary.0",
+  "version": "0.4.18-canary.1",
+  "license": "MIT",
   "peerDependencies": {
     "@now/build-utils": ">=0.0.1"
+  },
+  "scripts": {
+    "test": "jest"
   }
 }

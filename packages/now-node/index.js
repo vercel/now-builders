@@ -35,7 +35,7 @@ async function downloadInstallAndBundle(
   console.log('downloading user files...');
   const downloadedFiles = await download(files, userPath);
 
-  console.log('running npm install for user...');
+  console.log('installing dependencies for user\'s code...');
   const entrypointFsDirname = path.join(userPath, path.dirname(entrypoint));
   await runNpmInstall(entrypointFsDirname, npmArguments);
 
@@ -45,7 +45,7 @@ async function downloadInstallAndBundle(
       'package.json': new FileBlob({
         data: JSON.stringify({
           dependencies: {
-            '@zeit/ncc': '0.1.15',
+            '@zeit/ncc': '0.9.0',
           },
         }),
       }),
@@ -53,7 +53,7 @@ async function downloadInstallAndBundle(
     nccPath,
   );
 
-  console.log('running npm install for ncc...');
+  console.log('installing dependencies for ncc...');
   await runNpmInstall(nccPath, npmArguments);
   return [downloadedFiles, nccPath, entrypointFsDirname];
 }
@@ -69,7 +69,8 @@ async function compile(workNccPath, downloadedFiles, entrypoint) {
   preparedFiles[path.join('user', entrypoint)] = blob;
   // eslint-disable-next-line no-restricted-syntax
   for (const assetName of Object.keys(assets)) {
-    const blob2 = new FileBlob({ data: assets[assetName] });
+    const { source: data, permissions: mode } = assets[assetName];
+    const blob2 = new FileBlob({ data, mode });
     preparedFiles[
       path.join('user', path.dirname(entrypoint), assetName)
     ] = blob2;
@@ -109,6 +110,7 @@ exports.build = async ({ files, entrypoint, workPath }) => {
     [
       'process.chdir("./user");',
       `listener = require("./${path.join('user', entrypoint)}");`,
+      'if (listener.default) listener = listener.default;',
     ].join(' '),
   );
 
