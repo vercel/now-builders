@@ -1,11 +1,11 @@
 const assert = require('assert');
 const bufferReplace = require('buffer-replace');
-const fetch = require('node-fetch');
 const fs = require('fs-extra');
 const glob = require('util').promisify(require('glob'));
 const path = require('path');
 const { spawn } = require('child_process');
-const nowDeploy = require('./now-deploy.js');
+const fetch = require('./fetch-retry.js');
+const { nowDeploy } = require('./now-deploy.js');
 
 async function packAndDeploy (builderPath) {
   const tgzName = (await spawnAsync('npm', [ '--loglevel', 'warn', 'pack' ], {
@@ -66,10 +66,11 @@ async function testDeployment ({ builderUrl, buildUtilsUrl }, fixturePath) {
   }
 
   bodies['now.json'] = Buffer.from(JSON.stringify(nowJson));
+  delete bodies['probe.js'];
   const { deploymentId, deploymentUrl } = await nowDeploy(bodies, randomness);
   console.log('deploymentUrl', deploymentUrl);
 
-  for (const probe of nowJson.probes) {
+  for (const probe of nowJson.probes || []) {
     console.log('testing', JSON.stringify(probe));
     const probeUrl = `https://${deploymentUrl}${probe.path}`;
     const text = await fetchDeploymentUrl(probeUrl, {
@@ -91,6 +92,11 @@ async function testDeployment ({ builderUrl, buildUtilsUrl }, fixturePath) {
     }
   }
 
+  const probeJsFullPath = path.resolve(fixturePath, 'probe.js');
+  if (await fs.exists(probeJsFullPath)) {
+    await require(probeJsFullPath)({ deploymentUrl, fetch, randomness });
+  }
+
   return { deploymentId, deploymentUrl };
 }
 
@@ -106,11 +112,9 @@ async function nowDeployIndexTgz (file) {
 async function fetchDeploymentUrl (url, opts) {
   for (let i = 0; i < 500; i += 1) {
     const resp = await fetch(url, opts);
-    if (resp.status === 200) {
-      const text = await resp.text();
-      if (!text.includes('Join Free')) {
-        return text;
-      }
+    const text = await resp.text();
+    if (text && !text.includes('Join Free')) {
+      return text;
     }
 
     await new Promise((r) => setTimeout(r, 1000));

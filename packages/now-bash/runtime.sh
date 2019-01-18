@@ -1,4 +1,4 @@
-import "static-binaries@0.0.6"
+import "static-binaries@1.0.0"
 static_binaries jq
 
 # These get reset upon each request
@@ -35,11 +35,10 @@ _lambda_runtime_next() {
 	# Get an event
 	local event
 	event="$(mktemp)"
-	_lambda_runtime_api invocation/next -D "$headers" | jq -r '.body' > "$event"
+	_lambda_runtime_api invocation/next -D "$headers" | jq --raw-output --monochrome-output '.body' > "$event"
 
 	local request_id
 	request_id="$(grep -Fi Lambda-Runtime-Aws-Request-Id "$headers" | tr -d '[:space:]' | cut -d: -f2)"
-	echo "Request-Id: $request_id" >&2
 	rm -f "$headers"
 
 	# Execute the handler function from the script
@@ -49,7 +48,7 @@ _lambda_runtime_next() {
 	local exit_code=0
 	REQUEST="$event"
 
-	# Stdin of the `serve` function is the HTTP request body.
+	# Stdin of the `handler` function is the HTTP request body.
 	# Need to use a fifo here instead of bash <() because Lambda
 	# errors with "/dev/fd/63 not found" for some reason :/
 	local stdin
@@ -57,33 +56,30 @@ _lambda_runtime_next() {
 	mkfifo "$stdin"
 	_lambda_runtime_body "$event" > "$stdin" &
 
-	serve "$event" < "$stdin" > "$body" || exit_code="$?"
+	handler "$event" < "$stdin" > "$body" || exit_code="$?"
 	rm -f "$event" "$stdin"
 
 	if [ "$exit_code" -eq 0 ]; then
 		# Send the response
-		local response
-		response="$(jq -cnMr \
+		jq --raw-input --raw-output --compact-output --slurp --monochrome-output \
 			--arg statusCode "$(cat "$_STATUS_CODE")" \
 			--argjson headers "$(cat "$_HEADERS")" \
-			--arg body "$(base64 --wrap=0 < "$body")" \
-			'{statusCode:$statusCode|tonumber, headers:$headers, encoding:"base64", body:$body}')"
+			'{statusCode:$statusCode|tonumber, headers:$headers, encoding:"base64", body:.|@base64}' < "$body" \
+			| _lambda_runtime_api "invocation/$request_id/response" -X POST -d @- > /dev/null
 		rm -f "$body" "$_HEADERS"
-		_lambda_runtime_api "invocation/$request_id/response" -X POST -d "$response"
 	else
-		local error
-		error='{"exitCode":'"$exit_code"'}'
-		_lambda_runtime_api "invocation/$request_id/error" -X POST -d "$error"
+		echo "\`handler\` function return code: $exit_code"
+		_lambda_runtime_api "invocation/$request_id/error" -X POST -d @- > /dev/null <<< '{"exitCode":'"$exit_code"'}'
 	fi
 }
 
 _lambda_runtime_body() {
-	if [ "$(jq -r '.body | type' < "$1")" = "string" ]; then
-		if [ "$(jq -r '.encoding' < "$1")" = "base64" ]; then
-			jq -r '.body' < "$1" | base64 -d
+	if [ "$(jq --raw-output '.body | type' < "$1")" = "string" ]; then
+		if [ "$(jq --raw-output '.encoding' < "$1")" = "base64" ]; then
+			jq --raw-output '.body' < "$1" | base64 -d
 		else
 			# assume plain-text body
-			jq -r '.body' < "$1"
+			jq --raw-output '.body' < "$1"
 		fi
 	fi
 }

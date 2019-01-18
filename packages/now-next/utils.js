@@ -153,18 +153,18 @@ function normalizePackageJson(defaultPackageJson = {}) {
       'react-dom': 'latest',
       ...dependencies, // override react if user provided it
       // next-server is forced to canary
-      'next-server': 'canary',
+      'next-server': 'v7.0.2-canary.49',
     },
     devDependencies: {
       ...devDependencies,
       // next is forced to canary
-      next: 'canary',
+      next: 'v7.0.2-canary.49',
       // next-server is a dependency here
       'next-server': undefined,
     },
     scripts: {
       ...defaultPackageJson.scripts,
-      'now-build': 'next build --lambdas',
+      'now-build': 'NODE_OPTIONS=--max_old_space_size=3000 next build --lambdas',
     },
   };
 }

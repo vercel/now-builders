@@ -1,8 +1,8 @@
 const assert = require('assert');
 const { createHash } = require('crypto');
-const fetch = require('node-fetch');
 const { homedir } = require('os');
 const path = require('path');
+const fetch = require('./fetch-retry.js');
 
 async function nowDeploy (bodies, randomness) {
   const files = Object.keys(bodies)
@@ -18,7 +18,7 @@ async function nowDeploy (bodies, randomness) {
 
   const nowDeployPayload = {
     version: 2,
-    env: { RANDOMNESS_ENV_VAR: randomness },
+    env: Object.assign({}, nowJson.env, { RANDOMNESS_ENV_VAR: randomness }),
     build: { env: { RANDOMNESS_BUILD_ENV_VAR: randomness } },
     name: 'test',
     files,
@@ -27,12 +27,13 @@ async function nowDeploy (bodies, randomness) {
     meta: {}
   };
 
+  console.log(`posting ${files.length} files`);
+
   for (const { file: filename } of files) {
-    const json = await filePost(
+    await filePost(
       bodies[filename],
       digestOfFile(bodies[filename])
     );
-    if (json.error) throw new Error(json.error.message);
   }
 
   let deploymentId;
@@ -44,6 +45,8 @@ async function nowDeploy (bodies, randomness) {
     deploymentId = json.id;
     deploymentUrl = json.url;
   }
+
+  console.log('id', deploymentId);
 
   for (let i = 0; i < 500; i += 1) {
     const { state } = await deploymentGet(deploymentId);
@@ -76,8 +79,13 @@ async function filePost (body, digest) {
     headers,
     body
   });
+  const json = await resp.json();
 
-  return await resp.json();
+  if (json.error) {
+    console.log('headers', resp.headers);
+    throw new Error(json.error.message);
+  }
+  return json;
 }
 
 async function deploymentPost (payload) {
@@ -86,7 +94,11 @@ async function deploymentPost (payload) {
     body: JSON.stringify(payload)
   });
   const json = await resp.json();
-  if (json.error) throw new Error(json.error.message);
+
+  if (json.error) {
+    console.log('headers', resp.headers);
+    throw new Error(json.error.message);
+  }
   return json;
 }
 
@@ -95,34 +107,54 @@ async function deploymentGet (deploymentId) {
   return await resp.json();
 }
 
-async function fetchWithAuth (url, opts = {}) {
-  const apiHost = process.env.API_HOST || 'api.zeit.co';
-  const urlWithHost = `https://${apiHost}${url}`;
-  if (!opts.headers) opts.headers = {};
-  let token;
+let token;
 
-  if (process.env.NOW_AUTH_TOKENS) {
-    const tokens = process.env.NOW_AUTH_TOKENS.split(',');
-    if (process.env.CIRCLE_BUILD_NUM) {
-      token = tokens[Number(process.env.CIRCLE_BUILD_NUM) % tokens.length];
-    } else {
-      token = tokens[Math.floor(Math.random() * tokens.length)];
+async function fetchWithAuth (url, opts = {}) {
+  if (!opts.headers) opts.headers = {};
+
+  if (!opts.headers.Authorization) {
+    if (!token) {
+      const { NOW_TOKEN, NOW_TOKEN_FACTORY_URL } = process.env;
+
+      if (NOW_TOKEN) {
+        token = NOW_TOKEN;
+      } else
+      if (NOW_TOKEN_FACTORY_URL) {
+        const resp = await fetch(NOW_TOKEN_FACTORY_URL);
+        token = (await resp.json()).token;
+      } else {
+        const authJsonPath = path.join(homedir(), '.now/auth.json');
+        token = require(authJsonPath).token;
+      }
     }
-  } else {
-    const authJsonPath = path.join(homedir(), '.now/auth.json');
-    token = require(authJsonPath).token;
+
+    opts.headers.Authorization = `Bearer ${token}`;
   }
 
-  opts.headers.Authorization = `Bearer ${token}`;
-  return await fetchApiWithChecks(urlWithHost, opts);
+  return await fetchApi(url, opts);
 }
 
-async function fetchApiWithChecks (url, opts = {}) {
-  // const { method = 'GET', body } = opts;
-  // console.log('fetch', method, url);
-  // if (body) console.log(encodeURIComponent(body).slice(0, 80));
-  const resp = await fetch(url, opts);
-  return resp;
+async function fetchApi (url, opts = {}) {
+  const apiHost = process.env.API_HOST || 'api.zeit.co';
+  const urlWithHost = `https://${apiHost}${url}`;
+  const { method = 'GET', body } = opts;
+
+  if (process.env.VERBOSE) {
+    console.log('fetch', method, url);
+    if (body) console.log(encodeURIComponent(body).slice(0, 80));
+  }
+
+  if (!opts.headers) opts.headers = {};
+
+  if (!opts.headers.Accept) {
+    opts.headers.Accept = 'application/json';
+  }
+
+  return await fetch(urlWithHost, opts);
 }
 
-module.exports = nowDeploy;
+module.exports = {
+  fetchApi,
+  fetchWithAuth,
+  nowDeploy
+};

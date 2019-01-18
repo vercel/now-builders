@@ -21,10 +21,10 @@ type Request struct {
 }
 
 type Response struct {
-	StatusCode int               `json:"statusCode"`
-	Headers    map[string]string `json:"headers"`
-	Encoding   string            `json:"encoding,omitemtpy"`
-	Body       string            `json:"body"`
+	StatusCode int                 `json:"statusCode"`
+	Headers    map[string][]string `json:"headers"`
+	Encoding   string              `json:"encoding,omitemtpy"`
+	Body       string              `json:"body"`
 }
 
 type ResponseWriter struct {
@@ -68,20 +68,17 @@ func Serve(handler http.Handler, req *Request) (res Response, err error) {
 	for k, v := range req.Headers {
 		r.Header.Add(k, v)
 		switch strings.ToLower(k) {
-		case "host":
-			r.Host = v
-		case "content-length":
-			contentLength, _ := strconv.ParseInt(v, 10, 64)
-			r.ContentLength = contentLength
-		case "x-forwarded-for":
-		case "x-real-ip":
-			r.RemoteAddr = v
-		}
-		if strings.ToLower(k) == "host" {
-			// we need to set `Host` in the request
-			// because Go likes to ignore the `Host` header
-			// see https://github.com/golang/go/issues/7682
-			r.Host = v
+			case "host":
+				// we need to set `Host` in the request
+				// because Go likes to ignore the `Host` header
+				// see https://github.com/golang/go/issues/7682
+				r.Host = v
+			case "content-length":
+				contentLength, _ := strconv.ParseInt(v, 10, 64)
+				r.ContentLength = contentLength
+			case "x-forwarded-for":
+			case "x-real-ip":
+				r.RemoteAddr = v
 		}
 	}
 
@@ -96,10 +93,10 @@ func Serve(handler http.Handler, req *Request) (res Response, err error) {
 	handler.ServeHTTP(w, r)
 	defer r.Body.Close()
 
-	headers := make(map[string]string)
+	headers := make(map[string][]string)
 	for k, v := range w.headers {
 		for _, s := range v {
-			headers[k] = s
+			headers[k] = append(headers[k], s)
 		}
 	}
 
