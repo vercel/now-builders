@@ -1,3 +1,4 @@
+import base64
 import json
 import requests
 import wsgiadapter
@@ -22,7 +23,11 @@ def now_handler(event, context):
     path = payload["path"]
     headers = payload["headers"]
     method = payload["method"]
+    encoding = payload["encoding"]
     body = payload.get("body")
+
+    if len(body) > 0 and (encoding == "base64"):
+        body = base64.b64decode(body)
 
     res = session.request(method, "http://;" + path, headers=headers, data=body)
 
