@@ -1,10 +1,8 @@
-# `@now/next` No Serverless Pages Built
+# `@now/next` Legacy Mode
 
-#### Why This Error Occurred
+#### Why This Warning Occurred
 
-This error occurs when you have one or more of the following:
- - A misconfigured [Next.js](https://github.com/zeit/next.js) deployment.
- - No pages detected.
+This warning occurs when a deployment without `"target": serverless` is built.
 
 #### Possible Ways to Fix It
 
@@ -47,3 +45,5 @@ module.exports = {
 ```
 
 ### Useful Links
+
+- [Serverless Deployment with Next.js](https://github.com/zeit/next.js#serverless-deployment)
