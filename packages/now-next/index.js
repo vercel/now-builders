@@ -145,11 +145,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     }
 
     console.warn(
-      "WARNING: your application is being deployed in @now/next's legacy mode.",
-    );
-
-    console.warn(
-      "http://err.sh/zeit/now-builders/now-next-legacy-mode",
+      "WARNING: your application is being deployed in @now/next's legacy mode. http://err.sh/zeit/now-builders/now-next-legacy-mode",
     );
 
     console.log('normalizing package.json');
