@@ -46,6 +46,7 @@ async function downloadInstallAndBundle(
     {
       'package.json': new FileBlob({
         data: JSON.stringify({
+          license: 'MIT',
           dependencies: {
             '@zeit/ncc': '0.13.0',
           },
