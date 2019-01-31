@@ -2,7 +2,7 @@ const tar = require('tar');
 const fetch = require('node-fetch');
 
 const rustUrl = 'https://dmmcy0pwk6bqi.cloudfront.net/rust.tar.gz';
-const ccUrl = 'https://lambci.s3.amazonaws.com/binaries/gcc-4.8.5.tgz';
+const ccUrl = 'https://dmmcy0pwk6bqi.cloudfront.net/gcc-4.8.5.tgz';
 
 async function downloadRustToolchain() {
   console.log('downloading the rust toolchain');
