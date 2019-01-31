@@ -3,10 +3,11 @@ const path = require('path');
 const concat = require('concat-stream');
 const execa = require('execa');
 const toml = require('toml');
-const { createLambda } = require('@now/build-utils/lambda.js');
-const download = require('@now/build-utils/fs/download.js');
+const rimraf = require('rimraf');
+const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
+const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
 const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
-const FileFsRef = require('@now/build-utils/file-fs-ref.js');
+const FileFsRef = require('@now/build-utils/file-fs-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
 const installRustAndGCC = require('./download-install-rust-toolchain.js');
 const inferCargoBinaries = require('./inferCargoBinaries.js');
 
@@ -80,6 +81,7 @@ exports.build = async ({ files, entrypoint, workPath }) => {
 
 exports.prepareCache = async ({ cachePath, workPath }) => {
   console.log('preparing cache...');
+  rimraf.sync(path.join(cachePath, 'target'));
   fs.renameSync(path.join(workPath, 'target'), path.join(cachePath, 'target'));
 
   return {

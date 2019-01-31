@@ -59,7 +59,6 @@ async function inferCargoBinaries(cargoToml, srcDir) {
     const filesInSrcBin = (await exists(binDir)) && (await stat(binDir)).isDirectory()
       ? await readdir(binDir)
       : [];
-    console.log('filesin', filesInSrcBin);
 
     filesInSrcBin.forEach((file) => {
       if (file.endsWith('.rs')) {

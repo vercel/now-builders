@@ -1,7 +1,7 @@
 const tar = require('tar');
 const fetch = require('node-fetch');
 
-const rustUrl = 'https://s3.eu-west-3.amazonaws.com/anmonteiro/rust.tar';
+const rustUrl = 'https://dmmcy0pwk6bqi.cloudfront.net/rust.tar.gz';
 const ccUrl = 'https://lambci.s3.amazonaws.com/binaries/gcc-4.8.5.tgz';
 
 async function downloadRustToolchain() {
@@ -16,7 +16,7 @@ async function downloadRustToolchain() {
   return new Promise((resolve, reject) => {
     res.body
       .on('error', reject)
-      .pipe(tar.extract({ cwd: HOME }))
+      .pipe(tar.extract({ gzip: true, cwd: HOME }))
       .on('finish', () => resolve());
   });
 }
