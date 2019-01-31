@@ -1,4 +1,4 @@
-//! Provides an API Gateway oriented request and response body entity interface
+//! Provides a Now Lambda oriented request and response body entity interface
 
 use std::{borrow::Cow, ops::Deref};
 
@@ -6,7 +6,7 @@ use base64::display::Base64Display;
 use serde::ser::{Error as SerError, Serialize, Serializer};
 
 /// Representation of http request and response bodies as supported
-/// by API Gateway.
+/// by Zeit Now v2.
 ///
 /// These come in three flavors
 /// * `Empty` ( no body )
@@ -25,8 +25,8 @@ use serde::ser::{Error as SerError, Serialize, Serializer};
 /// text produce `Body::Text` variants
 ///
 /// ```
-/// assert!(match lambda_http::Body::from("text") {
-///   lambda_http::Body::Text(_) => true,
+/// assert!(match now_lambda::Body::from("text") {
+///   now_lambda::Body::Text(_) => true,
 ///   _ => false
 /// })
 /// ```
@@ -36,28 +36,24 @@ use serde::ser::{Error as SerError, Serialize, Serializer};
 /// Types like `Vec<u8>` and `&[u8]` whose types reflect raw bytes produce `Body::Binary` variants
 ///
 /// ```
-/// assert!(match lambda_http::Body::from("text".as_bytes()) {
-///   lambda_http::Body::Binary(_) => true,
+/// assert!(match now_lambda::Body::from("text".as_bytes()) {
+///   now_lambda::Body::Binary(_) => true,
 ///   _ => false
 /// })
 /// ```
 ///
-/// `Binary` responses bodies will automatically get based64 encoded to meet API Gateway's response expectations.
+/// `Binary` responses bodies will automatically get base64 encoded.
 ///
 /// ## Empty
 ///
 /// The unit type ( `()` ) whose type represents an empty value produces `Body::Empty` variants
 ///
 /// ```
-/// assert!(match lambda_http::Body::from(()) {
-///   lambda_http::Body::Empty => true,
+/// assert!(match now_lambda::Body::from(()) {
+///   now_lambda::Body::Empty => true,
 ///   _ => false
 /// })
 /// ```
-///
-///
-/// For more information about API Gateway's body types,
-/// refer to [this documentation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings.html).
 #[derive(Debug, PartialEq)]
 pub enum Body {
     /// An empty body

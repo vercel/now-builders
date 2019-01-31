@@ -1,6 +1,6 @@
 pub use http::{self, Response};
 use lambda_runtime::{self as lambda, error::HandlerError, Context};
-use log::{self, error};
+use log::{self, debug, error};
 use serde_json::Error;
 use tokio::runtime::Runtime as TokioRuntime;
 
@@ -15,7 +15,7 @@ use crate::{
     response::NowResponse,
 };
 
-/// Type alias for `http::Request`s with a fixed `lambda_http::Body` body
+/// Type alias for `http::Request`s with a fixed `now_lambda::Body` body
 pub type Request = http::Request<Body>;
 
 /// Functions acting as Now Lambda handlers must conform to this type.
@@ -53,9 +53,7 @@ where
             let parse_result: Result<NowRequest, Error> = serde_json::from_str(&req_str);
             match parse_result {
                 Ok(req) => {
-                    error!("success deserializing");
-                    // let req: NowRequest = NowRequest::from(req_json);
-
+                    debug!("Deserialized Now proxy request successfully");
                     func.run(req.into(), ctx)
                         .map(|resp| NowResponse::from(resp.into_response()))
                 }
@@ -69,7 +67,7 @@ where
     )
 }
 
-/// A macro for starting new handler's poll for API Gateway events
+/// A macro for starting new handler's poll for Now Lambda events
 #[macro_export]
 macro_rules! lambda {
     ($handler:expr) => {

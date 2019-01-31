@@ -80,7 +80,7 @@ where
 /// # example
 ///
 /// ```rust
-/// use lambda_http::{Body, IntoResponse, Response};
+/// use now_lambda::{Body, IntoResponse, Response};
 ///
 /// assert_eq!(
 ///   "hello".into_response().body(),

@@ -1,5 +1,5 @@
 [package]
-name = "now_rust"
+name = "now_lambda"
 version = "0.1.0"
 authors = ["Antonio Nuno Monteiro <anmonteiro@gmail.com>"]
 edition = "2018"
@@ -13,6 +13,3 @@ tokio = "^0.1"
 base64 = "0.10"
 log = "^0.4"
 lambda_runtime = "0.2.0"
-
-[dev-dependencies]
-simple_logger = "^1"

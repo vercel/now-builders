@@ -11,7 +11,7 @@ use serde_json::Value;
 
 use crate::body::Body;
 
-/// Representation of an API Gateway proxy event data
+/// Representation of a Now Lambda proxy event data
 #[doc(hidden)]
 #[derive(Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -115,7 +115,7 @@ impl<'a> From<NowRequest<'a>> for HttpRequest<Body> {
             encoding,
         } = value;
 
-        // build an http::Request<lambda_http::Body> from a lambda_http::GatewayRequest
+        // build an http::Request<now_lambda::Body> from a now_lambda::NowRequest
         let mut builder = HttpRequest::builder();
         builder.method(method);
         builder.uri({ format!("https://{}{}", host, path) });
