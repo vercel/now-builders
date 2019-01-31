@@ -1,16 +1,18 @@
 pub use http::{self, Response};
-use lambda_runtime::{self as lambda, error::HandlerError, Context};
+use lambda_runtime::{self as lambda, Context};
 use log::{self, debug, error};
 use serde_json::Error;
 use tokio::runtime::Runtime as TokioRuntime;
 
 mod body;
+pub mod error;
 pub mod request;
 mod response;
 mod strmap;
 
 pub use crate::{body::Body, response::IntoResponse, strmap::StrMap};
 use crate::{
+    error::NowError,
     request::{NowEvent, NowRequest},
     response::NowResponse,
 };
@@ -20,16 +22,16 @@ pub type Request = http::Request<Body>;
 
 /// Functions acting as Now Lambda handlers must conform to this type.
 pub trait Handler<R> {
-    /// Run the handler.
-    fn run(&mut self, event: Request, ctx: Context) -> Result<R, HandlerError>;
+    /// Method to execute the handler function
+    fn run(&mut self, event: Request) -> Result<R, NowError>;
 }
 
-impl<F, R> Handler<R> for F
+impl<Function, R> Handler<R> for Function
 where
-    F: FnMut(Request, Context) -> Result<R, HandlerError>,
+    Function: FnMut(Request) -> Result<R, NowError>,
 {
-    fn run(&mut self, event: Request, ctx: Context) -> Result<R, HandlerError> {
-        (*self)(event, ctx)
+    fn run(&mut self, event: Request) -> Result<R, NowError> {
+        (*self)(event)
     }
 }
 
@@ -48,13 +50,13 @@ where
     // handler requires a mutable ref
     let mut func = f;
     lambda::start(
-        |e: NowEvent, ctx: Context| {
+        |e: NowEvent, _ctx: Context| {
             let req_str = e.body;
             let parse_result: Result<NowRequest, Error> = serde_json::from_str(&req_str);
             match parse_result {
                 Ok(req) => {
                     debug!("Deserialized Now proxy request successfully");
-                    func.run(req.into(), ctx)
+                    func.run(req.into())
                         .map(|resp| NowResponse::from(resp.into_response()))
                 }
                 Err(e) => {
