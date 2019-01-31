@@ -9,7 +9,8 @@
   },
   "files": [
     "index.js",
-    "download-install-rust-toolchain.js"
+    "download-install-rust-toolchain.js",
+    "inferCargoBinaries.js"
   ],
   "dependencies": {
     "@now/build-utils": "*",
