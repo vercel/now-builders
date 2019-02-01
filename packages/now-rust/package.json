@@ -15,6 +15,7 @@
   "dependencies": {
     "concat-stream": "^2.0.0",
     "execa": "^1.0.0",
+    "mkdirp": "^0.5.1",
     "node-fetch": "^2.3.0",
     "rimraf": "^2.6.3",
     "tar": "^4.4.8",
