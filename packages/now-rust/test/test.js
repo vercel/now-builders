@@ -1,15 +1,16 @@
-/* global afterAll, beforeAll, describe, expect, it, jest */
+/* global afterEach, beforeEach, describe, expect, it, jest */
 const fs = require('fs');
+
 const inferCargoBinaries = require('../inferCargoBinaries');
 
 const { exists, readdir, stat } = fs;
 const isDir = fs.Stats.prototype.isDirectory;
 
-beforeAll(() => {
-  fs.exists = jest.fn((p, cb) => cb(null, false));
+beforeEach(() => {
+  fs.exists = jest.fn((p, cb) => cb(false));
 });
 
-afterAll(() => {
+afterEach(() => {
   fs.readdir = readdir;
   fs.stat = stat;
   fs.Stats.prototype.isDirectory = isDir;
@@ -19,8 +20,9 @@ afterAll(() => {
 // src/
 // |- main.rs
 describe('one binary, src/main.rs', async () => {
-  beforeAll(() => {
+  beforeEach(() => {
     fs.readdir = jest.fn((p, cb) => cb(null, ['main.rs']));
+    fs.exists = jest.fn((p, cb) => cb(p.endsWith('main.rs')));
   });
 
   it('infers only one binary', async () => {
@@ -40,8 +42,9 @@ describe('one binary, src/main.rs', async () => {
 // |- bar.rs
 // |- main.rs
 describe('two binaries, src/main.rs, src/bar.rs', async () => {
-  beforeAll(() => {
+  beforeEach(() => {
     fs.readdir = jest.fn((p, cb) => cb(null, ['main.rs', 'bar.rs']));
+    fs.exists = jest.fn((p, cb) => cb(p.endsWith('main.rs')));
   });
 
   it('infers two binaries', async () => {
@@ -62,7 +65,7 @@ describe('two binaries, src/main.rs, src/bar.rs', async () => {
 // src/
 // |- foo.rs
 describe('one named binary, no main.rs', async () => {
-  beforeAll(() => {
+  beforeEach(() => {
     fs.readdir = jest.fn((p, cb) => cb(null, ['bar.rs']));
   });
 
@@ -86,7 +89,7 @@ describe('one named binary, no main.rs', async () => {
 // |  |- baz.rs
 // |- main.rs
 describe('multiple binaries in bin/, no [[bin]] section', async () => {
-  beforeAll(() => {
+  beforeEach(() => {
     fs.readdir = jest.fn((p, cb) => {
       if (p === '/path/to/src') {
         return cb(null, ['bin', 'main.rs']);
@@ -97,7 +100,7 @@ describe('multiple binaries in bin/, no [[bin]] section', async () => {
 
       return cb('some error');
     });
-    fs.exists = jest.fn((p, cb) => cb(null, p.endsWith('bin')));
+    fs.exists = jest.fn((p, cb) => cb(p.endsWith('bin') || p.endsWith('main.rs')));
     fs.stat = jest.fn((_, cb) => cb(null, new fs.Stats()));
     fs.Stats.prototype.isDirectory = jest.fn(() => true);
   });
@@ -123,7 +126,7 @@ describe('multiple binaries in bin/, no [[bin]] section', async () => {
 // |  |- baz.rs
 // |- main.rs
 describe('src/bin exists but one binary is ignored', async () => {
-  beforeAll(() => {
+  beforeEach(() => {
     fs.readdir = jest.fn((p, cb) => {
       if (p === '/path/to/src') {
         return cb(null, ['bin', 'main.rs']);
@@ -134,7 +137,7 @@ describe('src/bin exists but one binary is ignored', async () => {
 
       return cb('some error');
     });
-    fs.exists = jest.fn((p, cb) => cb(null, p.endsWith('bin')));
+    fs.exists = jest.fn((p, cb) => cb(p.endsWith('bin') || p.endsWith('main.rs')));
     fs.stat = jest.fn((_, cb) => cb(null, new fs.Stats()));
     fs.Stats.prototype.isDirectory = jest.fn(() => true);
   });

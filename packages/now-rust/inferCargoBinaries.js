@@ -14,14 +14,8 @@ function readdir(dir) {
 }
 
 function exists(p) {
-  return new Promise((resolve, reject) => {
-    fs.exists(p, (err, res) => {
-      if (err != null) {
-        return reject(err);
-      }
-
-      return resolve(res);
-    });
+  return new Promise((resolve) => {
+    fs.exists(p, resolve);
   });
 }
 
@@ -40,7 +34,7 @@ function stat(p) {
 async function inferCargoBinaries(cargoToml, srcDir) {
   const { package: pkg, bin } = cargoToml;
   const binaries = [];
-  const hasMain = (await readdir(srcDir)).includes('main.rs');
+  const hasMain = await exists(path.join(srcDir, 'main.rs'));
 
   if (hasMain) {
     binaries.push(pkg.name);
