@@ -1,10 +1,8 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const concat = require('concat-stream');
 const execa = require('execa');
-const mkdirp = require('mkdirp');
 const toml = require('toml');
-const rimraf = require('rimraf');
 const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
 const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
 const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
@@ -86,8 +84,8 @@ exports.prepareCache = async ({ cachePath, entrypoint, workPath }) => {
   const cacheEntrypointDirname = path.dirname(path.join(cachePath, entrypoint));
 
   // Remove the target folder to avoid 'directory already exists' errors
-  rimraf.sync(path.join(cacheEntrypointDirname, 'target'));
-  mkdirp.sync(cacheEntrypointDirname);
+  fs.removeSync(path.join(cacheEntrypointDirname, 'target'));
+  fs.mkdirpSync(cacheEntrypointDirname);
   // Move the target folder to the cache location
   fs.renameSync(
     path.join(entrypointDirname, 'target'),
