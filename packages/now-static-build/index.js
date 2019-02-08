@@ -30,12 +30,13 @@ exports.build = async ({
     path.dirname(entrypoint),
     (config && config.distDir) || 'dist',
   );
+  const matching = (config && config.matching) || '**';
 
   if (path.basename(entrypoint) === 'package.json') {
     await runNpmInstall(entrypointFsDirname, ['--prefer-offline']);
     if (await runPackageJsonScript(entrypointFsDirname, 'now-build')) {
       validateDistDir(distPath);
-      return glob('**', distPath, mountpoint);
+      return glob(matching, distPath, mountpoint);
     }
     throw new Error(`An error running "now-build" script in "${entrypoint}"`);
   }
@@ -43,7 +44,7 @@ exports.build = async ({
   if (path.extname(entrypoint) === '.sh') {
     await runShellScript(path.join(workPath, entrypoint));
     validateDistDir(distPath);
-    return glob('**', distPath, mountpoint);
+    return glob(matching, distPath, mountpoint);
   }
 
   throw new Error('Proper build script must be specified as entrypoint');

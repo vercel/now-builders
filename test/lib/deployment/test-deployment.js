@@ -22,7 +22,11 @@ async function packAndDeploy (builderPath) {
 
 const RANDOMNESS_PLACEHOLDER_STRING = 'RANDOMNESS_PLACEHOLDER';
 
-async function testDeployment ({ builderUrl, buildUtilsUrl }, fixturePath, buildDelegate) {
+async function testDeployment (
+  { builderUrl, buildUtilsUrl },
+  fixturePath,
+  buildDelegate
+) {
   console.log('testDeployment', fixturePath);
   const globResult = await glob(`${fixturePath}/**`, { nodir: true });
   const bodies = globResult.reduce((b, f) => {
@@ -89,7 +93,14 @@ async function testDeployment ({ builderUrl, buildUtilsUrl }, fixturePath, build
         await fs.writeFile(path.join(__dirname, 'failed-page.txt'), text);
         throw new Error(
           `Fetched page ${probeUrl} does not contain ${probe.mustContain}.`
-          + ` Instead it contains ${text.slice(0, 60)}`
+            + ` Instead it contains ${text.slice(0, 60)}`
+        );
+      }
+    } else if (probe.mustNotContain) {
+      if (text.includes(probe.mustNotContain)) {
+        await fs.writeFile(path.join(__dirname, 'failed-page.txt'), text);
+        throw new Error(
+          `Fetched page ${probeUrl} contains ${probe.mustNotContain}.`
         );
       }
     } else {
@@ -118,8 +129,11 @@ async function fetchDeploymentUrl (url, opts) {
   for (let i = 0; i < 500; i += 1) {
     const resp = await fetch(url, opts);
     const text = await resp.text();
-    if (text && !text.includes('Join Free')
-        && !text.includes('The page could not be found')) {
+    if (
+      text
+      && !text.includes('Join Free')
+      && !text.includes('The page could not be found')
+    ) {
       return text;
     }
 

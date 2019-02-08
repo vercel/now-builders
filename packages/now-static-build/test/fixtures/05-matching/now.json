@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "package.json", "use": "@now/static-build", "config": { "matching": "**.txt" } }
+  ],
+  "probes": [
+    { "path": "/cow.txt", "mustContain": "cow:RANDOMNESS_PLACEHOLDER" },
+    { "path": "/", "mustNotContain": "1.html" }
+  ]
+}
