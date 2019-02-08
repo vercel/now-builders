@@ -12,6 +12,19 @@ exports.config = {
   maxLambdaSize: '5mb',
 };
 
+function getRubyVersion(files) {
+  const versionFile = (files['.ruby-version'] || files.Gemfile).data;
+  if (!versionFile) return versionFile; // versionFile is undefined
+  // different version spec format per file
+  // Example
+  // Gemfile: ruby '2.5.1'
+  // .ruby-version: 'ruby-2.5.1'
+  const versionNumber = versionFile
+    .toString()
+    .match(/ruby(?:\s|-)(?<version>\d\.\d\.\d)/);
+  return versionNumber ? versionNumber.groups.version : undefined; // null guard
+}
+
 exports.build = async ({ files, entrypoint }) => {
   console.log('downloading files...');
 
@@ -20,7 +33,8 @@ exports.build = async ({ files, entrypoint }) => {
   const allFiles = await download(files, srcPath);
 
   console.log('Installing Ruby.....');
-  await aptInstallRuby();
+  const rubyVersion = getRubyVersion(allFiles) || '2.6.1';
+  await aptInstallRuby(rubyVersion);
 
   if (allFiles.Gemfile) {
     console.log("'Gemfile' is present in your app......");
