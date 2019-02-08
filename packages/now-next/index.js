@@ -36,7 +36,12 @@ const {
 async function readPackageJson(entryPath) {
   const packagePath = path.join(entryPath, 'package.json');
 
-  return JSON.parse(await readFile(packagePath, 'utf8'));
+  try {
+    return JSON.parse(await readFile(packagePath, 'utf8'));
+  } catch (err) {
+    console.log('no package.json');
+    return {};
+  }
 }
 
 /**
