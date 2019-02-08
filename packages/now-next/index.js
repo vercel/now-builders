@@ -31,7 +31,7 @@ const {
 
 /**
  * Read package.json from files
- * @param {DownloadedFiles} files
+ * @param {string} entryPath
  */
 async function readPackageJson(entryPath) {
   const packagePath = path.join(entryPath, 'package.json');

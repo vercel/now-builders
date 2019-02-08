@@ -1,6 +1,6 @@
 {
     "version": 2,
     "builds": [
-        { "src": "www/next.config.json", "use": "@now/next" }
+        { "src": "www/package.json", "use": "@now/next" }
     ]
 }
