@@ -8,13 +8,7 @@ This error occurs when you have your application is not configured for Serverles
 
 In order to create the smallest possible lambdas Next.js has to be configured to build for the `serverless` target.
 
-1. Serverless Next.js requires Next.js 8 or later, currently this version is out on the `canary` release channel: 
-
-```
-npm install next@canary
-```
-
-2. Add the `now-build` script to your `package.json`
+1. Add the `now-build` script to your `package.json`
 
 ```json
 {
@@ -24,7 +18,7 @@ npm install next@canary
 }
 ```
 
-3. Add `target: 'serverless'` to `next.config.js`
+2. Add `target: 'serverless'` to `next.config.js`
 
 ```js
 module.exports = {
@@ -33,7 +27,7 @@ module.exports = {
 }
 ```
 
-4. Optionally make sure the `"src"` in `"builds"` points to your application `package.json`
+3. Optionally make sure the `"src"` in `"builds"` points to your application `package.json`
 
 ```js
 {
@@ -41,3 +35,4 @@ module.exports = {
   "builds": [{ "src": "package.json", "use": "@now/next" }]
 }
 ```
+PS: Make sure you have a Next.js version greater than 8 as a dependencie in your `package.json`.
