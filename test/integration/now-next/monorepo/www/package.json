@@ -1,7 +1,7 @@
 {
   "name": "monorepo",
   "dependencies": {
-    "next": "^8.0.0-canary.18",
+    "next": "^8.0.0",
     "react": "^16.8.0",
     "react-dom": "^16.8.0"
   },
