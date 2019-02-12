@@ -1,7 +1,7 @@
 use std::{borrow::Cow, fmt, mem};
 
 use http::{self, header::HeaderValue, HeaderMap, Method, Request as HttpRequest};
-use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess, Visitor};
+use serde::de::{Deserializer, Error as DeError, MapAccess, Visitor};
 use serde_derive::Deserialize;
 
 use crate::body::Body;
