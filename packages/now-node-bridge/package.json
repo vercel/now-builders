@@ -1,8 +1,10 @@
 {
   "name": "@now/node-bridge",
-  "version": "0.1.10-canary.2",
+  "version": "0.1.11-canary.0",
   "license": "MIT",
-  "peerDependencies": {
-    "@now/build-utils": ">=0.0.1"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-node-bridge"
   }
 }
