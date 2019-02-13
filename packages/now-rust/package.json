@@ -10,7 +10,7 @@
   "files": [
     "index.js",
     "download-install-rust-toolchain.js",
-    "inferCargoBinaries.js"
+    "launcher.rs"
   ],
   "dependencies": {
     "@iarna/toml": "^2.2.1",
