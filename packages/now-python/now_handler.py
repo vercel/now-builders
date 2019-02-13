@@ -22,7 +22,7 @@ def now_handler(event, context):
         body = base64.b64decode(body)
 
     res = requests.request(method, 'http://0.0.0.0:3000' + path,
-            headers=headers, data=body)
+            headers=headers, data=body, allow_redirects=False)
 
     return {
         'statusCode': res.status_code,
