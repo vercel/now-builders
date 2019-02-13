@@ -740,11 +740,6 @@
   dependencies:
     any-observable "^0.3.0"
 
-"@tootallnate/node-bridge@0.1.11-canary.5":
-  version "0.1.11-canary.5"
-  resolved "https://registry.yarnpkg.com/@tootallnate/node-bridge/-/node-bridge-0.1.11-canary.5.tgz#a9c8aed0d3795624a9735db7c5576c3d0d31cb40"
-  integrity sha512-571cCJ2nI4X9egSzMm7kKQvLHi+zkDWJfxE8nOndhHuAtGdNcad22rqwCUOmlNjObmGtRPQVmyKU8QAos2iZfw==
-
 "@types/aws-lambda@8.10.19":
   version "8.10.19"
   resolved "https://registry.yarnpkg.com/@types/aws-lambda/-/aws-lambda-8.10.19.tgz#913a8016a4599d262960d97cb11faf7e963ec0e1"
