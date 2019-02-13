@@ -11,19 +11,20 @@ let listening: Promise<AddressInfo> = new Promise(resolve => {
 
 // The first `http.Server` instance with its `listen()` function
 // invoked is the server that is used for the lambda invocations.
-http.Server.prototype.listen = (listen => function (...args) {
-  server = this;
+http.Server.prototype.listen = (listen =>
+  function(...args) {
+    server = this;
 
-  server.once('listening', () => {
-    resolveListening(server.address());
-  });
+    server.once('listening', () => {
+      resolveListening(server.address());
+    });
 
-  // Restore original `listen()` function
-  http.Server.prototype.listen = listen;
+    // Restore original `listen()` function
+    http.Server.prototype.listen = listen;
 
-  // Invoke original `listen()` function
-  return server.listen(...args);
-})(http.Server.prototype.listen);
+    // Invoke original `listen()` function
+    return server.listen(...args);
+  })(http.Server.prototype.listen);
 
 // Load the user code
 try {
@@ -40,16 +41,14 @@ try {
 if (typeof listener === 'function') {
   // User code exported a handler function, so create an `http.Server` for it
   server = new http.Server(listener);
+  server.listen();
 } else if (listener && listener instanceof http.Server && !server) {
   // User code exported an `http.Server` instance, call `listen()` on it
   server = listener;
-}
-
-if (server) {
   server.listen();
 }
 
-export async function launcher (event): Promise<any> {
+export async function launcher(event): Promise<any> {
   const { port } = await listening;
 
   return new Promise((resolve, reject) => {
@@ -58,19 +57,17 @@ export async function launcher (event): Promise<any> {
       return resolve({ statusCode: 500, body: '' });
     }
 
-    const {
-      isApiGateway, method, path, headers, body,
-    } = normalizeEvent(event);
+    const { isApiGateway, method, path, headers, body } = normalizeEvent(event);
 
     const opts = {
       hostname: '127.0.0.1',
       port,
       path,
       method,
-      headers,
+      headers
     };
 
-    const req = http.request(opts, (res) => {
+    const req = http.request(opts, res => {
       const response = res;
       const respBodyChunks = [];
       response.on('data', chunk => respBodyChunks.push(Buffer.from(chunk)));
@@ -81,8 +78,7 @@ export async function launcher (event): Promise<any> {
 
         if (isApiGateway) {
           delete response.headers['content-length'];
-        } else
-        if (response.headers['content-length']) {
+        } else if (response.headers['content-length']) {
           response.headers['content-length'] = String(bodyBuffer.length);
         }
 
@@ -90,12 +86,12 @@ export async function launcher (event): Promise<any> {
           statusCode: response.statusCode,
           headers: response.headers,
           body: bodyBuffer.toString('base64'),
-          encoding: 'base64',
+          encoding: 'base64'
         });
       });
     });
 
-    req.on('error', (error) => {
+    req.on('error', error => {
       setTimeout(() => {
         // this lets express print the true error of why the connection was closed.
         // it is probably 'Cannot set headers after they are sent to the client'

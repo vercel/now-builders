@@ -6,7 +6,7 @@ import * as FileBlob from '@now/build-utils/file-blob.js';
 import { createLambda } from '@now/build-utils/lambda.js';
 import {
   runNpmInstall,
-  runPackageJsonScript,
+  runPackageJsonScript
 } from '@now/build-utils/fs/run-user-scripts.js';
 
 /** @typedef { import('@now/build-utils/file-ref') } FileRef */
@@ -26,7 +26,7 @@ import {
  */
 async function downloadInstallAndBundle(
   { files, entrypoint, workPath },
-  { npmArguments = [] } = {},
+  { npmArguments = [] } = {}
 ) {
   const userPath = join(workPath, 'user');
   const nccPath = join(workPath, 'ncc');
@@ -46,11 +46,11 @@ async function downloadInstallAndBundle(
           license: 'UNLICENSED',
           dependencies: {
             '@zeit/ncc': '0.15.2',
-          },
-        }),
-      }),
+          }
+        })
+      })
     },
-    nccPath,
+    nccPath
   );
 
   console.log('installing dependencies for ncc...');
@@ -71,16 +71,14 @@ async function compile(workNccPath: string, downloadedFiles, entrypoint: string)
   for (const assetName of Object.keys(assets)) {
     const { source: data, permissions: mode } = assets[assetName];
     const blob2 = new FileBlob({ data, mode });
-    preparedFiles[
-      join('user', dirname(entrypoint), assetName)
-    ] = blob2;
+    preparedFiles[join('user', dirname(entrypoint), assetName)] = blob2;
   }
 
   return preparedFiles;
 }
 
 export const config = {
-  maxLambdaSize: '5mb',
+  maxLambdaSize: '5mb'
 };
 
 /**
@@ -91,10 +89,10 @@ export async function build({ files, entrypoint, workPath }) {
   const [
     downloadedFiles,
     workNccPath,
-    entrypointFsDirname,
+    entrypointFsDirname
   ] = await downloadInstallAndBundle(
     { files, entrypoint, workPath },
-    { npmArguments: ['--prefer-offline'] },
+    { npmArguments: ['--prefer-offline'] }
   );
 
   console.log('running user script...');
@@ -110,8 +108,8 @@ export async function build({ files, entrypoint, workPath }) {
     [
       'process.chdir("./user");',
       `listener = require("./${join('user', entrypoint)}");`,
-      'if (listener.default) listener = listener.default;',
-    ].join(' '),
+      'if (listener.default) listener = listener.default;'
+    ].join(' ')
   );
 
   const launcherFiles = {
@@ -121,15 +119,13 @@ export async function build({ files, entrypoint, workPath }) {
   const lambda = await createLambda({
     files: { ...preparedFiles, ...launcherFiles },
     handler: 'launcher.launcher',
-    runtime: 'nodejs8.10',
+    runtime: 'nodejs8.10'
   });
 
   return { [entrypoint]: lambda };
 }
 
-export async function prepareCache({
-  files, entrypoint, workPath, cachePath,
-}) {
+export async function prepareCache({ files, entrypoint, workPath, cachePath }) {
   await remove(workPath);
   await downloadInstallAndBundle({ files, entrypoint, workPath: cachePath });
 
@@ -139,6 +135,6 @@ export async function prepareCache({
     ...(await glob('user/yarn.lock', cachePath)),
     ...(await glob('ncc/node_modules/**', cachePath)),
     ...(await glob('ncc/package-lock.json', cachePath)),
-    ...(await glob('ncc/yarn.lock', cachePath)),
+    ...(await glob('ncc/yarn.lock', cachePath))
   };
 }
