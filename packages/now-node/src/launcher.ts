@@ -1,8 +1,8 @@
-import * as http from 'http';
 import { AddressInfo } from 'net';
+import { Server, request } from 'http';
 
 let listener;
-let server: http.Server;
+let server: Server;
 let userError: Error;
 let resolveListening;
 let listening: Promise<AddressInfo> = new Promise(resolve => {
@@ -11,7 +11,7 @@ let listening: Promise<AddressInfo> = new Promise(resolve => {
 
 // The first `http.Server` instance with its `listen()` function
 // invoked is the server that is used for the lambda invocations.
-http.Server.prototype.listen = (listen =>
+Server.prototype.listen = (listen =>
   function(...args) {
     server = this;
 
@@ -20,11 +20,11 @@ http.Server.prototype.listen = (listen =>
     });
 
     // Restore original `listen()` function
-    http.Server.prototype.listen = listen;
+    Server.prototype.listen = listen;
 
     // Invoke original `listen()` function
     return server.listen(...args);
-  })(http.Server.prototype.listen);
+  })(Server.prototype.listen);
 
 // Load the user code
 try {
@@ -40,9 +40,9 @@ try {
 
 if (typeof listener === 'function') {
   // User code exported a handler function, so create an `http.Server` for it
-  server = new http.Server(listener);
+  server = new Server(listener);
   server.listen();
-} else if (listener && listener instanceof http.Server && !server) {
+} else if (listener && listener instanceof Server && !server) {
   // User code exported an `http.Server` instance, call `listen()` on it
   server = listener;
   server.listen();
@@ -67,7 +67,7 @@ export async function launcher(event): Promise<any> {
       headers
     };
 
-    const req = http.request(opts, res => {
+    const req = request(opts, res => {
       const response = res;
       const respBodyChunks = [];
       response.on('data', chunk => respBodyChunks.push(Buffer.from(chunk)));
