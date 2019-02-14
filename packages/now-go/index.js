@@ -1,8 +1,8 @@
 const { join, dirname } = require('path');
 const { readFile, writeFile } = require('fs-extra');
 
+const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
 const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
-const FileFsRef = require('@now/build-utils/file-fs-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
 const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
 const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory.js'); // eslint-disable-line import/no-extraneous-dependencies
 const { createGo, getExportedFunctionName } = require('./go-helpers');
@@ -91,9 +91,7 @@ async function build({ files, entrypoint }) {
   }
 
   const lambda = await createLambda({
-    files: {
-      handler: new FileFsRef({ fsPath: destPath }),
-    },
+    files: await glob('**', outDir),
     handler: 'handler',
     runtime: 'go1.x',
     environment: {},
