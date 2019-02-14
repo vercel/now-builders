@@ -147,9 +147,8 @@ async function buildSingleFile({
     .basename(entrypointPath)
     .replace(path.extname(entrypointPath), '');
   const { package: pkg, dependencies } = cargoToml;
-  dependencies.now_lambda = {
-    git: 'https://github.com/zeit/now-builders',
-  };
+  // default to latest now_lambda
+  dependencies.now_lambda = '*';
   const tomlToWrite = toml.stringify({
     package: pkg,
     dependencies,
