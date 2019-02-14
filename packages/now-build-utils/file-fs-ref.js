@@ -33,7 +33,7 @@ class FileFsRef {
    * @argument {string} options.fsPath
    * @returns {Promise<FileFsRef>}
    */
-  static async fromFile({ fsPath }) {
+  static async fromFsPath({ fsPath }) {
     const { mode } = await fs.lstat(fsPath);
     return new FileFsRef({ mode, fsPath });
   }
