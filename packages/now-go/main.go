@@ -1,8 +1,8 @@
 package main
 
 import (
-	now "../../utils/go/bridge"
 	"net/http"
+	now "now/bridge"
 )
 
 func main() {

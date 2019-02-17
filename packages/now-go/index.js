@@ -14,7 +14,7 @@ const downloadGoBin = require('./download-go-bin');
 // without this, Go won't recognize the `$GOPATH`
 async function createGoPathTree(goPath) {
   await mkdirp(path.join(goPath, 'bin'));
-  await mkdirp(path.join(goPath, 'pkg', 'linux_amd64'));
+  await mkdirp(path.join(goPath, 'pkg', 'darwin_amd64'));
 }
 
 exports.config = {
@@ -32,18 +32,38 @@ exports.build = async ({ files, entrypoint }) => {
   await createGoPathTree(goPath);
 
   const downloadedFiles = await download(files, srcPath);
+  const downloadedUtils = await download(
+    await glob('bridge.go', __dirname),
+    path.join(goPath, 'src', 'vendor', 'now', 'bridge'),
+  );
 
-  console.log('downloading go binary...');
-  const goBin = await downloadGoBin();
+  const localGoBin = execa
+    .shellSync('which go')
+    .stdout.toString()
+    .trim();
+  let goBin;
+
+  if (localGoBin) {
+    goBin = await downloadGoBin();
+    // const dir = await getWritableDirectory();
+    // goBin = path.join(dir, 'bin', 'go');
+
+    // await execa.shellSync(`mkdir -p ${path.dirname(goBin)}`);
+    // await execa.shellSync(`ln -s $(which go) ${goBin}`);
+  } else {
+    goBin = await downloadGoBin();
+  }
 
   console.log('downloading git binary...');
   // downloads a git binary that works on Amazon Linux and sets
   // `process.env.GIT_EXEC_PATH` so `go(1)` can see it
-  await downloadGit({ targetDirectory: gitPath });
+  // if (!execa.shellSync('which git').stdout.toString().trim()) {
+  // await downloadGit({ targetDirectory: gitPath });
+  // }
 
   const goEnv = {
     ...process.env,
-    GOOS: 'linux',
+    GOOS: 'darwin',
     GOARCH: 'amd64',
     GOPATH: goPath,
   };
@@ -90,6 +110,14 @@ exports.build = async ({ files, entrypoint }) => {
   // Go doesn't like to build files in different directories,
   // so now we place `main.go` together with the user code
   await writeFile(path.join(entrypointDirname, mainGoFileName), mainGoContents);
+
+  console.log({
+    goEnv,
+    goBin,
+    gitPath,
+    goPath,
+    entrypointDirname,
+  });
 
   console.log('installing dependencies');
   // `go get` will look at `*.go` (note we set `cwd`), parse
