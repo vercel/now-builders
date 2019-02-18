@@ -8,6 +8,10 @@
     "url": "https://github.com/zeit/now-builders.git",
     "directory": "packages/now-node-bridge"
   },
+  "files": [
+    "bridge.*",
+    "index.js"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "npm run build && node test/test",
