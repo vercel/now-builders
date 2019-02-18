@@ -34,7 +34,7 @@ function normalizeEvent(
   let path: string;
   let body: string | null;
   let encoding: string;
-  let headers;
+  let headers: IncomingHttpHeaders;
   let isApiGateway = true;
   let bodyBuffer: Buffer | null = null;
 
@@ -100,7 +100,7 @@ export class Bridge {
       if (typeof addr === 'string') {
         throw new Error('Unexpected string for server.address() ' + addr);
       } else {
-        this.resolveListening(addr);
+        this.resolveListening(addr as AddressInfo);
       }
     });
   }
