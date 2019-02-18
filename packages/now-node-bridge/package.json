@@ -10,8 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node test/test",
-    "pretest": "npm run build",
+    "test": "npm run build && node test/test",
     "prepublish": "npm run build"
   },
   "devDependencies": {
