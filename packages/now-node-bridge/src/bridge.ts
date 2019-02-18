@@ -27,49 +27,56 @@ interface NowProxyResponse {
   encoding: string;
 }
 
+function normalizeNowProxyEvent(event: NowProxyEvent): NowProxyRequest {
+  let bodyBuffer: Buffer | null;
+  const { method, path, headers, encoding, body } = JSON.parse(event.body);
+
+  if (body) {
+    if (encoding === 'base64') {
+      bodyBuffer = Buffer.from(body, encoding);
+    } else if (encoding === undefined) {
+      bodyBuffer = Buffer.from(body);
+    } else {
+      throw new Error(`Unsupported encoding: ${encoding}`);
+    }
+  } else {
+    bodyBuffer = Buffer.alloc(0);
+  }
+
+  return { isApiGateway: false, method, path, headers, body: bodyBuffer };
+}
+
+function normalizeAPIGatewayProxyEvent(
+  event: APIGatewayProxyEvent
+): NowProxyRequest {
+  let bodyBuffer: Buffer | null;
+  const { httpMethod: method, path, headers, body } = event;
+
+  if (body) {
+    if (event.isBase64Encoded) {
+      bodyBuffer = Buffer.from(body, 'base64');
+    } else {
+      bodyBuffer = Buffer.from(body);
+    }
+  } else {
+    bodyBuffer = Buffer.alloc(0);
+  }
+
+  return { isApiGateway: true, method, path, headers, body: bodyBuffer };
+}
+
 function normalizeEvent(
   event: NowProxyEvent | APIGatewayProxyEvent
 ): NowProxyRequest {
-  let method: string;
-  let path: string;
-  let body: string | null;
-  let encoding: string;
-  let headers: IncomingHttpHeaders;
-  let isApiGateway = true;
-  let bodyBuffer: Buffer | null = null;
-
-  if ('Action' in event && event.Action === 'Invoke') {
-    isApiGateway = false;
-    ({ method, path, headers, encoding, body } = JSON.parse(
-      event.body as string
-    ));
-
-    if (body) {
-      if (encoding === 'base64') {
-        bodyBuffer = Buffer.from(body, encoding);
-      } else if (encoding === undefined) {
-        bodyBuffer = Buffer.from(body);
-      } else {
-        throw new Error(`Unsupported encoding: ${encoding}`);
-      }
+  if ('Action' in event) {
+    if (event.Action === 'invoke') {
+      return normalizeNowProxyEvent(event);
+    } else {
+      throw new Error(`Unexpected event.Action: ${event.Action}`);
     }
   } else {
-    let gatewayProxyEvent = event as APIGatewayProxyEvent;
-    ({ httpMethod: method, path, headers, body } = gatewayProxyEvent);
-    if (body) {
-      if (gatewayProxyEvent.isBase64Encoded) {
-        bodyBuffer = Buffer.from(body, 'base64');
-      } else {
-        bodyBuffer = Buffer.from(body);
-      }
-    }
+    return normalizeAPIGatewayProxyEvent(event);
   }
-
-  if (!bodyBuffer) {
-    bodyBuffer = new Buffer(0);
-  }
-
-  return { isApiGateway, method, path, headers, body: bodyBuffer };
 }
 
 export class Bridge {
