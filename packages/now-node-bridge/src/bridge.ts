@@ -1,72 +1,82 @@
-const http = require('http');
+import { AddressInfo } from 'net';
+import { Server, request } from 'http';
 
 function normalizeEvent(event) {
+  let method: string;
+  let path: string;
+  let body: Buffer | string;
+  let encoding: string;
+  let headers;
   let isApiGateway = true;
 
   if (event.Action === 'Invoke') {
     isApiGateway = false;
-    const invokeEvent = JSON.parse(event.body);
-
-    const {
-      method, path, headers, encoding,
-    } = invokeEvent;
-
-    let { body } = invokeEvent;
+    ({ method, path, headers, encoding, body } = JSON.parse(event.body));
 
     if (body) {
       if (encoding === 'base64') {
-        body = Buffer.from(body, encoding);
+        body = Buffer.from(body as string, encoding);
       } else if (encoding === undefined) {
-        body = Buffer.from(body);
+        body = Buffer.from(body as string);
       } else {
         throw new Error(`Unsupported encoding: ${encoding}`);
       }
     }
-
-    return {
-      isApiGateway, method, path, headers, body,
-    };
+  } else {
+    ({ httpMethod: method, path, headers, body } = event);
   }
 
-  const {
-    httpMethod: method, path, headers, body,
-  } = event;
-
-  return {
-    isApiGateway, method, path, headers, body,
-  };
+  return { isApiGateway, method, path, headers, body };
 }
 
-class Bridge {
-  constructor() {
+export class Bridge {
+  private server: Server;
+  private listening: Promise<AddressInfo>;
+  private resolveListening: (info: AddressInfo) => void;
+
+  constructor(server?: Server) {
+    this.server = null;
+    if (server) {
+      this.setServer(server);
+    }
     this.launcher = this.launcher.bind(this);
   }
 
-  launcher(event) {
+  setServer(server: Server) {
+    this.server = server;
+    this.listening = new Promise(resolve => {
+      this.resolveListening = resolve;
+    });
+    server.once('listening', () => {
+      this.resolveListening(server.address() as AddressInfo);
+    });
+  }
+
+  listen(opts) {
+    return this.server.listen({
+      host: '127.0.0.1',
+      port: 0
+    });
+  }
+
+  async launcher(event) {
+    const { port } = await this.listening;
+
     // eslint-disable-next-line consistent-return
     return new Promise((resolve, reject) => {
-      if (this.userError) {
-        console.error('Error while initializing entrypoint:', this.userError);
-        return resolve({ statusCode: 500, body: '' });
-      }
-
-      if (!this.port) {
-        return resolve({ statusCode: 504, body: '' });
-      }
-
       const {
         isApiGateway, method, path, headers, body,
       } = normalizeEvent(event);
 
       const opts = {
         hostname: '127.0.0.1',
-        port: this.port,
+        port,
         path,
         method,
         headers,
       };
 
-      const req = http.request(opts, (res) => {
+      const req = request(opts, (res) => {
         const response = res;
         const respBodyChunks = [];
         response.on('data', chunk => respBodyChunks.push(Buffer.from(chunk)));
@@ -79,7 +89,7 @@ class Bridge {
             delete response.headers['content-length'];
           } else
           if (response.headers['content-length']) {
-            response.headers['content-length'] = bodyBuffer.length;
+            response.headers['content-length'] = String(bodyBuffer.length);
           }
 
           resolve({
@@ -104,7 +114,3 @@ class Bridge {
     });
   }
 }
-
-module.exports = {
-  Bridge,
-};
