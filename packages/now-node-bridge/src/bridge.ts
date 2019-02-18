@@ -87,7 +87,12 @@ export class Bridge {
   setServer(server: Server) {
     this.server = server;
     server.once('listening', () => {
-      this.resolveListening(server.address() as AddressInfo);
+      const addr = server.address();
+      if (typeof addr === 'string') {
+        throw new Error('Unexpected string for server.address() ' + addr);
+      } else {
+        this.resolveListening(addr);
+      }
     });
   }
 
