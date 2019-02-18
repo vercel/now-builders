@@ -38,7 +38,7 @@ function normalizeEvent(
   let isApiGateway = true;
   let bodyBuffer: Buffer | null = null;
 
-  if ((event as NowProxyEvent).Action === 'Invoke') {
+  if ('Action' in event && event.Action === 'Invoke') {
     isApiGateway = false;
     ({ method, path, headers, encoding, body } = JSON.parse(
       event.body as string
