@@ -1,6 +1,11 @@
 import { AddressInfo } from 'net';
 import { APIGatewayProxyEvent } from 'aws-lambda';
-import { Server, IncomingHttpHeaders, OutgoingHttpHeaders, request } from 'http';
+import {
+  Server,
+  IncomingHttpHeaders,
+  OutgoingHttpHeaders,
+  request
+} from 'http';
 
 interface NowProxyEvent {
   Action: string;
@@ -22,18 +27,22 @@ interface NowProxyResponse {
   encoding: string;
 }
 
-function normalizeEvent(event: NowProxyEvent | APIGatewayProxyEvent): NowProxyRequest {
+function normalizeEvent(
+  event: NowProxyEvent | APIGatewayProxyEvent
+): NowProxyRequest {
   let method: string;
   let path: string;
   let body: string | null;
   let encoding: string;
   let headers;
   let isApiGateway = true;
-  let bodyBuffer: Buffer | null = null
+  let bodyBuffer: Buffer | null = null;
 
   if ((event as NowProxyEvent).Action === 'Invoke') {
     isApiGateway = false;
-    ({ method, path, headers, encoding, body } = JSON.parse(event.body as string));
+    ({ method, path, headers, encoding, body } = JSON.parse(
+      event.body as string
+    ));
 
     if (body) {
       if (encoding === 'base64') {
@@ -107,24 +116,26 @@ export class Bridge {
     });
   }
 
-  async launcher(event: NowProxyEvent | APIGatewayProxyEvent): Promise<NowProxyResponse> {
+  async launcher(
+    event: NowProxyEvent | APIGatewayProxyEvent
+  ): Promise<NowProxyResponse> {
     const { port } = await this.listening;
 
     // eslint-disable-next-line consistent-return
     return new Promise((resolve, reject) => {
-      const {
-        isApiGateway, method, path, headers, body,
-      } = normalizeEvent(event);
+      const { isApiGateway, method, path, headers, body } = normalizeEvent(
+        event
+      );
 
       const opts = {
         hostname: '127.0.0.1',
         port,
         path,
         method,
-        headers,
+        headers
       };
 
-      const req = request(opts, (res) => {
+      const req = request(opts, res => {
         const response = res;
         const respBodyChunks: Buffer[] = [];
         response.on('data', chunk => respBodyChunks.push(Buffer.from(chunk)));
@@ -135,8 +146,7 @@ export class Bridge {
 
           if (isApiGateway) {
             delete response.headers['content-length'];
-          } else
-          if (response.headers['content-length']) {
+          } else if (response.headers['content-length']) {
             response.headers['content-length'] = String(bodyBuffer.length);
           }
 
@@ -144,12 +154,12 @@ export class Bridge {
             statusCode: response.statusCode || 200,
             headers: response.headers,
             body: bodyBuffer.toString('base64'),
-            encoding: 'base64',
+            encoding: 'base64'
           });
         });
       });
 
-      req.on('error', (error) => {
+      req.on('error', error => {
         setTimeout(() => {
           // this lets express print the true error of why the connection was closed.
           // it is probably 'Cannot set headers after they are sent to the client'
