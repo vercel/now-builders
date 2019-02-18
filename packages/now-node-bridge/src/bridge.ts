@@ -1,36 +1,70 @@
 import { AddressInfo } from 'net';
-import { Server, request } from 'http';
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import { Server, IncomingHttpHeaders, OutgoingHttpHeaders, request } from 'http';
 
-function normalizeEvent(event) {
+interface NowProxyEvent {
+  Action: string;
+  body: string;
+}
+
+interface NowProxyRequest {
+  isApiGateway: boolean;
+  method: string;
+  path: string;
+  headers: IncomingHttpHeaders;
+  body: Buffer;
+}
+
+interface NowProxyResponse {
+  statusCode: number;
+  headers: OutgoingHttpHeaders;
+  body: string;
+  encoding: string;
+}
+
+function normalizeEvent(event: NowProxyEvent | APIGatewayProxyEvent): NowProxyRequest {
   let method: string;
   let path: string;
-  let body: Buffer | string;
+  let body: string | null;
   let encoding: string;
   let headers;
   let isApiGateway = true;
+  let bodyBuffer: Buffer | null = null
 
-  if (event.Action === 'Invoke') {
+  if ((event as NowProxyEvent).Action === 'Invoke') {
     isApiGateway = false;
-    ({ method, path, headers, encoding, body } = JSON.parse(event.body));
+    ({ method, path, headers, encoding, body } = JSON.parse(event.body as string));
 
     if (body) {
       if (encoding === 'base64') {
-        body = Buffer.from(body as string, encoding);
+        bodyBuffer = Buffer.from(body, encoding);
       } else if (encoding === undefined) {
-        body = Buffer.from(body as string);
+        bodyBuffer = Buffer.from(body);
       } else {
         throw new Error(`Unsupported encoding: ${encoding}`);
       }
     }
   } else {
-    ({ httpMethod: method, path, headers, body } = event);
+    let gatewayProxyEvent = event as APIGatewayProxyEvent;
+    ({ httpMethod: method, path, headers, body } = gatewayProxyEvent);
+    if (body) {
+      if (gatewayProxyEvent.isBase64Encoded) {
+        bodyBuffer = Buffer.from(body, 'base64');
+      } else {
+        bodyBuffer = Buffer.from(body);
+      }
+    }
   }
 
-  return { isApiGateway, method, path, headers, body };
+  if (!bodyBuffer) {
+    bodyBuffer = new Buffer(0);
+  }
+
+  return { isApiGateway, method, path, headers, body: bodyBuffer };
 }
 
 export class Bridge {
-  private server: Server;
+  private server: Server | null;
   private listening: Promise<AddressInfo>;
   private resolveListening: (info: AddressInfo) => void;
 
@@ -40,26 +74,35 @@ export class Bridge {
       this.setServer(server);
     }
     this.launcher = this.launcher.bind(this);
+
+    // This is just to appease TypeScript strict mode, since it doesn't
+    // understand that the Promise constructor is synchronous
+    this.resolveListening = (info: AddressInfo) => {};
+
+    this.listening = new Promise(resolve => {
+      this.resolveListening = resolve;
+    });
   }
 
   setServer(server: Server) {
     this.server = server;
-    this.listening = new Promise(resolve => {
-      this.resolveListening = resolve;
-    });
     server.once('listening', () => {
       this.resolveListening(server.address() as AddressInfo);
     });
   }
 
-  listen(opts) {
+  listen() {
+    if (!this.server) {
+      throw new Error('Server has not been set!');
+    }
+
     return this.server.listen({
       host: '127.0.0.1',
       port: 0
     });
   }
 
-  async launcher(event) {
+  async launcher(event: NowProxyEvent | APIGatewayProxyEvent): Promise<NowProxyResponse> {
     const { port } = await this.listening;
 
     // eslint-disable-next-line consistent-return
@@ -78,7 +121,7 @@ export class Bridge {
 
       const req = request(opts, (res) => {
         const response = res;
-        const respBodyChunks = [];
+        const respBodyChunks: Buffer[] = [];
         response.on('data', chunk => respBodyChunks.push(Buffer.from(chunk)));
         response.on('error', reject);
         response.on('end', () => {
@@ -93,7 +136,7 @@ export class Bridge {
           }
 
           resolve({
-            statusCode: response.statusCode,
+            statusCode: response.statusCode || 200,
             headers: response.headers,
             body: bodyBuffer.toString('base64'),
             encoding: 'base64',

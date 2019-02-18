@@ -15,6 +15,7 @@
     "prepublish": "npm run build"
   },
   "devDependencies": {
+    "@types/aws-lambda": "8.10.19",
     "@types/node": "11.9.4",
     "typescript": "3.3.3"
   }
