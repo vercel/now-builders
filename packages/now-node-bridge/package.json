@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc",
     "test": "node test/test",
+    "pretest": "npm run build",
     "prepublish": "npm run build"
   },
   "devDependencies": {
