@@ -12,15 +12,15 @@ interface NowProxyEvent {
   body: string;
 }
 
-interface NowProxyRequest {
-  isApiGateway: boolean;
+export interface NowProxyRequest {
+  isApiGateway?: boolean;
   method: string;
   path: string;
   headers: IncomingHttpHeaders;
   body: Buffer;
 }
 
-interface NowProxyResponse {
+export interface NowProxyResponse {
   statusCode: number;
   headers: OutgoingHttpHeaders;
   body: string;
