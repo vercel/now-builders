@@ -130,20 +130,20 @@ export class Bridge {
   ): Promise<NowProxyResponse> {
     const { port } = await this.listening;
 
+    const { isApiGateway, method, path, headers, body } = normalizeEvent(
+      event
+    );
+
+    const opts = {
+      hostname: '127.0.0.1',
+      port,
+      path,
+      method,
+      headers
+    };
+
     // eslint-disable-next-line consistent-return
     return new Promise((resolve, reject) => {
-      const { isApiGateway, method, path, headers, body } = normalizeEvent(
-        event
-      );
-
-      const opts = {
-        hostname: '127.0.0.1',
-        port,
-        path,
-        method,
-        headers
-      };
-
       const req = request(opts, res => {
         const response = res;
         const respBodyChunks: Buffer[] = [];
