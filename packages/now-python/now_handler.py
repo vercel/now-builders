@@ -13,7 +13,7 @@ def now_handler(event, context):
     headers = payload['headers']
     method = payload['method']
     encoding = payload.get("encoding")
-    body = payload['body']
+    body = payload.get('body')
 
     if (
         (body is not None and len(body) > 0) and
