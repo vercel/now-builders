@@ -12,12 +12,12 @@ def now_handler(event, context):
     path = payload['path']
     headers = payload['headers']
     method = payload['method']
-    encoding = payload.get("encoding")
+    encoding = payload.get('encoding')
     body = payload.get('body')
 
     if (
         (body is not None and len(body) > 0) and
-        (encoding is not None and encoding == "base64")
+        (encoding is not None and encoding == 'base64')
     ):
         body = base64.b64decode(body)
 
