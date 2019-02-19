@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && node test/test",
+    "test": "echo 'Building node-bridge' && npm run build && node test/test",
     "prepublish": "npm run build"
   },
   "devDependencies": {
