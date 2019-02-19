@@ -105,9 +105,11 @@ export class Bridge {
     server.once('listening', () => {
       const addr = server.address();
       if (typeof addr === 'string') {
-        throw new Error('Unexpected string for server.address() ' + addr);
+        throw new Error(`Unexpected string for \`server.address()\`: ${addr}`);
+      } else if (!addr) {
+        throw new Error('`server.address()` returned `null`');
       } else {
-        this.resolveListening(addr as AddressInfo);
+        this.resolveListening(addr);
       }
     });
   }
