@@ -36,7 +36,7 @@ async function test() {
 
   // Test `NowProxyEvent` normalizing
   result = await bridge.launcher({
-    Action: 'invoke',
+    Action: 'Invoke',
     body: JSON.stringify({
       method: 'POST',
       headers: { foo: 'baz' },

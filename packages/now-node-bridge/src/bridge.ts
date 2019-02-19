@@ -69,7 +69,7 @@ function normalizeEvent(
   event: NowProxyEvent | APIGatewayProxyEvent
 ): NowProxyRequest {
   if ('Action' in event) {
-    if (event.Action === 'invoke') {
+    if (event.Action === 'Invoke') {
       return normalizeNowProxyEvent(event);
     } else {
       throw new Error(`Unexpected event.Action: ${event.Action}`);
