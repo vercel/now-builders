@@ -3,9 +3,6 @@ const fs = require('fs-extra');
 const path = require('path');
 const { spawn } = require('child_process');
 
-const prod = process.env.AWS_EXECUTION_ENV
-  || process.env.X_GOOGLE_CODE_LOCATION;
-
 function spawnAsync(command, args, cwd) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { stdio: 'inherit', cwd });
@@ -55,7 +52,7 @@ async function scanParentDirs(destPath, scriptName) {
   return { hasScript, hasPackageLockJson };
 }
 
-async function runNpmInstall(destPath, args = []) {
+async function installDependencies(destPath, args = []) {
   assert(path.isAbsolute(destPath));
 
   let commandArgs = args;
@@ -66,15 +63,6 @@ async function runNpmInstall(destPath, args = []) {
     commandArgs = args.filter(a => a !== '--prefer-offline');
     await spawnAsync('npm', ['install'].concat(commandArgs), destPath);
     await spawnAsync('npm', ['cache', 'clean', '--force'], destPath);
-  } else if (prod) {
-    console.log('using memory-fs for yarn cache');
-    await spawnAsync(
-      'node',
-      [path.join(__dirname, 'bootstrap-yarn.js'), '--cwd', destPath].concat(
-        commandArgs,
-      ),
-      destPath,
-    );
   } else {
     await spawnAsync('yarn', ['--cwd', destPath].concat(commandArgs), destPath);
     await spawnAsync('yarn', ['cache', 'clean'], destPath);
@@ -102,6 +90,7 @@ async function runPackageJsonScript(destPath, scriptName) {
 
 module.exports = {
   runShellScript,
-  runNpmInstall,
+  installDependencies,
+  runNpmInstall: installDependencies,
   runPackageJsonScript,
 };
