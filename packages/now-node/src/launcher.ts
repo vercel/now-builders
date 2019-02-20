@@ -1,5 +1,5 @@
 import { Server } from 'http';
-import { Bridge } from './bridge.js';
+import { Bridge } from './bridge';
 
 let listener;
 

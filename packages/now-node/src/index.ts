@@ -3,6 +3,7 @@ import { remove, readFile } from 'fs-extra';
 import * as glob from '@now/build-utils/fs/glob.js';
 import * as download from '@now/build-utils/fs/download.js';
 import * as FileBlob from '@now/build-utils/file-blob.js';
+import * as FileFsRef from '@now/build-utils/file-fs-ref.js';
 import { createLambda } from '@now/build-utils/lambda.js';
 import {
   runNpmInstall,
