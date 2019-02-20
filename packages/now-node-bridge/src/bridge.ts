@@ -1,36 +1,86 @@
 import { AddressInfo } from 'net';
-import { Server, request } from 'http';
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import {
+  Server,
+  IncomingHttpHeaders,
+  OutgoingHttpHeaders,
+  request
+} from 'http';
 
-function normalizeEvent(event) {
-  let method: string;
-  let path: string;
-  let body: Buffer | string;
-  let encoding: string;
-  let headers;
-  let isApiGateway = true;
+interface NowProxyEvent {
+  Action: string;
+  body: string;
+}
 
-  if (event.Action === 'Invoke') {
-    isApiGateway = false;
-    ({ method, path, headers, encoding, body } = JSON.parse(event.body));
+export interface NowProxyRequest {
+  isApiGateway?: boolean;
+  method: string;
+  path: string;
+  headers: IncomingHttpHeaders;
+  body: Buffer;
+}
 
-    if (body) {
-      if (encoding === 'base64') {
-        body = Buffer.from(body as string, encoding);
-      } else if (encoding === undefined) {
-        body = Buffer.from(body as string);
-      } else {
-        throw new Error(`Unsupported encoding: ${encoding}`);
-      }
+export interface NowProxyResponse {
+  statusCode: number;
+  headers: OutgoingHttpHeaders;
+  body: string;
+  encoding: string;
+}
+
+function normalizeNowProxyEvent(event: NowProxyEvent): NowProxyRequest {
+  let bodyBuffer: Buffer | null;
+  const { method, path, headers, encoding, body } = JSON.parse(event.body);
+
+  if (body) {
+    if (encoding === 'base64') {
+      bodyBuffer = Buffer.from(body, encoding);
+    } else if (encoding === undefined) {
+      bodyBuffer = Buffer.from(body);
+    } else {
+      throw new Error(`Unsupported encoding: ${encoding}`);
     }
   } else {
-    ({ httpMethod: method, path, headers, body } = event);
+    bodyBuffer = Buffer.alloc(0);
   }
 
-  return { isApiGateway, method, path, headers, body };
+  return { isApiGateway: false, method, path, headers, body: bodyBuffer };
+}
+
+function normalizeAPIGatewayProxyEvent(
+  event: APIGatewayProxyEvent
+): NowProxyRequest {
+  let bodyBuffer: Buffer | null;
+  const { httpMethod: method, path, headers, body } = event;
+
+  if (body) {
+    if (event.isBase64Encoded) {
+      bodyBuffer = Buffer.from(body, 'base64');
+    } else {
+      bodyBuffer = Buffer.from(body);
+    }
+  } else {
+    bodyBuffer = Buffer.alloc(0);
+  }
+
+  return { isApiGateway: true, method, path, headers, body: bodyBuffer };
+}
+
+function normalizeEvent(
+  event: NowProxyEvent | APIGatewayProxyEvent
+): NowProxyRequest {
+  if ('Action' in event) {
+    if (event.Action === 'Invoke') {
+      return normalizeNowProxyEvent(event);
+    } else {
+      throw new Error(`Unexpected event.Action: ${event.Action}`);
+    }
+  } else {
+    return normalizeAPIGatewayProxyEvent(event);
+  }
 }
 
 export class Bridge {
-  private server: Server;
+  private server: Server | null;
   private listening: Promise<AddressInfo>;
   private resolveListening: (info: AddressInfo) => void;
 
@@ -40,45 +90,63 @@ export class Bridge {
       this.setServer(server);
     }
     this.launcher = this.launcher.bind(this);
+
+    // This is just to appease TypeScript strict mode, since it doesn't
+    // understand that the Promise constructor is synchronous
+    this.resolveListening = (info: AddressInfo) => {};
+
+    this.listening = new Promise(resolve => {
+      this.resolveListening = resolve;
+    });
   }
 
   setServer(server: Server) {
     this.server = server;
-    this.listening = new Promise(resolve => {
-      this.resolveListening = resolve;
-    });
     server.once('listening', () => {
-      this.resolveListening(server.address() as AddressInfo);
+      const addr = server.address();
+      if (typeof addr === 'string') {
+        throw new Error(`Unexpected string for \`server.address()\`: ${addr}`);
+      } else if (!addr) {
+        throw new Error('`server.address()` returned `null`');
+      } else {
+        this.resolveListening(addr);
+      }
     });
   }
 
-  listen(opts) {
+  listen() {
+    if (!this.server) {
+      throw new Error('Server has not been set!');
+    }
+
     return this.server.listen({
       host: '127.0.0.1',
       port: 0
     });
   }
 
-  async launcher(event) {
+  async launcher(
+    event: NowProxyEvent | APIGatewayProxyEvent
+  ): Promise<NowProxyResponse> {
     const { port } = await this.listening;
+
+    const { isApiGateway, method, path, headers, body } = normalizeEvent(
+      event
+    );
+
+    const opts = {
+      hostname: '127.0.0.1',
+      port,
+      path,
+      method,
+      headers
+    };
 
     // eslint-disable-next-line consistent-return
     return new Promise((resolve, reject) => {
-      const {
-        isApiGateway, method, path, headers, body,
-      } = normalizeEvent(event);
-
-      const opts = {
-        hostname: '127.0.0.1',
-        port,
-        path,
-        method,
-        headers,
-      };
-
-      const req = request(opts, (res) => {
+      const req = request(opts, res => {
         const response = res;
-        const respBodyChunks = [];
+        const respBodyChunks: Buffer[] = [];
         response.on('data', chunk => respBodyChunks.push(Buffer.from(chunk)));
         response.on('error', reject);
         response.on('end', () => {
@@ -87,21 +155,20 @@ export class Bridge {
 
           if (isApiGateway) {
             delete response.headers['content-length'];
-          } else
-          if (response.headers['content-length']) {
+          } else if (response.headers['content-length']) {
             response.headers['content-length'] = String(bodyBuffer.length);
           }
 
           resolve({
-            statusCode: response.statusCode,
+            statusCode: response.statusCode || 200,
             headers: response.headers,
             body: bodyBuffer.toString('base64'),
-            encoding: 'base64',
+            encoding: 'base64'
           });
         });
       });
 
-      req.on('error', (error) => {
+      req.on('error', error => {
         setTimeout(() => {
           // this lets express print the true error of why the connection was closed.
           // it is probably 'Cannot set headers after they are sent to the client'
