@@ -113,7 +113,8 @@ export async function build({ files, entrypoint, workPath }) {
   );
 
   const launcherFiles = {
-    'launcher.js': new FileBlob({ data: launcherData })
+    'launcher.js': new FileBlob({ data: launcherData }),
+    'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') })
   };
 
   const lambda = await createLambda({
