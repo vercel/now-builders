@@ -358,11 +358,14 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
   fs.renameSync(entryPath, cacheEntryPath);
 
   console.log('producing cache file manifest ...');
-  return glob(
-    path.join(
-      path.relative(cachePath, cacheEntryPath),
-      'node_modules/{**,!.*,.yarn*}',
-    ),
-    cachePath,
-  );
+
+  const cacheEntrypoint = path.relative(cachePath, cacheEntryPath);
+  return {
+    ...(await glob(
+      path.join(cacheEntrypoint, 'node_modules/{**,!.*,.yarn*}'),
+      cachePath,
+    )),
+    ...(await glob(path.join(cacheEntrypoint, 'package-lock.json'), cachePath)),
+    ...(await glob(path.join(cacheEntrypoint, 'yarn.lock'), cachePath)),
+  };
 };
