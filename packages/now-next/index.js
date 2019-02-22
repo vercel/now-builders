@@ -358,5 +358,11 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
   fs.renameSync(entryPath, cacheEntryPath);
 
   console.log('producing cache file manifest ...');
-  return glob('node_modules/{**,!.*}', cacheEntryPath);
+  return glob(
+    path.join(
+      path.relative(cachePath, cacheEntryPath),
+      'node_modules/{**,!.*}',
+    ),
+    cachePath,
+  );
 };
