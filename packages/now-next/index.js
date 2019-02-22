@@ -68,6 +68,36 @@ async function writeNpmRc(workPath, token) {
   );
 }
 
+function isLegacyNext(nextVersion) {
+  // If version is using the dist-tag instead of a version range
+  if (nextVersion === 'canary' || nextVersion === 'latest') {
+    return false;
+  }
+
+  // If the version is an exact match with the legacy versions
+  if (nextLegacyVersions.indexOf(nextVersion) !== -1) {
+    return true;
+  }
+
+  const maxSatisfying = semver.maxSatisfying(nextLegacyVersions, nextVersion);
+  // When the version can't be matched with legacy versions, so it must be a newer version
+  if (maxSatisfying === null) {
+    return false;
+  }
+
+  return true;
+}
+
+function getNextVersion(packageJson) {
+  let nextVersion;
+  if (packageJson.dependencies && packageJson.dependencies.next) {
+    nextVersion = packageJson.dependencies.next;
+  } else if (packageJson.devDependencies && packageJson.devDependencies.next) {
+    nextVersion = packageJson.devDependencies.next;
+  }
+  return nextVersion;
+}
+
 exports.config = {
   maxLambdaSize: '5mb',
 };
@@ -86,38 +116,14 @@ exports.build = async ({ files, workPath, entrypoint }) => {
 
   const pkg = await readPackageJson(entryPath);
 
-  let nextVersion;
-  if (pkg.dependencies && pkg.dependencies.next) {
-    nextVersion = pkg.dependencies.next;
-  } else if (pkg.devDependencies && pkg.devDependencies.next) {
-    nextVersion = pkg.devDependencies.next;
-  }
-
+  const nextVersion = getNextVersion(pkg);
   if (!nextVersion) {
     throw new Error(
       'No Next.js version could be detected in "package.json". Make sure `"next"` is installed in "dependencies" or "devDependencies"',
     );
   }
 
-  const isLegacy = (() => {
-    // If version is using the dist-tag instead of a version range
-    if (nextVersion === 'canary' || nextVersion === 'latest') {
-      return false;
-    }
-
-    // If the version is an exact match with the legacy versions
-    if (nextLegacyVersions.indexOf(nextVersion) !== -1) {
-      return true;
-    }
-
-    const maxSatisfying = semver.maxSatisfying(nextLegacyVersions, nextVersion);
-    // When the version can't be matched with legacy versions, so it must be a newer version
-    if (maxSatisfying === null) {
-      return false;
-    }
-
-    return true;
-  })();
+  const isLegacy = isLegacyNext(nextVersion);
 
   console.log(`MODE: ${isLegacy ? 'legacy' : 'serverless'}`);
 
@@ -329,12 +335,18 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   return { ...lambdas, ...staticFiles, ...staticDirectoryFiles };
 };
 
-exports.prepareCache = async ({ files, cachePath }) => {
-  console.log('fetching files ...');
-  await download(files, cachePath);
+exports.prepareCache = async ({ workPath, entrypoint }) => {
+  const entryDirectory = path.dirname(entrypoint);
+  const entryPath = path.join(workPath, entryDirectory);
 
-  console.log('running npm install...');
-  await runNpmInstall(cachePath, ['--prefer-offline']);
+  const pkg = await readPackageJson(entryPath);
+  const nextVersion = getNextVersion(pkg);
+  const isLegacy = isLegacyNext(nextVersion);
 
-  return glob('node_modules/{**,!.*}', cachePath);
+  if (isLegacy) {
+    // skip caching legacy mode (swapping deps between all and production can get bug-prone)
+    return {};
+  }
+
+  return glob('node_modules/{**,!.*}', entryPath);
 };
