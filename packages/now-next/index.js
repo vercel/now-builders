@@ -68,6 +68,16 @@ async function writeNpmRc(workPath, token) {
   );
 }
 
+function getNextVersion(packageJson) {
+  let nextVersion;
+  if (packageJson.dependencies && packageJson.dependencies.next) {
+    nextVersion = packageJson.dependencies.next;
+  } else if (packageJson.devDependencies && packageJson.devDependencies.next) {
+    nextVersion = packageJson.devDependencies.next;
+  }
+  return nextVersion;
+}
+
 function isLegacyNext(nextVersion) {
   // If version is using the dist-tag instead of a version range
   if (nextVersion === 'canary' || nextVersion === 'latest') {
@@ -86,16 +96,6 @@ function isLegacyNext(nextVersion) {
   }
 
   return true;
-}
-
-function getNextVersion(packageJson) {
-  let nextVersion;
-  if (packageJson.dependencies && packageJson.dependencies.next) {
-    nextVersion = packageJson.dependencies.next;
-  } else if (packageJson.devDependencies && packageJson.devDependencies.next) {
-    nextVersion = packageJson.devDependencies.next;
-  }
-  return nextVersion;
 }
 
 exports.config = {
