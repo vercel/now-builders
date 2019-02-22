@@ -361,7 +361,7 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
   return glob(
     path.join(
       path.relative(cachePath, cacheEntryPath),
-      'node_modules/{**,!.*}',
+      'node_modules/{**,!.*,.yarn*}',
     ),
     cachePath,
   );
