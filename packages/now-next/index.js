@@ -308,7 +308,9 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   const staticFiles = Object.keys(nextStaticFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[file],
+      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[
+        file
+      ],
     }),
     {},
   );
@@ -325,4 +327,14 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   );
 
   return { ...lambdas, ...staticFiles, ...staticDirectoryFiles };
+};
+
+exports.prepareCache = async ({ files, cachePath }) => {
+  console.log('fetching files ...');
+  await download(files, cachePath);
+
+  console.log('running npm install...');
+  await runNpmInstall(cachePath, ['--prefer-offline']);
+
+  return glob('node_modules/{**,!.*}', cachePath);
 };
