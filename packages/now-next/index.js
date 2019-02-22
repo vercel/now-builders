@@ -9,6 +9,7 @@ const {
   runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
 const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
+const fs = require('fs-extra');
 const semver = require('semver');
 const nextLegacyVersions = require('./legacy-versions');
 const {
@@ -314,9 +315,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   const staticFiles = Object.keys(nextStaticFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[
-        file
-      ],
+      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[file],
     }),
     {},
   );
@@ -335,9 +334,12 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   return { ...lambdas, ...staticFiles, ...staticDirectoryFiles };
 };
 
-exports.prepareCache = async ({ workPath, entrypoint }) => {
+exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
+  console.log('preparing cache ...');
+
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
+  const cacheEntryPath = path.join(cachePath, entryDirectory);
 
   const pkg = await readPackageJson(entryPath);
   const nextVersion = getNextVersion(pkg);
@@ -348,5 +350,13 @@ exports.prepareCache = async ({ workPath, entrypoint }) => {
     return {};
   }
 
-  return glob('node_modules/{**,!.*}', entryPath);
+  console.log('clearing old cache ...');
+  fs.removeSync(cacheEntryPath);
+  fs.mkdirpSync(cacheEntryPath);
+
+  console.log('copying build files for cache ...');
+  fs.renameSync(entryPath, cacheEntryPath);
+
+  console.log('producing cache file manifest ...');
+  return glob('node_modules/{**,!.*}', cacheEntryPath);
 };
