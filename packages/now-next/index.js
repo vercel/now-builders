@@ -291,6 +291,12 @@ exports.build = async ({ files, workPath, entrypoint }) => {
       path.join(entryPath, '.next', 'serverless'),
     );
 
+    const assetKeys = Object.keys(assets);
+    if (assetKeys.length > 0) {
+      console.log('detected assets to be bundled with lambda:');
+      assetKeys.forEach(assetFile => console.log(`\t${assetFile}`));
+    }
+
     await Promise.all(
       pageKeys.map(async (page) => {
         // These default pages don't have to be handled as they'd always 404
