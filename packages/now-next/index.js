@@ -122,6 +122,13 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   await download(files, workPath);
   const entryPath = path.join(workPath, entryDirectory);
 
+  const preflightDotNextFiles = await glob('.next/**', entryPath);
+  if (Object.keys(preflightDotNextFiles).length > 0) {
+    throw new Error(
+      'You should not upload the `.next` directory. https://err.sh/zeit/now-builders/now-next-builds-uploaded',
+    );
+  }
+
   const pkg = await readPackageJson(entryPath);
 
   const nextVersion = getNextVersion(pkg);
