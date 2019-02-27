@@ -8,7 +8,14 @@ const {
   runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
 const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
-const fs = require('fs-extra');
+const {
+  readFile,
+  writeFile,
+  unlink,
+  remove,
+  mkdirp,
+  rename,
+} = require('fs-extra');
 const semver = require('semver');
 const nextLegacyVersions = require('./legacy-versions');
 const {
@@ -38,7 +45,7 @@ async function readPackageJson(entryPath) {
   const packagePath = path.join(entryPath, 'package.json');
 
   try {
-    return JSON.parse(await fs.readFile(packagePath, 'utf8'));
+    return JSON.parse(await readFile(packagePath, 'utf8'));
   } catch (err) {
     console.log('package.json not found in entry');
     return {};
@@ -51,7 +58,7 @@ async function readPackageJson(entryPath) {
  * @param {Object} packageJson
  */
 async function writePackageJson(workPath, packageJson) {
-  await fs.writeFile(
+  await writeFile(
     path.join(workPath, 'package.json'),
     JSON.stringify(packageJson, null, 2),
   );
@@ -63,7 +70,7 @@ async function writePackageJson(workPath, packageJson) {
  * @param {string} token
  */
 async function writeNpmRc(workPath, token) {
-  await fs.writeFile(
+  await writeFile(
     path.join(workPath, '.npmrc'),
     `//registry.npmjs.org/:_authToken=${token}`,
   );
@@ -130,13 +137,13 @@ exports.build = async ({ files, workPath, entrypoint }) => {
 
   if (isLegacy) {
     try {
-      await fs.unlink(path.join(entryPath, 'yarn.lock'));
+      await unlink(path.join(entryPath, 'yarn.lock'));
     } catch (err) {
       console.log('no yarn.lock removed');
     }
 
     try {
-      await fs.unlink(path.join(entryPath, 'package-lock.json'));
+      await unlink(path.join(entryPath, 'package-lock.json'));
     } catch (err) {
       console.log('no package-lock.json removed');
     }
@@ -177,7 +184,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   }
 
   if (process.env.NPM_AUTH_TOKEN) {
-    await fs.unlink(path.join(entryPath, '.npmrc'));
+    await unlink(path.join(entryPath, '.npmrc'));
   }
 
   const lambdas = {};
@@ -188,7 +195,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     console.log('preparing lambda files...');
     let buildId;
     try {
-      buildId = await fs.readFile(
+      buildId = await readFile(
         path.join(entryPath, '.next', 'BUILD_ID'),
         'utf8',
       );
@@ -221,7 +228,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
       path.join(entryPath, '.next', 'server', 'static', buildId, 'pages'),
     );
     const launcherPath = path.join(__dirname, 'legacy-launcher.js');
-    const launcherData = await fs.readFile(launcherPath, 'utf8');
+    const launcherData = await readFile(launcherPath, 'utf8');
 
     await Promise.all(
       Object.keys(pages).map(async (page) => {
@@ -372,11 +379,11 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
   }
 
   console.log('clearing old cache ...');
-  fs.removeSync(cacheEntryPath);
-  fs.mkdirpSync(cacheEntryPath);
+  await remove(cacheEntryPath);
+  await mkdirp(cacheEntryPath);
 
   console.log('copying build files for cache ...');
-  fs.renameSync(entryPath, cacheEntryPath);
+  await rename(entryPath, cacheEntryPath);
 
   console.log('producing cache file manifest ...');
 
