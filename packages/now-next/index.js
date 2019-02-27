@@ -99,6 +99,20 @@ function isLegacyNext(nextVersion) {
   return true;
 }
 
+async function getNextConfig(workPath, entryPath) {
+  const entryConfig = path.join(entryPath, './next.config.js');
+  if (await fs.pathExists(entryConfig)) {
+    return fs.readFile(entryConfig, 'utf8');
+  }
+
+  const workConfig = path.join(workPath, './next.config.js');
+  if (await fs.pathExists(workConfig)) {
+    return fs.readFile(workConfig, 'utf8');
+  }
+
+  return null;
+}
+
 exports.config = {
   maxLambdaSize: '5mb',
 };
@@ -280,6 +294,14 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     const pageKeys = Object.keys(pages);
 
     if (pageKeys.length === 0) {
+      const nextConfig = await getNextConfig(workPath, entryPath);
+
+      if (nextConfig != null) {
+        console.info('Found next.config.js:');
+        console.info(nextConfig);
+        console.info();
+      }
+
       throw new Error(
         'No serverless pages were built. https://err.sh/zeit/now-builders/now-next-no-serverless-pages-built',
       );
@@ -328,9 +350,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   const staticFiles = Object.keys(nextStaticFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[
-        file
-      ],
+      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[file],
     }),
     {},
   );
