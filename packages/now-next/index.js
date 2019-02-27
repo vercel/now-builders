@@ -11,10 +11,10 @@ const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line impo
 const {
   readFile,
   writeFile,
-  unlink,
-  remove,
+  unlink: unlinkFile,
+  remove: removePath,
   mkdirp,
-  rename,
+  rename: renamePath,
 } = require('fs-extra');
 const semver = require('semver');
 const nextLegacyVersions = require('./legacy-versions');
@@ -137,13 +137,13 @@ exports.build = async ({ files, workPath, entrypoint }) => {
 
   if (isLegacy) {
     try {
-      await unlink(path.join(entryPath, 'yarn.lock'));
+      await unlinkFile(path.join(entryPath, 'yarn.lock'));
     } catch (err) {
       console.log('no yarn.lock removed');
     }
 
     try {
-      await unlink(path.join(entryPath, 'package-lock.json'));
+      await unlinkFile(path.join(entryPath, 'package-lock.json'));
     } catch (err) {
       console.log('no package-lock.json removed');
     }
@@ -184,7 +184,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   }
 
   if (process.env.NPM_AUTH_TOKEN) {
-    await unlink(path.join(entryPath, '.npmrc'));
+    await unlinkFile(path.join(entryPath, '.npmrc'));
   }
 
   const lambdas = {};
@@ -379,11 +379,11 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
   }
 
   console.log('clearing old cache ...');
-  await remove(cacheEntryPath);
+  await removePath(cacheEntryPath);
   await mkdirp(cacheEntryPath);
 
   console.log('copying build files for cache ...');
-  await rename(entryPath, cacheEntryPath);
+  await renamePath(entryPath, cacheEntryPath);
 
   console.log('producing cache file manifest ...');
 
