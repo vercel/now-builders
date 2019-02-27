@@ -1,5 +1,7 @@
 const { join, dirname } = require('path');
-const { readFile, writeFile, pathExists, move } = require('fs-extra');
+const {
+  readFile, writeFile, pathExists, move,
+} = require('fs-extra');
 
 const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
 const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
@@ -41,7 +43,7 @@ async function build({ files, entrypoint }) {
     throw err;
   }
 
-  let handlerFunctionName = parseFunctionName.split(',')[0];
+  const handlerFunctionName = parseFunctionName.split(',')[0];
 
   console.log(
     `Found exported function "${handlerFunctionName}" in "${entrypoint}"`,
@@ -55,9 +57,15 @@ async function build({ files, entrypoint }) {
   const packageName = parseFunctionName.split(',')[1];
   const isGoModExist = await pathExists(`${entrypointDirname}/go.mod`);
   if (packageName !== 'main') {
-    const go = await createGo(goPath, process.platform, process.arch, {
-      cwd: entrypointDirname
-    }, true);
+    const go = await createGo(
+      goPath,
+      process.platform,
+      process.arch,
+      {
+        cwd: entrypointDirname,
+      },
+      true,
+    );
     if (!isGoModExist) {
       try {
         go('mod', 'init', packageName);
@@ -74,14 +82,16 @@ async function build({ files, entrypoint }) {
     );
 
     let goPackageName = `${packageName}/${packageName}`;
-    let goFuncName = `${packageName}.${handlerFunctionName}`;
+    const goFuncName = `${packageName}.${handlerFunctionName}`;
 
     if (isGoModExist) {
-      let goModContents = await readFile(
+      const goModContents = await readFile(
         `${entrypointDirname}/go.mod`,
         'utf8',
       );
-      goPackageName = `${goModContents.split('\n')[0].split(' ')[1]}/${packageName}`
+      goPackageName = `${
+        goModContents.split('\n')[0].split(' ')[1]
+      }/${packageName}`;
     }
 
     const mainModGoContents = modMainGoContents
@@ -89,13 +99,16 @@ async function build({ files, entrypoint }) {
       .replace('__NOW_HANDLER_FUNC_NAME', goFuncName);
 
     // write main__mod__.go
-    await writeFile(join(entrypointDirname, mainModGoFileName), mainModGoContents);
+    await writeFile(
+      join(entrypointDirname, mainModGoFileName),
+      mainModGoContents,
+    );
 
     // move user go file to folder
     try {
       await move(
         downloadedFiles[entrypoint].fsPath,
-        `${join(entrypointDirname, packageName, entrypoint)}`
+        `${join(entrypointDirname, packageName, entrypoint)}`,
       );
     } catch (err) {
       console.log('failed to move entry to package folder');
@@ -113,18 +126,22 @@ async function build({ files, entrypoint }) {
     console.log('Running `go build`...');
     const destPath = join(outDir, 'handler');
     try {
-      const src = [
-        join(entrypointDirname, mainModGoFileName)
-      ];
+      const src = [join(entrypointDirname, mainModGoFileName)];
       await go.build({ src, dest: destPath });
     } catch (err) {
       console.log('failed to `go build`');
       throw err;
     }
   } else {
-    const go = await createGo(goPath, process.platform, process.arch, {
-      cwd: entrypointDirname
-    }, false);
+    const go = await createGo(
+      goPath,
+      process.platform,
+      process.arch,
+      {
+        cwd: entrypointDirname,
+      },
+      false,
+    );
     const origianlMainGoContents = await readFile(
       join(__dirname, 'main.go'),
       'utf8',
@@ -133,7 +150,9 @@ async function build({ files, entrypoint }) {
       '__NOW_HANDLER_FUNC_NAME',
       handlerFunctionName,
     );
-    // in order to allow the user to have `main.go`, we need our `main.go` to be called something else
+
+    // in order to allow the user to have `main.go`,
+    // we need our `main.go` to be called something else
     const mainGoFileName = 'main__now__go__.go';
 
     // Go doesn't like to build files in different directories,
