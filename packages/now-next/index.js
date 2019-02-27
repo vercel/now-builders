@@ -3,7 +3,6 @@ const download = require('@now/build-utils/fs/download.js'); // eslint-disable-l
 const FileFsRef = require('@now/build-utils/file-fs-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
 const FileBlob = require('@now/build-utils/file-blob'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
-const { readFile, writeFile, unlink } = require('fs.promised');
 const {
   runNpmInstall,
   runPackageJsonScript,
@@ -38,7 +37,7 @@ async function readPackageJson(entryPath) {
   const packagePath = path.join(entryPath, 'package.json');
 
   try {
-    return JSON.parse(await readFile(packagePath, 'utf8'));
+    return JSON.parse(await fs.readFile(packagePath, 'utf8'));
   } catch (err) {
     console.log('package.json not found in entry');
     return {};
@@ -51,7 +50,7 @@ async function readPackageJson(entryPath) {
  * @param {Object} packageJson
  */
 async function writePackageJson(workPath, packageJson) {
-  await writeFile(
+  await fs.writeFile(
     path.join(workPath, 'package.json'),
     JSON.stringify(packageJson, null, 2),
   );
@@ -63,7 +62,7 @@ async function writePackageJson(workPath, packageJson) {
  * @param {string} token
  */
 async function writeNpmRc(workPath, token) {
-  await writeFile(
+  await fs.writeFile(
     path.join(workPath, '.npmrc'),
     `//registry.npmjs.org/:_authToken=${token}`,
   );
@@ -130,13 +129,13 @@ exports.build = async ({ files, workPath, entrypoint }) => {
 
   if (isLegacy) {
     try {
-      await unlink(path.join(entryPath, 'yarn.lock'));
+      await fs.unlink(path.join(entryPath, 'yarn.lock'));
     } catch (err) {
       console.log('no yarn.lock removed');
     }
 
     try {
-      await unlink(path.join(entryPath, 'package-lock.json'));
+      await fs.unlink(path.join(entryPath, 'package-lock.json'));
     } catch (err) {
       console.log('no package-lock.json removed');
     }
@@ -177,7 +176,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   }
 
   if (process.env.NPM_AUTH_TOKEN) {
-    await unlink(path.join(entryPath, '.npmrc'));
+    await fs.unlink(path.join(entryPath, '.npmrc'));
   }
 
   const lambdas = {};
@@ -188,7 +187,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     console.log('preparing lambda files...');
     let buildId;
     try {
-      buildId = await readFile(
+      buildId = await fs.readFile(
         path.join(entryPath, '.next', 'BUILD_ID'),
         'utf8',
       );
@@ -221,7 +220,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
       path.join(entryPath, '.next', 'server', 'static', buildId, 'pages'),
     );
     const launcherPath = path.join(__dirname, 'legacy-launcher.js');
-    const launcherData = await readFile(launcherPath, 'utf8');
+    const launcherData = await fs.readFile(launcherPath, 'utf8');
 
     await Promise.all(
       Object.keys(pages).map(async (page) => {
@@ -328,9 +327,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   const staticFiles = Object.keys(nextStaticFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[
-        file
-      ],
+      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[file],
     }),
     {},
   );
