@@ -67,8 +67,9 @@ async function build({ files, entrypoint }) {
       }
     }
 
+    const mainModGoFileName = 'main__mod__.go';
     const modMainGoContents = await readFile(
-      path.join(__dirname, 'main__mod__.go'),
+      join(__dirname, mainModGoFileName),
       'utf8',
     );
 
@@ -88,13 +89,13 @@ async function build({ files, entrypoint }) {
       .replace('__NOW_HANDLER_FUNC_NAME', goFuncName);
 
     // write main__mod__.go
-    await writeFile(path.join(entrypointDirname, mainModGoFileName), mainModGoContents);
+    await writeFile(join(entrypointDirname, mainModGoFileName), mainModGoContents);
 
     // move user go file to folder
     try {
       await move(
         downloadedFiles[entrypoint].fsPath,
-        `${path.join(entrypointDirname, packageName, entrypoint)}`
+        `${join(entrypointDirname, packageName, entrypoint)}`
       );
     } catch (err) {
       console.log('failed to move entry to package folder');
@@ -113,7 +114,7 @@ async function build({ files, entrypoint }) {
     const destPath = join(outDir, 'handler');
     try {
       const src = [
-        path.join(entrypointDirname, mainModGoFileName)
+        join(entrypointDirname, mainModGoFileName)
       ];
       await go.build({ src, dest: destPath });
     } catch (err) {
