@@ -18,6 +18,7 @@ const {
   includeOnlyEntryDirectory,
   normalizePackageJson,
   onlyStaticDirectory,
+  getNextConfig,
 } = require('./utils');
 
 /** @typedef { import('@now/build-utils/file-ref').Files } Files */
@@ -97,20 +98,6 @@ function isLegacyNext(nextVersion) {
   }
 
   return true;
-}
-
-async function getNextConfig(workPath, entryPath) {
-  const entryConfig = path.join(entryPath, './next.config.js');
-  if (await fs.pathExists(entryConfig)) {
-    return fs.readFile(entryConfig, 'utf8');
-  }
-
-  const workConfig = path.join(workPath, './next.config.js');
-  if (await fs.pathExists(workConfig)) {
-    return fs.readFile(workConfig, 'utf8');
-  }
-
-  return null;
 }
 
 exports.config = {
