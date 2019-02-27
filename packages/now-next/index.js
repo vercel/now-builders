@@ -15,6 +15,7 @@ const {
   remove: removePath,
   mkdirp,
   rename: renamePath,
+  pathExists,
 } = require('fs-extra');
 const semver = require('semver');
 const nextLegacyVersions = require('./legacy-versions');
@@ -122,8 +123,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   await download(files, workPath);
   const entryPath = path.join(workPath, entryDirectory);
 
-  const preflightDotNextFiles = await glob('.next/**', entryPath);
-  if (Object.keys(preflightDotNextFiles).length > 0) {
+  if (await pathExists(path.join(entryPath, '.next'))) {
     console.warn(
       'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
     );
