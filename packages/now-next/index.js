@@ -3,13 +3,20 @@ const download = require('@now/build-utils/fs/download.js'); // eslint-disable-l
 const FileFsRef = require('@now/build-utils/file-fs-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
 const FileBlob = require('@now/build-utils/file-blob'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
-const { readFile, writeFile, unlink } = require('fs.promised');
 const {
   runNpmInstall,
   runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
 const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
-const fs = require('fs-extra');
+const {
+  readFile,
+  writeFile,
+  unlink: unlinkFile,
+  remove: removePath,
+  mkdirp,
+  rename: renamePath,
+  pathExists,
+} = require('fs-extra');
 const semver = require('semver');
 const nextLegacyVersions = require('./legacy-versions');
 const {
@@ -18,6 +25,7 @@ const {
   includeOnlyEntryDirectory,
   normalizePackageJson,
   onlyStaticDirectory,
+  getNextConfig,
 } = require('./utils');
 
 /** @typedef { import('@now/build-utils/file-ref').Files } Files */
@@ -115,6 +123,12 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   await download(files, workPath);
   const entryPath = path.join(workPath, entryDirectory);
 
+  if (await pathExists(path.join(entryPath, '.next'))) {
+    console.warn(
+      'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
+    );
+  }
+
   const pkg = await readPackageJson(entryPath);
 
   const nextVersion = getNextVersion(pkg);
@@ -130,13 +144,13 @@ exports.build = async ({ files, workPath, entrypoint }) => {
 
   if (isLegacy) {
     try {
-      await unlink(path.join(entryPath, 'yarn.lock'));
+      await unlinkFile(path.join(entryPath, 'yarn.lock'));
     } catch (err) {
       console.log('no yarn.lock removed');
     }
 
     try {
-      await unlink(path.join(entryPath, 'package-lock.json'));
+      await unlinkFile(path.join(entryPath, 'package-lock.json'));
     } catch (err) {
       console.log('no package-lock.json removed');
     }
@@ -177,7 +191,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   }
 
   if (process.env.NPM_AUTH_TOKEN) {
-    await unlink(path.join(entryPath, '.npmrc'));
+    await unlinkFile(path.join(entryPath, '.npmrc'));
   }
 
   const lambdas = {};
@@ -280,6 +294,14 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     const pageKeys = Object.keys(pages);
 
     if (pageKeys.length === 0) {
+      const nextConfig = await getNextConfig(workPath, entryPath);
+
+      if (nextConfig != null) {
+        console.info('Found next.config.js:');
+        console.info(nextConfig);
+        console.info();
+      }
+
       throw new Error(
         'No serverless pages were built. https://err.sh/zeit/now-builders/now-next-no-serverless-pages-built',
       );
@@ -328,9 +350,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
   const staticFiles = Object.keys(nextStaticFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[
-        file
-      ],
+      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[file],
     }),
     {},
   );
@@ -366,11 +386,11 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
   }
 
   console.log('clearing old cache ...');
-  fs.removeSync(cacheEntryPath);
-  fs.mkdirpSync(cacheEntryPath);
+  await removePath(cacheEntryPath);
+  await mkdirp(cacheEntryPath);
 
   console.log('copying build files for cache ...');
-  fs.renameSync(entryPath, cacheEntryPath);
+  await renamePath(entryPath, cacheEntryPath);
 
   console.log('producing cache file manifest ...');
 
