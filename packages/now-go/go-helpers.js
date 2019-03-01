@@ -21,39 +21,6 @@ const getGoUrl = (version, platform, arch) => {
   return `https://dl.google.com/go/go${version}.${goPlatform}-${goArch}.${ext}`;
 };
 
-async function downloadGCC() {
-  const ccUrl = 'https://dmmcy0pwk6bqi.cloudfront.net/gcc-4.8.5.tgz';
-  console.log('downloading GCC');
-  const res = await fetch(ccUrl);
-
-  if (!res.ok) {
-    throw new Error(`Failed to download: ${ccUrl} `);
-  }
-
-  return new Promise((resolve, reject) => {
-    res.body
-      .on('error', reject)
-      // NOTE(anmonteiro): We pipe GCC into `/ tmp` instead of getting a writable
-      // directory from `@now/build-utils` because the GCC distribution that we
-      // use is specifically packaged for AWS Lambda (where `/tmp` is writable)
-      // and contains several hardcoded symlinks to paths in `/tmp`.
-      .pipe(tar.extract({ gzip: true, cwd: '/tmp' }))
-      .on('finish', async () => {
-        const { LD_LIBRARY_PATH } = process.env;
-        // Set the environment variables as per
-        // https://github.com/lambci/lambci/blob/e6c9c7/home/init/gcc#L14-L17
-        const newEnv = {
-          PATH: '/tmp/bin:/tmp/sbin',
-          LD_LIBRARY_PATH: `/tmp/lib:/tmp/lib64:${LD_LIBRARY_PATH}`,
-          CPATH: '/tmp/include',
-          LIBRARY_PATH: '/tmp/lib',
-        };
-
-        return resolve(newEnv);
-      });
-  });
-}
-
 function getExportedFunctionName(filePath) {
   debug('Detecting handler name for %o', filePath);
   const bin = join(__dirname, 'get-exported-function-name');
@@ -111,18 +78,7 @@ async function createGo(
   };
 
   if (goMod) {
-    const {
-      PATH: gccPath,
-      LD_LIBRARY_PATH,
-      CPATH,
-      LIBRARY_PATH,
-    } = await downloadGCC();
-
     env.GO111MODULE = 'on';
-    env.PATH = `${env.PATH}:${gccPath}`;
-    env.LD_LIBRARY_PATH = LD_LIBRARY_PATH;
-    env.CPATH = CPATH;
-    env.LIBRARY_PATH = LIBRARY_PATH;
   }
 
   function go(...args) {

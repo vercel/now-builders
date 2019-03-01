@@ -117,6 +117,9 @@ async function build({ files, entrypoint }) {
 
     console.log('installing dependencies');
     try {
+      // ensure go.mod up-to-date
+      await go('mod', 'tidy');
+
       go.get();
     } catch (err) {
       console.log('failed to `go get`');
