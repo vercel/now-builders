@@ -10,6 +10,7 @@ const {
   runNpmInstall,
   runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
+const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory'); // eslint-disable-line import/no-extraneous-dependencies
 
 /** @typedef { import('@now/build-utils/file-ref') } FileRef */
 /** @typedef {{[filePath: string]: FileRef}} Files */
@@ -28,20 +29,21 @@ const {
  * @param {string[]} [options.npmArguments]
  */
 async function downloadInstallAndBundle(
-  { files, entrypoint, workPath },
+  { files, entrypoint },
   { npmArguments = [] } = {},
 ) {
-  const userPath = path.join(workPath, 'user');
-  const nccPath = path.join(workPath, 'ncc');
+  const tmpPath = await getWritableDirectory();
+  const userPath = path.join(tmpPath, 'user');
+  const nccPath = path.join(tmpPath, 'ncc');
 
-  console.log('downloading user files...');
+  console.log('downloading user files to %s...', userPath);
   const downloadedFiles = await download(files, userPath);
 
   console.log("installing dependencies for user's code...");
   const entrypointFsDirname = path.join(userPath, path.dirname(entrypoint));
   await runNpmInstall(entrypointFsDirname, npmArguments);
 
-  console.log('writing ncc package.json...');
+  console.log('writing ncc package.json in %s...', nccPath);
   await download(
     {
       'package.json': new FileBlob({
@@ -58,7 +60,9 @@ async function downloadInstallAndBundle(
 
   console.log('installing dependencies for ncc...');
   await runNpmInstall(nccPath, npmArguments);
-  return [downloadedFiles, userPath, nccPath, entrypointFsDirname];
+  return {
+    downloadedFiles, tmpPath, userPath, nccPath, entrypointFsDirname,
+  };
 }
 
 async function compile(workNccPath, downloadedFiles, entrypoint) {
@@ -90,16 +94,14 @@ exports.config = {
  * @param {BuildParamsType} buildParams
  * @returns {Promise<Files>}
  */
-exports.build = async ({
-  files, entrypoint, config, workPath,
-}) => {
-  const [
+exports.build = async ({ files, entrypoint, config }) => {
+  const {
     downloadedFiles,
     workUserPath,
     workNccPath,
     entrypointFsDirname,
-  ] = await downloadInstallAndBundle(
-    { files, entrypoint, workPath },
+  } = await downloadInstallAndBundle(
+    { files, entrypoint },
     { npmArguments: ['--prefer-offline'] },
   );
 
@@ -142,18 +144,15 @@ exports.build = async ({
   return { [entrypoint]: lambda };
 };
 
-exports.prepareCache = async ({
-  files, entrypoint, workPath, cachePath,
-}) => {
-  await fs.remove(workPath);
-  await downloadInstallAndBundle({ files, entrypoint, workPath: cachePath });
+exports.prepareCache = async ({ files, entrypoint }) => {
+  const { tmpPath } = await downloadInstallAndBundle({ files, entrypoint });
 
   return {
-    ...(await glob('user/node_modules/**', cachePath)),
-    ...(await glob('user/package-lock.json', cachePath)),
-    ...(await glob('user/yarn.lock', cachePath)),
-    ...(await glob('ncc/node_modules/**', cachePath)),
-    ...(await glob('ncc/package-lock.json', cachePath)),
-    ...(await glob('ncc/yarn.lock', cachePath)),
+    ...(await glob('user/node_modules/**', tmpPath)),
+    ...(await glob('user/package-lock.json', tmpPath)),
+    ...(await glob('user/yarn.lock', tmpPath)),
+    ...(await glob('ncc/node_modules/**', tmpPath)),
+    ...(await glob('ncc/package-lock.json', tmpPath)),
+    ...(await glob('ncc/yarn.lock', tmpPath)),
   };
 };
