@@ -50,7 +50,7 @@ exports.config = {
   maxLambdaSize: '5mb',
 };
 
-exports.build = async ({ files, entrypoint }) => {
+exports.build = async ({ files, entrypoint, config }) => {
   console.log('downloading files...');
 
   const srcDir = await getWritableDirectory();
@@ -113,7 +113,7 @@ exports.build = async ({ files, entrypoint }) => {
   const lambda = await createLambda({
     files: await glob('**', srcDir),
     handler: `${nowHandlerPyFilename}.now_handler`,
-    runtime: 'python3.6',
+    runtime: `python${config.python || '3.6'}`,
     environment: {},
   });
 
