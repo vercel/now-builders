@@ -19,6 +19,33 @@ async function pipInstall(pipPath, srcDir, ...args) {
   }
 }
 
+async function pipInstallUser(pipPath, ...args) {
+  console.log(`running "pip install --user ${args.join(' ')}"...`);
+  try {
+    await execa(pipPath, ['install', '--user', ...args], {
+      stdio: 'inherit',
+    });
+  } catch (err) {
+    console.log(`failed to run "pip install --user ${args.join(' ')}"`);
+    throw err;
+  }
+}
+
+async function pipenvInstall(pyUserBase, srcDir) {
+  console.log('running "pipenv_to_requirements -f');
+  process.chdir(srcDir);
+  try {
+    await execa(
+      path.join(pyUserBase, 'bin', 'pipenv_to_requirements'),
+      ['-f'],
+      { stdio: 'inherit' },
+    );
+  } catch (err) {
+    console.log('failed to run "pipenv_to_requirements -f"');
+    throw err;
+  }
+}
+
 exports.config = {
   maxLambdaSize: '5mb',
 };
@@ -39,6 +66,18 @@ exports.build = async ({ files, entrypoint }) => {
   const pipPath = await downloadAndInstallPip();
 
   await pipInstall(pipPath, srcDir, 'werkzeug');
+
+  if (files['Pipfile.lock']) {
+    console.log('found "Pipfile.lock"');
+
+    // Install pipenv.
+    await pipInstallUser(pipPath, ' pipenv_to_requirements');
+
+    await pipenvInstall(pyUserBase, srcDir);
+  }
+
+  // eslint-disable-next-line no-param-reassign
+  files = await glob('**', srcDir);
 
   if (files['requirements.txt']) {
     console.log('found "requirements.txt"');
