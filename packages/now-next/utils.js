@@ -1,4 +1,5 @@
-const rename = require('@now/build-utils/fs/rename.js');
+const fs = require('fs-extra');
+const path = require('path');
 
 /** @typedef { import('@now/build-utils/file-ref') } FileRef */
 /** @typedef { import('@now/build-utils/file-fs-ref') } FileFsRef */
@@ -65,24 +66,6 @@ function includeOnlyEntryDirectory(files, entryDirectory) {
 }
 
 /**
- * Moves all files under the entry directory to the root directory
- * @param {Files} files
- * @param {string} entryDirectory
- * @returns {Files}
- */
-function moveEntryDirectoryToRoot(files, entryDirectory) {
-  if (entryDirectory === '.') {
-    return files;
-  }
-
-  function delegate(filePath) {
-    return filePath.replace(new RegExp(`^${entryDirectory}/`), '');
-  }
-
-  return rename(files, delegate);
-}
-
-/**
  * Exclude package manager lockfiles from files
  * @param {Files} files
  * @returns {Files}
@@ -96,19 +79,6 @@ function excludeLockFiles(files) {
     delete newFiles['yarn.lock'];
   }
   return files;
-}
-
-/**
- * Exclude the static directory from files
- * @param {Files} files
- * @returns {Files}
- */
-function excludeStaticDirectory(files) {
-  function matcher(filePath) {
-    return filePath.startsWith('static');
-  }
-
-  return excludeFiles(files, matcher);
 }
 
 /**
@@ -169,13 +139,26 @@ function normalizePackageJson(defaultPackageJson = {}) {
   };
 }
 
+async function getNextConfig(workPath, entryPath) {
+  const entryConfig = path.join(entryPath, './next.config.js');
+  if (await fs.pathExists(entryConfig)) {
+    return fs.readFile(entryConfig, 'utf8');
+  }
+
+  const workConfig = path.join(workPath, './next.config.js');
+  if (await fs.pathExists(workConfig)) {
+    return fs.readFile(workConfig, 'utf8');
+  }
+
+  return null;
+}
+
 module.exports = {
   excludeFiles,
   validateEntrypoint,
   includeOnlyEntryDirectory,
-  moveEntryDirectoryToRoot,
   excludeLockFiles,
   normalizePackageJson,
-  excludeStaticDirectory,
   onlyStaticDirectory,
+  getNextConfig,
 };
