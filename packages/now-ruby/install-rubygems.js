@@ -1,23 +1,13 @@
-const execa = require('execa');
-
-const tryCmd = async (cmd, errMsg = null, ...args) => {
-  console.log(`running ${cmd} ${args.join(' ')}"...`);
-  try {
-    await execa(cmd, [...args], { stdio: 'inherit' });
-  } catch (err) {
-    console.log(`failed to run ${cmd} ${args.join(' ')}`);
-    console.log(`${errMsg || err.message}`);
-    throw err;
-  }
-};
+const cli = require('./cli');
 
 module.exports = async (gemfilePath, ...args) => {
-  await tryCmd('ruby', 'Ruby not installed', '-v');
-  await tryCmd('gem', null, 'i', 'bundler');
-  await tryCmd('bundle', null, 'i', `--gemfile=${gemfilePath}`, ...args); // , '--deployment' )
+  console.log('Installing your dependencies.....');
+  await cli('gem', 'i', 'bundler');
+  await cli('bundle', 'i', `--gemfile=${gemfilePath}`, ...args); // , '--deployment' )
+  console.log('Dependencies installed correctly.....');
 
   return new Promise((resolve, reject) => {
-    execa('bundle', ['show'])
+    cli('bundle', 'show')
       .on('error', reject)
       .on('finish', result => console.log(result.stdout));
   });

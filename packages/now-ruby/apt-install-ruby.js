@@ -1,25 +1,11 @@
-const execa = require('execa');
+const cli = require('./cli');
 
 const PIPE = '|';
 const BASHRC = '~/.bashrc';
 
-async function tryRunCommand(cmd, ...args) {
-  try {
-    return await execa(cmd, args, { stdio: 'inherit' });
-  } catch (err) {
-    // console.log(`${err.message}`)
-    throw err;
-  }
-}
-
 async function gitClone(repoPath, destDir) {
   try {
-    await tryRunCommand(
-      'git',
-      'clone',
-      `https://github.com/${repoPath}.git`,
-      destDir,
-    );
+    await cli('git', 'clone', `https://github.com/${repoPath}.git`, destDir);
   } catch (err) {
     console.log(`${err.message}`);
     throw err;
@@ -28,7 +14,7 @@ async function gitClone(repoPath, destDir) {
 
 async function echo(msg, redirectionPath = null) {
   try {
-    await tryRunCommand('echo', msg, `>> ${redirectionPath}`);
+    await cli('echo', msg, `>> ${redirectionPath}`);
   } catch (err) {
     console.log(`${err.message}`);
     throw err;
@@ -38,7 +24,7 @@ async function echo(msg, redirectionPath = null) {
 // $ rbenv install -l | egrep "\s[0-9]\.[0-9]\.[0-9]$" | tail -1
 async function getLatestRubyVersion() {
   try {
-    await tryRunCommand(
+    await cli(
       'rbenv install -l',
       PIPE,
       'egrep',
@@ -54,8 +40,8 @@ async function getLatestRubyVersion() {
 
 async function installRBenv() {
   try {
-    await tryRunCommand('sudo apt-get update');
-    await tryRunCommand(
+    await cli('sudo apt-get update');
+    await cli(
       'sudo apt install',
       'autoconf',
       'bison',
@@ -80,7 +66,7 @@ async function installRBenv() {
     await echo('eval "$(rbenv init -)"', BASHRC);
 
     // source ~/.bashrc
-    await tryRunCommand('source', BASHRC);
+    await cli('source', BASHRC);
 
     // git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
     await gitClone('rbenv/ruby-build', '~/.rbenv/plugins/ruby-build');
@@ -97,8 +83,8 @@ module.exports = async (version = null) => {
   } catch (err) {
     if (err.toString().match(/enoent|not\sfound/i)) {
       await installRBenv();
-      await tryRunCommand('rbenv', 'install', versionNumber);
-      await tryRunCommand('rbenv', 'global', versionNumber);
+      await cli('rbenv', 'install', versionNumber);
+      await cli('rbenv', 'global', versionNumber);
     } else {
       throw err;
     }
@@ -106,7 +92,7 @@ module.exports = async (version = null) => {
   // TODO: Add Support for JIT compilation
 
   return new Promise((resolve, reject) => {
-    tryRunCommand('ruby', '-v')
+    cli('ruby', '-v')
       .on('error', reject)
       .on('finish', result => console.log(result.stdout));
   });
