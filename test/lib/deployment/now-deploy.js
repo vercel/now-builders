@@ -18,8 +18,14 @@ async function nowDeploy (bodies, randomness) {
 
   const nowDeployPayload = {
     version: 2,
-    env: Object.assign({}, nowJson.env, { RANDOMNESS_ENV_VAR: randomness }),
-    build: { env: { RANDOMNESS_BUILD_ENV_VAR: randomness } },
+    public: true,
+    env: { ...nowJson.env, RANDOMNESS_ENV_VAR: randomness },
+    build: {
+      env: {
+        ...(nowJson.build || {}).env,
+        RANDOMNESS_BUILD_ENV_VAR: randomness
+      }
+    },
     name: 'test',
     files,
     builds: nowJson.builds,
@@ -30,10 +36,7 @@ async function nowDeploy (bodies, randomness) {
   console.log(`posting ${files.length} files`);
 
   for (const { file: filename } of files) {
-    await filePost(
-      bodies[filename],
-      digestOfFile(bodies[filename])
-    );
+    await filePost(bodies[filename], digestOfFile(bodies[filename]));
   }
 
   let deploymentId;
@@ -41,7 +44,7 @@ async function nowDeploy (bodies, randomness) {
 
   {
     const json = await deploymentPost(nowDeployPayload);
-    if (json.error && json.error.code === 'missing_files') throw new Error('Missing files');
+    if (json.error && json.error.code === 'missing_files') { throw new Error('Missing files'); }
     deploymentId = json.id;
     deploymentUrl = json.url;
   }
@@ -50,7 +53,7 @@ async function nowDeploy (bodies, randomness) {
 
   for (let i = 0; i < 500; i += 1) {
     const { state } = await deploymentGet(deploymentId);
-    if (state === 'ERROR') throw new Error(`State of ${deploymentUrl} is ${state}`);
+    if (state === 'ERROR') { throw new Error(`State of ${deploymentUrl} is ${state}`); }
     if (state === 'READY') break;
     await new Promise((r) => setTimeout(r, 1000));
   }
@@ -114,8 +117,11 @@ async function fetchWithAuth (url, opts = {}) {
 
   if (!opts.headers.Authorization) {
     if (!token) {
-      const { NOW_TOKEN_FACTORY_URL } = process.env;
-      if (NOW_TOKEN_FACTORY_URL) {
+      const { NOW_TOKEN, NOW_TOKEN_FACTORY_URL } = process.env;
+
+      if (NOW_TOKEN) {
+        token = NOW_TOKEN;
+      } else if (NOW_TOKEN_FACTORY_URL) {
         const resp = await fetch(NOW_TOKEN_FACTORY_URL);
         token = (await resp.json()).token;
       } else {
