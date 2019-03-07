@@ -44,7 +44,9 @@ async function nowDeploy (bodies, randomness) {
 
   {
     const json = await deploymentPost(nowDeployPayload);
-    if (json.error && json.error.code === 'missing_files') { throw new Error('Missing files'); }
+    if (json.error && json.error.code === 'missing_files') {
+      throw new Error('Missing files');
+    }
     deploymentId = json.id;
     deploymentUrl = json.url;
   }
@@ -53,7 +55,9 @@ async function nowDeploy (bodies, randomness) {
 
   for (let i = 0; i < 500; i += 1) {
     const { state } = await deploymentGet(deploymentId);
-    if (state === 'ERROR') { throw new Error(`State of ${deploymentUrl} is ${state}`); }
+    if (state === 'ERROR') {
+      throw new Error(`State of ${deploymentUrl} is ${state}`);
+    }
     if (state === 'READY') break;
     await new Promise((r) => setTimeout(r, 1000));
   }
