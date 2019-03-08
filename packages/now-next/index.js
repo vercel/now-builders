@@ -216,7 +216,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     const dotNextServerRootFiles = await glob('.next/server/*', entryPath);
     const nodeModules = excludeFiles(
       await glob('node_modules/**', entryPath),
-      file => file.startsWith('node_modules/.cache') && !file.startsWith('node_modules/.cache/terser-webpack-plugin'),
+      file => file.startsWith('node_modules/.cache'),
     );
     const launcherFiles = {
       'now__bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
