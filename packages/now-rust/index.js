@@ -8,7 +8,7 @@ const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line impo
 const { runShellScript } = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
 const FileFsRef = require('@now/build-utils/file-fs-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
 const FileRef = require('@now/build-utils/file-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
-const installRustAndGCC = require('./download-install-rust-toolchain.js');
+const installRust = require('./install-rust.js');
 
 exports.config = {
   maxLambdaSize: '25mb',
@@ -220,12 +220,11 @@ exports.build = async (m) => {
   console.log('downloading files');
   const downloadedFiles = await download(files, workPath);
 
-  const { PATH: toolchainPath, ...otherEnv } = await installRustAndGCC();
+  await installRust();
   const { PATH, HOME } = process.env;
   const rustEnv = {
     ...process.env,
-    ...otherEnv,
-    PATH: `${path.join(HOME, '.cargo/bin')}:${toolchainPath}:${PATH}`,
+    PATH: `${path.join(HOME, '.cargo/bin')}:${PATH}`,
   };
 
   await runUserScripts(entrypoint);
