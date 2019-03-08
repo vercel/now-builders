@@ -311,6 +311,6 @@ exports.getDefaultCache = ({ files, entrypoint }) => {
   const cargoTomlPath = findCargoToml(files, entrypoint);
   if (!cargoTomlPath) return undefined;
   const targetFolderDir = path.dirname(cargoTomlPath);
-  const defaultCacheRef = new FileRef({ digest: 'sha:80de34ac1a5710f03cb1dbd578219738253ece4bdea3e7c72dd775867031294a' });
+  const defaultCacheRef = new FileRef({ digest: 'sha:abea95ad7456b2fb8f9e19bdfec2bfc124602c380c87c7d7162788d388831d35' });
   return { [targetFolderDir]: defaultCacheRef };
 };
