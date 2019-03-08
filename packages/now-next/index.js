@@ -216,7 +216,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     const dotNextServerRootFiles = await glob('.next/server/*', entryPath);
     const nodeModules = excludeFiles(
       await glob('node_modules/**', entryPath),
-      file => file.startsWith('node_modules/.cache'),
+      file => file.startsWith('node_modules/.cache') && !file.startsWith('node_modules/.cache/terser-webpack-plugin'),
     );
     const launcherFiles = {
       'now__bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
@@ -397,7 +397,7 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
   const cacheEntrypoint = path.relative(cachePath, cacheEntryPath);
   return {
     ...(await glob(
-      path.join(cacheEntrypoint, 'node_modules/{**,!.*,.yarn*}'),
+      path.join(cacheEntrypoint, 'node_modules/{**,!.*,.yarn*,.cache/terser-webpack-plugin/**}'),
       cachePath,
     )),
     ...(await glob(path.join(cacheEntrypoint, 'package-lock.json'), cachePath)),
