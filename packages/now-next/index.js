@@ -397,7 +397,7 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
   const cacheEntrypoint = path.relative(cachePath, cacheEntryPath);
   return {
     ...(await glob(
-      path.join(cacheEntrypoint, 'node_modules/{**,!.*,.yarn*,.cache/terser-webpack-plugin/**}'),
+      path.join(cacheEntrypoint, 'node_modules/{**,!.*,.yarn*,.cache/next/**}'),
       cachePath,
     )),
     ...(await glob(path.join(cacheEntrypoint, 'package-lock.json'), cachePath)),
