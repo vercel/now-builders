@@ -4,9 +4,8 @@ const bundle = async command => async (...options) => {
   await cli('bundle', command, ...options);
 };
 
-const config = bundle('config');
-
 module.exports = async (gemfilePath, srcPath, ...args) => {
+  const config = await bundle('config');
   // process.chdir(srcPath)
   console.log('Installing your dependencies.....');
   await cli('gem', 'i', 'bundler');
