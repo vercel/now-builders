@@ -85,6 +85,11 @@ module.exports = async (version = null) => {
       await installRBenv();
       await cli('rbenv', 'install', versionNumber);
       await cli('rbenv', 'global', versionNumber);
+
+      // Env for apps
+      await echo('export RACK_ENV=production', BASHRC); // Generic for all Rack apps
+      await echo('export RAILS_ENV="$RACK_ENV"', BASHRC); // ROR
+      await echo('export APP_ENV="$RACK_ENV"', BASHRC); // Sinatra
     } else {
       throw err;
     }
