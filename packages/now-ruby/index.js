@@ -25,6 +25,12 @@ function getRubyVersion(files) {
   return versionNumber ? versionNumber.groups.version : undefined; // null guard
 }
 
+function checkForUserSpecifiedHandler(files) {
+  return Object.keys(files)
+    .filter(key => ['handler.rb', 'lambda.rb', 'now_handler.rb'].includes(key))
+    .shift();
+}
+
 exports.build = async ({ files, entrypoint }) => {
   console.log('downloading files...');
 
@@ -33,41 +39,52 @@ exports.build = async ({ files, entrypoint }) => {
   const allFiles = await download(files, srcPath);
 
   console.log('Installing Ruby.....');
-  const rubyVersion = getRubyVersion(allFiles) || '2.6.1';
-  await aptInstallRuby(rubyVersion);
+  let rubyVersion = getRubyVersion(allFiles); // || '2.6.1';
+  rubyVersion = await aptInstallRuby(rubyVersion);
+
+  // eslint-disable-next-line no-unused-vars
+  const [_, installedRubyVersion] = rubyVersion.match(/([0-9]\.[0-9]\.[0-9])$/);
+  console.log(installedRubyVersion);
 
   if (allFiles.Gemfile) {
     console.log("'Gemfile' is present in your app......");
 
     const gemfile = allFiles.Gemfile.fsPath;
-    await installRubyGems(gemfile, '--deployment');
+    await installRubyGems(gemfile, srcPath, '--deployment');
   }
 
-  const handlerForRubyFiles = await readFile(
-    path.join(__dirname, 'now_handler.rb'),
-    'utf8',
-  );
+  const handlerFile = checkForUserSpecifiedHandler(allFiles);
+  let nowHandlerRbFilename = '';
 
-  // replace all `require_relative 'now_handler'
-  console.log('entrypoint is', entrypoint);
-  const userDefinedHandlerPath = entrypoint.replace(/\.rb$/, '');
-  const nowHandlerRbContents = handlerForRubyFiles.replace(
-    '__NOW_HANDLER_FILE',
-    userDefinedHandlerPath,
-  );
+  if (!handlerFile) {
+    const handlerForRubyFiles = await readFile(
+      path.join(__dirname, 'now_handler.rb'),
+      'utf8',
+    );
 
-  // in order to allow the user to have `now_handler.rb`, we need our `now_handler.rb` to be called
-  // somethig else
-  const nowHandlerRbFilename = 'now__handler__ruby';
+    // replace all `require_relative 'now_handler'`
+    console.log('entrypoint is', entrypoint);
+    const userDefinedHandlerPath = entrypoint.replace(/\.rb$/, '');
+    const nowHandlerRbContents = handlerForRubyFiles.replace(
+      '__NOW_HANDLER_FILE',
+      userDefinedHandlerPath,
+    );
 
-  await writeFile(
-    path.join(srcPath, `${nowHandlerRbFilename}.rb`),
-    nowHandlerRbContents,
-  );
+    // in order to allow the user to have `now_handler.rb`,
+    // we need our `now_handler.rb` to be called
+    // somethig else
+    nowHandlerRbFilename = 'now__handler__ruby';
+
+    await writeFile(
+      path.join(srcPath, `${nowHandlerRbFilename}.rb`),
+      nowHandlerRbContents,
+    );
+  }
 
   const lambda = await createLambda({
     files: await glob('**', srcPath),
-    handler: 'now_handler',
+    handler: `${handlerFile
+      || `${nowHandlerRbFilename}.NowHandler.now_handler`}`,
     runtime: 'ruby',
     environment: {},
   });
