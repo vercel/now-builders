@@ -1,12 +1,12 @@
 const path = require('path');
-const cli = require('./cli');
+const { cli, cliWithOptions } = require('./cli');
 
-const bundle = async command => async (...options) => {
-  await cli('bundle', command, ...options);
+const bundle = (command, wkdir) => async (...options) => {
+  await cliWithOptions('bundle', wkdir)(command, ...options);
 };
 
 // eslint-disable-next-line no-unused-vars
-// const symlink = async mainDir => async (mirroredDir) => {
+// const symlink = mainDir => async mirroredDir => {
 //   await cli('sudo', 'ln', '-s', mirroredDir, mainDir);
 // };
 
@@ -23,7 +23,7 @@ const bundle = async command => async (...options) => {
 // };
 
 module.exports = async (gemfilePath, srcPath, ...args) => {
-  const config = await bundle('config');
+  const config = bundle('config', srcPath);
   // eslint-disable-next-line no-unused-vars
   const dir = path.join(path.dirname(gemfilePath), 'vendor', 'bundle');
   // process.chdir(srcPath)
@@ -31,8 +31,8 @@ module.exports = async (gemfilePath, srcPath, ...args) => {
   await cli('gem', 'i', 'bundler');
   await config('without', 'development:test:ci');
   await config('auto_install', 'true');
-  await bundle('i')(`--gemfile=${gemfilePath}`, ...args); // `--path=${dir}`, ...args); // , '--deployment' )
-  await bundle('package', '--all');
+  await bundle('i', srcPath)(`--gemfile=${gemfilePath}`, ...args); // `--path=${dir}`, ...args); // , '--deployment' )
+  await bundle('package', srcPath)('--all');
 
   // const systemGemDirs = await gemPath();
   // const linkGemPath = await symlink(dir);

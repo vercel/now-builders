@@ -4,6 +4,7 @@ const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory
 const download = require('@now/build-utils/fs/download.js');
 const glob = require('@now/build-utils/fs/glob.js');
 const { createLambda } = require('@now/build-utils/lambda.js');
+const { cliWithOptions } = require('./cli');
 
 const aptInstallRuby = require('./apt-install-ruby');
 const installRubyGems = require('./install-rubygems');
@@ -51,6 +52,10 @@ exports.build = async ({ files, entrypoint }) => {
 
     const gemfile = allFiles.Gemfile.fsPath;
     await installRubyGems(gemfile, srcPath, '--deployment');
+  }
+
+  if (allFiles['build.sh']) {
+    await cliWithOptions('bash', srcPath)(allFiles['build.sh'].fsPath);
   }
 
   const handlerFile = checkForUserSpecifiedHandler(allFiles);
