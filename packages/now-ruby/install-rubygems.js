@@ -5,26 +5,23 @@ const bundle = (command, wkdir) => async (...options) => {
   await cliWithOptions('bundle', wkdir)(command, ...options);
 };
 
-// eslint-disable-next-line no-unused-vars
-// const symlink = mainDir => async mirroredDir => {
-//   await cli('sudo', 'ln', '-s', mirroredDir, mainDir);
-// };
+const symlink = mainDir => async (mirroredDir) => {
+  await cli('sudo', 'ln', '-s', mainDir, mirroredDir);
+};
 
-// // eslint-disable-next-line no-unused-vars
-// // [ '/root/.rbenv/versions/$version/lib/ruby/gems/2.7.0', '/root/.gem/ruby/$version' ]
-// const gemPath = async () => {
-//   const cmds = 'rbenv exec gem environment | grep INSTALLATION'.split(' ');
-//   // $ rbenv exec gem environment | grep INSTALLATION
-//   let paths = await cli(...cmds);
-//   paths = paths.stdout.split('\n');
-//   return paths.map(
-//     pat => pat.match(/.*INSTALLATION.*?:\s(\/.+\/\.(gem|rbenv)\/?.*\/ruby\/.+)/)[1],
-//   );
-// };
+// [ '/root/.rbenv/versions/$version/lib/ruby/gems/$version', '/root/.gem/ruby/$version' ]
+const gemPath = async () => {
+  const cmds = 'rbenv exec gem environment | grep INSTALLATION'.split(' ');
+  // $ rbenv exec gem environment | grep INSTALLATION
+  let paths = await cli(...cmds);
+  paths = paths.stdout.split('\n');
+  return paths.map(
+    pat => pat.match(/.*INSTALLATION.*?:\s(\/.+\/\.(gem|rbenv)\/?.*\/ruby\/.+)/)[1],
+  );
+};
 
 module.exports = async (gemfilePath, srcPath, ...args) => {
   const config = bundle('config', srcPath);
-  // eslint-disable-next-line no-unused-vars
   const dir = path.join(path.dirname(gemfilePath), 'vendor', 'bundle');
   // process.chdir(srcPath)
   console.log('Installing your dependencies.....');
@@ -34,10 +31,10 @@ module.exports = async (gemfilePath, srcPath, ...args) => {
   await bundle('i', srcPath)(`--gemfile=${gemfilePath}`, ...args); // `--path=${dir}`, ...args); // , '--deployment' )
   await bundle('package', srcPath)('--all');
 
-  // const systemGemDirs = await gemPath();
-  // const linkGemPath = await symlink(dir);
-  // TODO: Fix Linking Gem Path Linking
-  // systemGemDirs.map(linkGemPath)
+  // symlink project's gems to avoid having to download gem after redeployment
+  const systemGemDirs = await gemPath();
+  const linkGemPath = await symlink(dir);
+  systemGemDirs.map(linkGemPath);
   console.log('Dependencies installed correctly.....');
 
   return new Promise((resolve, reject) => {
