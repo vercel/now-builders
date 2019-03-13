@@ -90,6 +90,7 @@ module.exports = async (version = null) => {
       await echo('export RACK_ENV=production', BASHRC); // Generic for all Rack apps
       await echo('export RAILS_ENV="$RACK_ENV"', BASHRC); // ROR
       await echo('export APP_ENV="$RACK_ENV"', BASHRC); // Sinatra
+      await echo('export RAILS_LOG_TO_STDOUT=true', BASHRC); // ROR
     } else {
       throw err;
     }
