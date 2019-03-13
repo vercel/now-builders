@@ -10,7 +10,7 @@ const aptInstallRuby = require('./apt-install-ruby');
 const installRubyGems = require('./install-rubygems');
 
 exports.config = {
-  maxLambdaSize: '5mb',
+  maxLambdaSize: '20mb',
 };
 
 function getRubyVersion(files) {
@@ -88,8 +88,9 @@ exports.build = async ({ files, entrypoint }) => {
 
   const lambda = await createLambda({
     files: await glob('**', srcPath),
-    handler: `${handlerFile
-      || `${nowHandlerRbFilename}.NowHandler.now_handler`}`,
+    handler: handlerFile
+      ? `${handlerFile}.handler`
+      : `${nowHandlerRbFilename}.NowHandler.now_handler`,
     runtime: 'ruby',
     environment: {},
   });
