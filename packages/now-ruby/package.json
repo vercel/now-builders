@@ -1,6 +1,6 @@
 {
   "name": "@now/ruby",
-  "version": "0.0.2-canary.2",
+  "version": "0.0.2-canary.3",
   "main": "index.js",
   "peerDependencies": {
     "@now/build-utils": ">=0.0.1"
