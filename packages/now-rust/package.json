@@ -1,0 +1,22 @@
+{
+  "name": "@now/rust",
+  "version": "0.1.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-rust"
+  },
+  "files": [
+    "index.js",
+    "install-rust.js",
+    "launcher.rs"
+  ],
+  "dependencies": {
+    "@iarna/toml": "^2.2.1",
+    "execa": "^1.0.0",
+    "fs-extra": "^7.0.1",
+    "node-fetch": "^2.3.0",
+    "tar": "^4.4.8"
+  }
+}

@@ -3,9 +3,6 @@ const fs = require('fs-extra');
 const path = require('path');
 const { spawn } = require('child_process');
 
-const prod = process.env.AWS_EXECUTION_ENV
-  || process.env.X_GOOGLE_CODE_LOCATION;
-
 function spawnAsync(command, args, cwd) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { stdio: 'inherit', cwd });
@@ -16,9 +13,18 @@ function spawnAsync(command, args, cwd) {
   });
 }
 
+async function chmodPlusX(fsPath) {
+  const s = await fs.stat(fsPath);
+  const newMode = s.mode | 64 | 8 | 1; // eslint-disable-line no-bitwise
+  if (s.mode === newMode) return;
+  const base8 = newMode.toString(8).slice(-3);
+  await fs.chmod(fsPath, base8);
+}
+
 async function runShellScript(fsPath) {
   assert(path.isAbsolute(fsPath));
   const destPath = path.dirname(fsPath);
+  await chmodPlusX(fsPath);
   await spawnAsync(`./${path.basename(fsPath)}`, [], destPath);
   return true;
 }
@@ -55,7 +61,7 @@ async function scanParentDirs(destPath, scriptName) {
   return { hasScript, hasPackageLockJson };
 }
 
-async function runNpmInstall(destPath, args = []) {
+async function installDependencies(destPath, args = []) {
   assert(path.isAbsolute(destPath));
 
   let commandArgs = args;
@@ -66,15 +72,6 @@ async function runNpmInstall(destPath, args = []) {
     commandArgs = args.filter(a => a !== '--prefer-offline');
     await spawnAsync('npm', ['install'].concat(commandArgs), destPath);
     await spawnAsync('npm', ['cache', 'clean', '--force'], destPath);
-  } else if (prod) {
-    console.log('using memory-fs for yarn cache');
-    await spawnAsync(
-      'node',
-      [path.join(__dirname, 'bootstrap-yarn.js'), '--cwd', destPath].concat(
-        commandArgs,
-      ),
-      destPath,
-    );
   } else {
     await spawnAsync('yarn', ['--cwd', destPath].concat(commandArgs), destPath);
     await spawnAsync('yarn', ['cache', 'clean'], destPath);
@@ -102,6 +99,7 @@ async function runPackageJsonScript(destPath, scriptName) {
 
 module.exports = {
   runShellScript,
-  runNpmInstall,
+  installDependencies,
+  runNpmInstall: installDependencies,
   runPackageJsonScript,
 };

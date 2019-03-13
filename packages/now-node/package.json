@@ -1,15 +1,27 @@
 {
   "name": "@now/node",
-  "version": "0.4.28-canary.6",
+  "version": "0.5.0-canary.5",
   "license": "MIT",
+  "main": "./dist/index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-node"
+  },
   "dependencies": {
-    "@now/node-bridge": "^0.1.10-canary.2",
+    "@now/node-bridge": "1.0.0-canary.2",
     "fs-extra": "7.0.1"
   },
-  "peerDependencies": {
-    "@now/build-utils": ">=0.0.1"
-  },
   "scripts": {
+    "build": "./build.sh",
     "test": "jest"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/node": "11.9.4",
+    "jest": "24.1.0",
+    "typescript": "3.3.3"
   }
 }
