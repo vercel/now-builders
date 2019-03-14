@@ -10,6 +10,10 @@ import {
   runPackageJsonScript
 } from '@now/build-utils/fs/run-user-scripts.js';
 
+interface CompilerConfig {
+  includeFiles?: string[]
+}
+
 /** @typedef { import('@now/build-utils/file-ref') } FileRef */
 /** @typedef {{[filePath: string]: FileRef}} Files */
 
@@ -59,14 +63,15 @@ async function downloadInstallAndBundle(
   return [downloadedFiles, nccPath, entrypointFsDirname];
 }
 
-async function compile(workNccPath: string, downloadedFiles, entrypoint: string, config) {
+async function compile(workNccPath: string, downloadedFiles, entrypoint: string, config: CompilerConfig) {
   const input = downloadedFiles[entrypoint].fsPath;
+  const inputDir = dirname(downloadedFiles[entrypoint].fsPath);
   const ncc = require(join(workNccPath, 'node_modules/@zeit/ncc'));
   const { code, assets } = await ncc(input);
 
-  if (config.bundle) {
-    for (const pattern of config.bundle) {
-      const files = await glob(pattern, dirname(downloadedFiles[entrypoint].fsPath));
+  if (config.includeFiles) {
+    for (const pattern of config.includeFiles) {
+      const files = await glob(pattern, inputDir);
 
       for (const assetName of Object.keys(files)) {
         const stream = files[assetName].toStream();
