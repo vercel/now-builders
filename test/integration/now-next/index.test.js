@@ -27,6 +27,7 @@ it(
       path.join(__dirname, 'monorepo'),
     );
     expect(buildResult['www/index']).toBeDefined();
+    expect(buildResult['www/static/test.txt']).toBeDefined();
     const filePaths = Object.keys(buildResult);
     const hasUnderScoreAppStaticFile = filePaths.some(filePath => filePath.match(/static.*\/pages\/_app\.js$/));
     const hasUnderScoreErrorStaticFile = filePaths.some(filePath => filePath.match(/static.*\/pages\/_error\.js$/));
