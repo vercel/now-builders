@@ -8,21 +8,6 @@ const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disabl
 const downloadAndInstallPip = require('./download-and-install-pip');
 
 async function pipInstall(pipPath, srcDir, ...args) {
-  try {
-    // See: https://stackoverflow.com/a/44728772/376773
-    //
-    // The `setup.cfg` is required for `now dev` on MacOS, where without
-    // this file being present in the src dir then this error happens:
-    //
-    // distutils.errors.DistutilsOptionError: must supply either home
-    // or prefix/exec-prefix -- not both
-    const setupCfg = path.join(srcDir, 'setup.cfg');
-    await writeFile(setupCfg, '[install]\nprefix=\n');
-  } catch (err) {
-    console.log('failed to create "setup.cfg" file');
-    throw err;
-  }
-
   console.log(`running "pip install -t ${srcDir} ${args.join(' ')}"...`);
   try {
     await execa(pipPath, ['install', '-t', srcDir, ...args], {
@@ -52,6 +37,21 @@ exports.build = async ({ files, entrypoint }) => {
   process.env.PYTHONUSERBASE = pyUserBase;
 
   const pipPath = await downloadAndInstallPip();
+
+  try {
+    // See: https://stackoverflow.com/a/44728772/376773
+    //
+    // The `setup.cfg` is required for `now dev` on MacOS, where without
+    // this file being present in the src dir then this error happens:
+    //
+    // distutils.errors.DistutilsOptionError: must supply either home
+    // or prefix/exec-prefix -- not both
+    const setupCfg = path.join(srcDir, 'setup.cfg');
+    await writeFile(setupCfg, '[install]\nprefix=\n');
+  } catch (err) {
+    console.log('failed to create "setup.cfg" file');
+    throw err;
+  }
 
   await pipInstall(pipPath, srcDir, 'requests');
 
