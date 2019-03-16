@@ -159,10 +159,8 @@ async function getNewMain(filePath) {
 
 async function replaceMain(filePath, newMain) {
   debug('Replacing the main function in %o', filePath);
-  const data = await cachedReadFile(fileName);
-  data.replace();
-  let data = fs.readFileSync(filePath);
-  data = data.replace(mainDeclaration, `func ${newName} {`);
+  let data = await cachedReadFile(fileName);
+  data = data.replace(mainDeclaration, `func ${newMain} {`);
   // TODO:
   // This sync call is still locking the thread,
   // should we promisify this and await it?
