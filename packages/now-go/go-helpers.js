@@ -1,6 +1,7 @@
 const tar = require('tar');
 const execa = require('execa');
 const fetch = require('node-fetch');
+const fs = require('fs')
 const { mkdirp } = require('fs-extra');
 const { dirname, join } = require('path');
 const debug = require('debug')('@now/go:go-helpers');
@@ -122,8 +123,57 @@ async function downloadGo(
   return createGo(dir, platform, arch);
 }
 
+const mainDeclaration = 'func main() {'
+
+let fileCache = {}
+async cachedReadFile(filePath) {
+  if (fileCache[filePath]) return fileCache[filePath]
+  // TODO:
+  // This sync call is still locking the thread,
+  // should we promisify this and await it?
+  const data = fs.readFileSync(filePath)
+  fileCache[filePath] = data
+  return data
+}
+
+async hasMainFunction(filePath) {
+  debug('Checking if there\'s a main function in %o', filePath);
+  const data = await cachedReadFile(fileName)
+  return data.indexOf(mainDeclaration) >= 0
+}
+
+async getNewMain(filePath) {
+  debug('Finding a function name that\'s not already in %o', filePath);
+  const data = await cachedReadFile(fileName);
+  let found = false;
+  let newName = 'Main';
+  while (!found) {
+    const random = Math.floor(Math.random() * 10000);
+    const temporaryName = `${newName}${random}`;
+    const regexp = new RegExp(`func *${temporaryName} *{`, 'g');
+    if (!data.match(regexp)) {
+      return temporaryName;
+    }
+  }
+}
+
+async replaceMain(filePath, newMain) {
+  debug('Replacing the main function in %o', filePath);
+  const data = await cachedReadFile(fileName);
+  data.replace();
+  let data = fs.readFileSync(filePath);
+  data = data.replace(mainDeclaration, `func ${newName} {`);
+  // TODO:
+  // This sync call is still locking the thread,
+  // should we promisify this and await it?
+  fs.writeFileSync(filePath, data);
+}
+
 module.exports = {
   createGo,
   downloadGo,
   getExportedFunctionName,
+  hasMainFunction,
+  getNewMain,
+  replaceMain,
 };

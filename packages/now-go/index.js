@@ -7,7 +7,7 @@ const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line impo
 const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
 const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
 const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory.js'); // eslint-disable-line import/no-extraneous-dependencies
-const { createGo, getExportedFunctionName } = require('./go-helpers');
+const { createGo, getExportedFunctionName, hasMainFunction, getNewMain, replaceMain } = require('./go-helpers');
 
 const config = {
   maxLambdaSize: '10mb',
@@ -23,16 +23,24 @@ async function build({ files, entrypoint }) {
 
   const srcPath = join(goPath, 'src', 'lambda');
   const downloadedFiles = await download(files, srcPath);
+  const filePath = downloadedFiles[entrypoint].fsPath
 
   console.log(`Parsing AST for "${entrypoint}"`);
   let parseFunctionName;
   try {
-    parseFunctionName = await getExportedFunctionName(
-      downloadedFiles[entrypoint].fsPath,
-    );
+    parseFunctionName = await getExportedFunctionName(filePath);
   } catch (err) {
     console.log(`Failed to parse AST for "${entrypoint}"`);
     throw err;
+  }
+
+  // Replace the main function with a custom exported name
+  let mainCall = '';
+  // NOTE: This should be safe since getExportedFunctionName already checked if this file exists
+  if (await hasMainFunction(filePath)) {
+    let customMain = await getNewMain(filePath);
+    await replaceMain(filePath, customMain);
+    mainCall = `${customMain}()`;
   }
 
   if (!parseFunctionName) {
@@ -51,7 +59,7 @@ async function build({ files, entrypoint }) {
 
   // we need `main.go` in the same dir as the entrypoint,
   // otherwise `go build` will refuse to build
-  const entrypointDirname = dirname(downloadedFiles[entrypoint].fsPath);
+  const entrypointDirname = dirname(filePath);
 
   // check if package name other than main
   const packageName = parseFunctionName.split(',')[1];
@@ -107,7 +115,7 @@ async function build({ files, entrypoint }) {
     // move user go file to folder
     try {
       await move(
-        downloadedFiles[entrypoint].fsPath,
+        filePath,
         `${join(entrypointDirname, packageName, entrypoint)}`,
       );
     } catch (err) {
@@ -147,10 +155,10 @@ async function build({ files, entrypoint }) {
       join(__dirname, 'main.go'),
       'utf8',
     );
-    const mainGoContents = origianlMainGoContents.replace(
-      '__NOW_HANDLER_FUNC_NAME',
-      handlerFunctionName,
-    );
+    const mainGoContents = origianlMainGoContents
+      .replace('__NOW_HANDLER_FUNC_NAME', handlerFunctionName)
+      .replace('__ORIGINAL_MAIN_CALL', mainCall);
+
 
     // in order to allow the user to have `main.go`,
     // we need our `main.go` to be called something else
@@ -174,7 +182,7 @@ async function build({ files, entrypoint }) {
     try {
       const src = [
         join(entrypointDirname, mainGoFileName),
-        downloadedFiles[entrypoint].fsPath,
+        filePath,
       ];
       await go.build({ src, dest: destPath });
     } catch (err) {
