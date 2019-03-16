@@ -126,7 +126,7 @@ async function downloadGo(
 const mainDeclaration = 'func main() {'
 
 let fileCache = {}
-async cachedReadFile(filePath) {
+async function cachedReadFile(filePath) {
   if (fileCache[filePath]) return fileCache[filePath]
   // TODO:
   // This sync call is still locking the thread,
@@ -136,13 +136,13 @@ async cachedReadFile(filePath) {
   return data
 }
 
-async hasMainFunction(filePath) {
+async function hasMainFunction(filePath) {
   debug('Checking if there\'s a main function in %o', filePath);
   const data = await cachedReadFile(fileName)
   return data.indexOf(mainDeclaration) >= 0
 }
 
-async getNewMain(filePath) {
+async function getNewMain(filePath) {
   debug('Finding a function name that\'s not already in %o', filePath);
   const data = await cachedReadFile(fileName);
   let found = false;
@@ -157,7 +157,7 @@ async getNewMain(filePath) {
   }
 }
 
-async replaceMain(filePath, newMain) {
+async function replaceMain(filePath, newMain) {
   debug('Replacing the main function in %o', filePath);
   const data = await cachedReadFile(fileName);
   data.replace();
