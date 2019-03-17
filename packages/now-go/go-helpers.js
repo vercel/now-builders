@@ -1,7 +1,7 @@
 const tar = require('tar');
 const execa = require('execa');
 const fetch = require('node-fetch');
-const fs = require('fs')
+const fs = require('fs');
 const { mkdirp } = require('fs-extra');
 const { dirname, join } = require('path');
 const debug = require('debug')('@now/go:go-helpers');
@@ -123,43 +123,44 @@ async function downloadGo(
   return createGo(dir, platform, arch);
 }
 
-const mainDeclaration = 'func main() {'
+const mainDeclaration = 'func main() {';
 
-let fileCache = {}
+const fileCache = {};
 async function cachedReadFile(filePath) {
-  if (fileCache[filePath]) return fileCache[filePath]
+  if (fileCache[filePath]) return fileCache[filePath];
   // TODO:
   // This sync call is still locking the thread,
   // should we promisify this and await it?
-  const data = fs.readFileSync(filePath)
-  fileCache[filePath] = data
-  return data
+  const data = fs.readFileSync(filePath);
+  fileCache[filePath] = data;
+  return data;
 }
 
 async function hasMainFunction(filePath) {
   debug('Checking if there\'s a main function in %o', filePath);
-  const data = await cachedReadFile(fileName)
-  return data.indexOf(mainDeclaration) >= 0
+  const data = await cachedReadFile(filePath);
+  return data.indexOf(mainDeclaration) >= 0;
 }
 
 async function getNewMain(filePath) {
   debug('Finding a function name that\'s not already in %o', filePath);
-  const data = await cachedReadFile(fileName);
-  let found = false;
+  const data = await cachedReadFile(filePath);
   let newName = 'Main';
-  while (!found) {
+  while (newName === 'Main') {
     const random = Math.floor(Math.random() * 10000);
     const temporaryName = `${newName}${random}`;
     const regexp = new RegExp(`func *${temporaryName} *{`, 'g');
     if (!data.match(regexp)) {
-      return temporaryName;
+      newName = temporaryName;
+      break;
     }
   }
+  return newName;
 }
 
 async function replaceMain(filePath, newMain) {
   debug('Replacing the main function in %o', filePath);
-  let data = await cachedReadFile(fileName);
+  let data = await cachedReadFile(filePath);
   data = data.replace(mainDeclaration, `func ${newMain} {`);
   // TODO:
   // This sync call is still locking the thread,

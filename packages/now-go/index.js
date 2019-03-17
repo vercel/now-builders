@@ -7,7 +7,9 @@ const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line impo
 const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
 const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
 const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory.js'); // eslint-disable-line import/no-extraneous-dependencies
-const { createGo, getExportedFunctionName, hasMainFunction, getNewMain, replaceMain } = require('./go-helpers');
+const {
+  createGo, getExportedFunctionName, hasMainFunction, getNewMain, replaceMain,
+} = require('./go-helpers');
 
 const config = {
   maxLambdaSize: '10mb',
@@ -23,7 +25,7 @@ async function build({ files, entrypoint }) {
 
   const srcPath = join(goPath, 'src', 'lambda');
   const downloadedFiles = await download(files, srcPath);
-  const filePath = downloadedFiles[entrypoint].fsPath
+  const filePath = downloadedFiles[entrypoint].fsPath;
 
   console.log(`Parsing AST for "${entrypoint}"`);
   let parseFunctionName;
@@ -38,7 +40,7 @@ async function build({ files, entrypoint }) {
   let mainCall = '';
   // NOTE: This should be safe since getExportedFunctionName already checked if this file exists
   if (await hasMainFunction(filePath)) {
-    let customMain = await getNewMain(filePath);
+    const customMain = await getNewMain(filePath);
     await replaceMain(filePath, customMain);
     mainCall = `${customMain}()`;
   }
