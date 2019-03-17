@@ -131,7 +131,7 @@ async function cachedReadFile(filePath) {
   // TODO:
   // This sync call is still locking the thread,
   // should we promisify this and await it?
-  const data = fs.readFileSync(filePath);
+  const data = fs.readFileSync(join(__dirname, filePath));
   fileCache[filePath] = data;
   return data;
 }
@@ -165,7 +165,7 @@ async function replaceMain(filePath, newMain) {
   // TODO:
   // This sync call is still locking the thread,
   // should we promisify this and await it?
-  fs.writeFileSync(filePath, data);
+  fs.writeFileSync(join(__dirname, filePath), data);
 }
 
 module.exports = {
