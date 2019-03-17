@@ -6,7 +6,7 @@ from __NOW_HANDLER_FILENAME import handler
 import _thread
 
 
-server = HTTPServer(('', 3000), handler)
+server = HTTPServer(('', 0), handler)
 port = server.server_address[1]
 
 def now_handler(event, context):
