@@ -13,7 +13,7 @@ async function packAndDeploy (builderPath) {
     cwd: builderPath
   });
   const tarballs = await glob('*.tgz', { cwd: builderPath });
-  const tgzPath = tarballs[0];
+  const tgzPath = path.join(builderPath, tarballs[0]);
   console.log('tgzPath', tgzPath);
   const url = await nowDeployIndexTgz(tgzPath);
   await fetchTgzUrl(`https://${url}`);
