@@ -9,7 +9,7 @@ const { nowDeploy } = require('./now-deploy.js');
 
 async function packAndDeploy (builderPath) {
   await spawnAsync('npm', [ '--loglevel', 'warn', 'pack' ], {
-    stdio: 'ignore',
+    stdio: 'inherit',
     cwd: builderPath
   });
   const tarballs = await glob('*.tgz', { cwd: builderPath });
