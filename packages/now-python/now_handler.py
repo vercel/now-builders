@@ -7,7 +7,7 @@ import _thread
 
 
 server = HTTPServer(('', 3000), handler)
-
+port = server.server_address[1]
 
 def now_handler(event, context):
     _thread.start_new_thread(server.handle_request, ())
@@ -25,7 +25,7 @@ def now_handler(event, context):
     ):
         body = base64.b64decode(body)
 
-    res = requests.request(method, 'http://0.0.0.0:3000' + path,
+    res = requests.request(method, 'http://0.0.0.0:' + str(port) + path,
                            headers=headers, data=body, allow_redirects=False)
 
     return {
