@@ -45,6 +45,7 @@ async function parseTOMLStream(stream) {
 async function buildWholeProject({
   entrypoint,
   downloadedFiles,
+  extraFiles,
   rustEnv,
   config,
 }) {
@@ -79,6 +80,7 @@ async function buildWholeProject({
       const fsPath = path.join(targetPath, binary);
       const lambda = await createLambda({
         files: {
+          ...extraFiles,
           bootstrap: new FileFsRef({ mode: 0o755, fsPath }),
         },
         handler: 'bootstrap',
@@ -90,6 +92,16 @@ async function buildWholeProject({
   );
 
   return lambdas;
+}
+
+function gatherExtraFiles(globMatcher, entrypoint) {
+  console.log("gathering extra files for the fs...");
+
+  const entryDir = path.dirname(entrypoint);
+
+  if (!globMatcher) return {};
+
+  return glob(globMatcher, entryDir)
 }
 
 async function runUserScripts(entrypoint) {
@@ -128,6 +140,7 @@ async function buildSingleFile({
   workPath,
   entrypoint,
   downloadedFiles,
+  extraFiles,
   rustEnv,
   config,
 }) {
@@ -210,6 +223,7 @@ async function buildSingleFile({
 
   const lambda = await createLambda({
     files: {
+      ...extraFiles,
       bootstrap: new FileFsRef({ mode: 0o755, fsPath: bin }),
     },
     handler: 'bootstrap',
@@ -222,9 +236,10 @@ async function buildSingleFile({
 }
 
 exports.build = async (m) => {
-  const { files, entrypoint, workPath } = m;
+  const { files, entrypoint, workPath, config } = m;
   console.log('downloading files');
   const downloadedFiles = await download(files, workPath);
+  const entryPath = downloadedFiles[entrypoint].fsPath
 
   await installRust();
   const { PATH, HOME } = process.env;
@@ -234,9 +249,10 @@ exports.build = async (m) => {
     RUSTFLAGS: [process.env.RUSTFLAGS, ...codegenFlags].filter(Boolean).join(' '),
   };
 
-  await runUserScripts(downloadedFiles[entrypoint].fsPath);
+  await runUserScripts(entryPath);
+  const extraFiles = await gatherExtraFiles(config.includeFiles, entryPath);
 
-  const newM = Object.assign(m, { downloadedFiles, rustEnv });
+  const newM = Object.assign(m, { downloadedFiles, extraFiles, rustEnv });
   if (path.extname(entrypoint) === '.toml') {
     return buildWholeProject(newM);
   }
