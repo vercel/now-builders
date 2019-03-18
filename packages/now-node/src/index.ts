@@ -65,7 +65,7 @@ async function downloadInstallAndBundle(
 
 async function compile(workNccPath: string, downloadedFiles, entrypoint: string, config: CompilerConfig) {
   const input = downloadedFiles[entrypoint].fsPath;
-  const inputDir = dirname(downloadedFiles[entrypoint].fsPath);
+  const inputDir = dirname(input);
   const ncc = require(join(workNccPath, 'node_modules/@zeit/ncc'));
   const { code, assets } = await ncc(input);
 
