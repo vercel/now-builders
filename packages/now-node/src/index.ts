@@ -69,7 +69,7 @@ async function compile(workNccPath: string, downloadedFiles, entrypoint: string,
   const ncc = require(join(workNccPath, 'node_modules/@zeit/ncc'));
   const { code, assets } = await ncc(input);
 
-  if (config.includeFiles) {
+  if (config && config.includeFiles) {
     for (const pattern of config.includeFiles) {
       const files = await glob(pattern, inputDir);
 
