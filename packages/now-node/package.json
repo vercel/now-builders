@@ -1,6 +1,6 @@
 {
   "name": "@now/node",
-  "version": "0.5.2-canary.0",
+  "version": "0.5.2-canary.4",
   "license": "MIT",
   "main": "./dist/index",
   "repository": {
@@ -14,7 +14,8 @@
   },
   "scripts": {
     "build": "./build.sh",
-    "test": "jest"
+    "test": "npm run build && jest",
+    "prepublish": "npm run build"
   },
   "files": [
     "dist"
