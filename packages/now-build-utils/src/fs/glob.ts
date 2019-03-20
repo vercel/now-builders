@@ -39,7 +39,7 @@ export default function glob(pattern: string, opts: GlobOptions | string, mountp
       resolve(
         files.reduce<FsFiles>((files2, relativePath) => {
           const fsPath = path.join(options.cwd!, relativePath);
-          const stat = options.statCache![fsPath];
+          const stat = options.statCache![fsPath] as import('fs').Stats;
           assert(
             stat,
             `statCache does not contain value for ${relativePath} (resolved to ${fsPath})`,
