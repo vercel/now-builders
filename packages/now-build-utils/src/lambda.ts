@@ -59,7 +59,7 @@ async function createLambda({
         .sort()
         .forEach((name) => {
           const file = files[name];
-          const stream = file.toStream();
+          const stream = file.toStream() as import('stream').Readable;
           stream.on('error', reject);
           zipFile.addReadStream(stream, name, { mode: file.mode, mtime });
         });
