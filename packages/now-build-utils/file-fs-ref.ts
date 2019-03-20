@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import multiStream from 'multistream';
 import path from 'path';
 import Sema from 'async-sema';
+import { File } from './file';
 
 const semaToPreventEMFILE = new Sema(30);
 
@@ -45,7 +46,7 @@ export default class FileFsRef implements File {
     assert(typeof fsPath === 'string');
     await fs.mkdirp(path.dirname(fsPath));
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const dest = fs.createWriteStream(fsPath);
       stream.pipe(dest);
       stream.on('error', reject);

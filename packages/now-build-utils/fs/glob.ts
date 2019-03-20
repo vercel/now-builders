@@ -10,7 +10,7 @@ interface FsFiles {
 }
 
 export default function glob(pattern: string, opts: GlobOptions | string, mountpoint: string): Promise<FsFiles> {
-  return new Promise((resolve, reject) => {
+  return new Promise<FsFiles>((resolve, reject) => {
     let options: GlobOptions;
     if (typeof opts === 'string') {
       options = { cwd: opts };
@@ -37,7 +37,7 @@ export default function glob(pattern: string, opts: GlobOptions | string, mountp
       if (error) return reject(error);
 
       resolve(
-        files.reduce((files2, relativePath) => {
+        files.reduce<FsFiles>((files2, relativePath) => {
           const fsPath = path.join(options.cwd!, relativePath);
           const stat = options.statCache![fsPath];
           assert(

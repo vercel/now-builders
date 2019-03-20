@@ -4,7 +4,7 @@ import path from 'path';
 import { spawn, SpawnOptions } from 'child_process';
 
 function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOptions = {}) {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const child = spawn(command, args, { stdio: 'inherit', cwd, ...opts });
     child.on('error', reject);
     child.on('close', (code, signal) => (code !== 0

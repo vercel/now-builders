@@ -1,5 +1,6 @@
 import assert from 'assert';
 import intoStream from 'into-stream';
+import { File } from './file';
 
 interface FileBlobOptions {
   mode?: number;
@@ -29,7 +30,7 @@ export default class FileBlob implements File {
     assert(typeof stream.pipe === 'function'); // is-stream
     const chunks: Buffer[] = [];
 
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       stream.on('data', chunk => chunks.push(Buffer.from(chunk)));
       stream.on('error', error => reject(error));
       stream.on('end', () => resolve());

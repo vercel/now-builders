@@ -2,20 +2,21 @@ import assert from 'assert';
 import Sema from 'async-sema';
 import { ZipFile } from 'yazl';
 import streamToBuffer from './fs/stream-to-buffer';
+import { Files } from './file';
 
 interface Environment {
   [key: string]: string;
 }
 
 interface LambdaOptions {
-  zipBuffer: string;
+  zipBuffer: Buffer;
   handler: string;
   runtime: string;
   environment: Environment;
 }
 
 interface CreateLambdaOptions {
-  files: File[];
+  files: Files;
   handler: string;
   runtime: string;
   environment?: Environment;
@@ -23,7 +24,7 @@ interface CreateLambdaOptions {
 
 class Lambda {
   public type: string;
-  public zipBuffer: string;
+  public zipBuffer: Buffer;
   public handler: string;
   public runtime: string;
   public environment: Environment;
@@ -53,7 +54,7 @@ async function createLambda({
   await sema.acquire();
   try {
     const zipFile = new ZipFile();
-    const zipBuffer = await new Promise((resolve, reject) => {
+    const zipBuffer = await new Promise<Buffer>((resolve, reject) => {
       Object.keys(files)
         .sort()
         .forEach((name) => {

@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import multiStream from 'multistream';
 import retry from 'async-retry';
 import Sema from 'async-sema';
+import { File } from './file';
 
 interface FileRefOptions {
   mode?: number;
@@ -20,7 +21,7 @@ class BailableError extends Error {
   }
 }
 
-export default class FileRef {
+export default class FileRef implements File {
   public type: string;
   public mode: number;
   public digest: string;
