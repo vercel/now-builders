@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "test": "tsc && jest"
   },
   "devDependencies": {
     "@types/async-retry": "^1.2.1",
