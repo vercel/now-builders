@@ -10,13 +10,15 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": "./dist",
+    "outDir": ".",
     "types": ["node"],
     "strict": true,
     "target": "esnext",
-    "typeRoots": [
-      "./types",
-      "./node_modules/@types"
-    ]
-  }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
