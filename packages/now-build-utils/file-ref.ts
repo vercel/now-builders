@@ -1,52 +1,48 @@
-const assert = require('assert');
-const fetch = require('node-fetch');
-const multiStream = require('multistream');
-const retry = require('async-retry');
-const Sema = require('async-sema');
+import assert from 'assert';
+import fetch from 'node-fetch';
+import multiStream from 'multistream';
+import retry from 'async-retry';
+import Sema from 'async-sema';
 
-/** @typedef {{[filePath: string]: FileRef}} Files */
+interface FileRefOptions {
+  mode?: number;
+  digest: string;
+}
 
 const semaToDownloadFromS3 = new Sema(10);
 
 class BailableError extends Error {
-  constructor(...args) {
+  public bail: boolean;
+
+  constructor(...args: string[]) {
     super(...args);
-    /** @type {boolean} */
     this.bail = false;
   }
 }
 
-/**
- * @constructor
- * @argument {Object} options
- * @argument {number} [options.mode=0o100644]
- * @argument {string} options.digest
- */
-class FileRef {
-  constructor({ mode = 0o100644, digest }) {
+export default class FileRef {
+  public type: string;
+  public mode: number;
+  public digest: string;
+
+  constructor({ mode = 0o100644, digest }: FileRefOptions) {
     assert(typeof mode === 'number');
     assert(typeof digest === 'string');
-    /** @type {string} */
     this.type = 'FileRef';
-    /** @type {number} */
     this.mode = mode;
-    /** @type {string} */
     this.digest = digest;
   }
 
-  /**
-   * @returns {Promise<NodeJS.ReadableStream>}
-   */
-  async toStreamAsync() {
-    let url;
+  async toStreamAsync(): Promise<NodeJS.ReadableStream> {
+    let url = '';
     // sha:24be087eef9fac01d61b30a725c1a10d7b45a256
     const digestParts = this.digest.split(':');
     if (digestParts[0] === 'sha') {
       // url = `https://s3.amazonaws.com/now-files/${digestParts[1]}`;
       url = `https://dmmcy0pwk6bqi.cloudfront.net/${digestParts[1]}`;
+    } else {
+      throw new Error('Expected digest to be sha');
     }
-
-    assert(url);
 
     await semaToDownloadFromS3.acquire();
     // console.time(`downloading ${url}`);
@@ -71,11 +67,8 @@ class FileRef {
     }
   }
 
-  /**
-   * @returns {NodeJS.ReadableStream}
-   */
-  toStream() {
-    let flag;
+  toStream(): NodeJS.ReadableStream {
+    let flag = false;
 
     // eslint-disable-next-line consistent-return
     return multiStream((cb) => {

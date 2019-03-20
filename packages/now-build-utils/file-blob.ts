@@ -1,8 +1,22 @@
-const assert = require('assert');
-const intoStream = require('into-stream');
+import assert from 'assert';
+import intoStream from 'into-stream';
 
-class FileBlob {
-  constructor({ mode = 0o100644, data }) {
+interface FileBlobOptions {
+  mode?: number;
+  data: string | Buffer;
+}
+
+interface FromStreamOptions {
+  mode?: number;
+  stream: NodeJS.ReadStream;
+}
+
+export default class FileBlob implements File {
+  public type: string;
+  public mode: number;
+  public data: string | Buffer;
+
+  constructor({ mode = 0o100644, data }: FileBlobOptions) {
     assert(typeof mode === 'number');
     assert(typeof data === 'string' || Buffer.isBuffer(data));
     this.type = 'FileBlob';
@@ -10,10 +24,10 @@ class FileBlob {
     this.data = data;
   }
 
-  static async fromStream({ mode = 0o100644, stream }) {
+  static async fromStream({ mode = 0o100644, stream }: FromStreamOptions) {
     assert(typeof mode === 'number');
     assert(typeof stream.pipe === 'function'); // is-stream
-    const chunks = [];
+    const chunks: Buffer[] = [];
 
     await new Promise((resolve, reject) => {
       stream.on('data', chunk => chunks.push(Buffer.from(chunk)));
@@ -25,7 +39,7 @@ class FileBlob {
     return new FileBlob({ mode, data });
   }
 
-  toStream() {
+  toStream(): NodeJS.ReadableStream {
     return intoStream(this.data);
   }
 }

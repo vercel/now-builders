@@ -1,51 +1,45 @@
-const assert = require('assert');
-const fs = require('fs-extra');
-const multiStream = require('multistream');
-const path = require('path');
-const Sema = require('async-sema');
-
-/** @typedef {{[filePath: string]: FileFsRef}} FsFiles */
+import assert from 'assert';
+import fs from 'fs-extra';
+import multiStream from 'multistream';
+import path from 'path';
+import Sema from 'async-sema';
 
 const semaToPreventEMFILE = new Sema(30);
 
-/**
- * @constructor
- * @argument {Object} options
- * @argument {number} [options.mode=0o100644]
- * @argument {string} options.fsPath
- */
-class FileFsRef {
-  constructor({ mode = 0o100644, fsPath }) {
+interface FileFsRefOptions {
+  mode?: number;
+  fsPath: string;
+}
+
+interface FromOptions {
+  fsPath: string;
+}
+
+interface FromStreamOptions {
+  mode: number;
+  stream: NodeJS.ReadableStream;
+  fsPath: string;
+}
+
+export default class FileFsRef implements File {
+  public type: string;
+  public mode: number;
+  public fsPath: string;
+
+  constructor({ mode = 0o100644, fsPath }: FileFsRefOptions) {
     assert(typeof mode === 'number');
     assert(typeof fsPath === 'string');
-    /** @type {string} */
     this.type = 'FileFsRef';
-    /** @type {number} */
     this.mode = mode;
-    /** @type {string} */
     this.fsPath = fsPath;
   }
 
-  /**
-   * Creates a `FileFsRef` with the correct `mode` from the file system.
-   *
-   * @argument {Object} options
-   * @argument {string} options.fsPath
-   * @returns {Promise<FileFsRef>}
-   */
-  static async fromFsPath({ fsPath }) {
+  static async fromFsPath({ fsPath }: FromOptions): Promise<FileFsRef> {
     const { mode } = await fs.lstat(fsPath);
     return new FileFsRef({ mode, fsPath });
   }
 
-  /**
-   * @argument {Object} options
-   * @argument {number} [options.mode=0o100644]
-   * @argument {NodeJS.ReadableStream} options.stream
-   * @argument {string} options.fsPath
-   * @returns {Promise<FileFsRef>}
-   */
-  static async fromStream({ mode = 0o100644, stream, fsPath }) {
+  static async fromStream({ mode = 0o100644, stream, fsPath }: FromStreamOptions): Promise<FileFsRef> {
     assert(typeof mode === 'number');
     assert(typeof stream.pipe === 'function'); // is-stream
     assert(typeof fsPath === 'string');
@@ -63,10 +57,7 @@ class FileFsRef {
     return new FileFsRef({ mode, fsPath });
   }
 
-  /**
-   * @returns {Promise<NodeJS.ReadableStream>}
-   */
-  async toStreamAsync() {
+  async toStreamAsync(): Promise<NodeJS.ReadableStream> {
     await semaToPreventEMFILE.acquire();
     const release = () => semaToPreventEMFILE.release();
     const stream = fs.createReadStream(this.fsPath);
@@ -75,11 +66,8 @@ class FileFsRef {
     return stream;
   }
 
-  /**
-   * @returns {NodeJS.ReadableStream}
-   */
-  toStream() {
-    let flag;
+  toStream(): NodeJS.ReadableStream {
+    let flag = false;
 
     // eslint-disable-next-line consistent-return
     return multiStream((cb) => {

@@ -1,9 +1,9 @@
-const assert = require('assert');
-const fs = require('fs-extra');
-const path = require('path');
-const { spawn } = require('child_process');
+import assert from 'assert';
+import fs from 'fs-extra';
+import path from 'path';
+import { spawn, SpawnOptions } from 'child_process';
 
-function spawnAsync(command, args, cwd, opts = {}) {
+function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOptions = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { stdio: 'inherit', cwd, ...opts });
     child.on('error', reject);
@@ -13,7 +13,7 @@ function spawnAsync(command, args, cwd, opts = {}) {
   });
 }
 
-async function chmodPlusX(fsPath) {
+async function chmodPlusX(fsPath: string) {
   const s = await fs.stat(fsPath);
   const newMode = s.mode | 64 | 8 | 1; // eslint-disable-line no-bitwise
   if (s.mode === newMode) return;
@@ -21,7 +21,7 @@ async function chmodPlusX(fsPath) {
   await fs.chmod(fsPath, base8);
 }
 
-async function runShellScript(fsPath) {
+export async function runShellScript(fsPath: string) {
   assert(path.isAbsolute(fsPath));
   const destPath = path.dirname(fsPath);
   await chmodPlusX(fsPath);
@@ -29,7 +29,7 @@ async function runShellScript(fsPath) {
   return true;
 }
 
-async function scanParentDirs(destPath, scriptName) {
+async function scanParentDirs(destPath: string, scriptName?: string) {
   assert(path.isAbsolute(destPath));
 
   let hasScript = false;
@@ -40,14 +40,14 @@ async function scanParentDirs(destPath, scriptName) {
   while (true) {
     const packageJsonPath = path.join(currentDestPath, 'package.json');
     // eslint-disable-next-line no-await-in-loop
-    if (await fs.exists(packageJsonPath)) {
+    if (await fs.pathExists(packageJsonPath)) {
       // eslint-disable-next-line no-await-in-loop
-      const packageJson = JSON.parse(await fs.readFile(packageJsonPath));
+      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
       hasScript = Boolean(
         packageJson.scripts && scriptName && packageJson.scripts[scriptName],
       );
       // eslint-disable-next-line no-await-in-loop
-      hasPackageLockJson = await fs.exists(
+      hasPackageLockJson = await fs.pathExists(
         path.join(currentDestPath, 'package-lock.json'),
       );
       break;
@@ -61,7 +61,7 @@ async function scanParentDirs(destPath, scriptName) {
   return { hasScript, hasPackageLockJson };
 }
 
-async function installDependencies(destPath, args = []) {
+export async function installDependencies(destPath: string, args: string[] = []) {
   assert(path.isAbsolute(destPath));
 
   let commandArgs = args;
@@ -92,7 +92,7 @@ async function installDependencies(destPath, args = []) {
   }
 }
 
-async function runPackageJsonScript(destPath, scriptName) {
+export async function runPackageJsonScript(destPath: string, scriptName: string) {
   assert(path.isAbsolute(destPath));
   const { hasScript, hasPackageLockJson } = await scanParentDirs(
     destPath,
@@ -111,9 +111,4 @@ async function runPackageJsonScript(destPath, scriptName) {
   return true;
 }
 
-module.exports = {
-  runShellScript,
-  installDependencies,
-  runNpmInstall: installDependencies,
-  runPackageJsonScript,
-};
+export const runNpmInstall = installDependencies;

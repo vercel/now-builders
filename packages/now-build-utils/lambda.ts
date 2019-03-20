@@ -1,12 +1,36 @@
-const assert = require('assert');
-const Sema = require('async-sema');
-const { ZipFile } = require('yazl');
-const streamToBuffer = require('./fs/stream-to-buffer.js');
+import assert from 'assert';
+import Sema from 'async-sema';
+import { ZipFile } from 'yazl';
+import streamToBuffer from './fs/stream-to-buffer';
+
+interface Environment {
+  [key: string]: string;
+}
+
+interface LambdaOptions {
+  zipBuffer: string;
+  handler: string;
+  runtime: string;
+  environment: Environment;
+}
+
+interface CreateLambdaOptions {
+  files: File[];
+  handler: string;
+  runtime: string;
+  environment?: Environment;
+}
 
 class Lambda {
+  public type: string;
+  public zipBuffer: string;
+  public handler: string;
+  public runtime: string;
+  public environment: Environment;
+
   constructor({
     zipBuffer, handler, runtime, environment,
-  }) {
+  }: LambdaOptions) {
     this.type = 'Lambda';
     this.zipBuffer = zipBuffer;
     this.handler = handler;
@@ -20,7 +44,7 @@ const mtime = new Date(1540000000000);
 
 async function createLambda({
   files, handler, runtime, environment = {},
-}) {
+}: CreateLambdaOptions) {
   assert(typeof files === 'object', '"files" must be an object');
   assert(typeof handler === 'string', '"handler" is not a string');
   assert(typeof runtime === 'string', '"runtime" is not a string');
