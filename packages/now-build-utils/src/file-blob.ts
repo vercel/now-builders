@@ -12,7 +12,7 @@ interface FromStreamOptions {
   stream: NodeJS.ReadStream;
 }
 
-export default class FileBlob implements File {
+class FileBlob implements File {
   public type: string;
   public mode: number;
   public data: string | Buffer;
@@ -45,4 +45,4 @@ export default class FileBlob implements File {
   }
 }
 
-module.exports = FileBlob;
+exports = FileBlob;

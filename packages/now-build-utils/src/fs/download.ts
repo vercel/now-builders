@@ -12,7 +12,7 @@ async function downloadFile(file: File, fsPath: string): Promise<FileFsRef> {
   return FileFsRef.fromStream({ mode, stream, fsPath });
 }
 
-export default async function download(files: Files, basePath: string): Promise<DownloadedFiles> {
+async function download(files: Files, basePath: string): Promise<DownloadedFiles> {
   const files2: DownloadedFiles = {};
 
   await Promise.all(
@@ -26,4 +26,4 @@ export default async function download(files: Files, basePath: string): Promise<
   return files2;
 };
 
-module.exports = download;
+exports = download;

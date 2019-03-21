@@ -21,7 +21,7 @@ class BailableError extends Error {
   }
 }
 
-export default class FileRef implements File {
+class FileRef implements File {
   public type: string;
   public mode: number;
   public digest: string;
@@ -87,4 +87,4 @@ export default class FileRef implements File {
   }
 }
 
-module.exports = FileRef;
+exports = FileRef;

@@ -1,6 +1,6 @@
 import eos from 'end-of-stream';
 
-function streamToBuffer(stream: NodeJS.ReadableStream) {
+export default function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
   return new Promise<Buffer>((resolve, reject) => {
     const buffers: Buffer[] = [];
 
@@ -25,5 +25,4 @@ function streamToBuffer(stream: NodeJS.ReadableStream) {
   });
 }
 
-export default streamToBuffer;
-module.exports = streamToBuffer;
+exports = streamToBuffer;

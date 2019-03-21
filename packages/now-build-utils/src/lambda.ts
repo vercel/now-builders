@@ -22,7 +22,7 @@ interface CreateLambdaOptions {
   environment?: Environment;
 }
 
-class Lambda {
+export class Lambda {
   public type: string;
   public zipBuffer: Buffer;
   public handler: string;
@@ -43,9 +43,9 @@ class Lambda {
 const sema = new Sema(10);
 const mtime = new Date(1540000000000);
 
-async function createLambda({
+export async function createLambda({
   files, handler, runtime, environment = {},
-}: CreateLambdaOptions) {
+}: CreateLambdaOptions): Promise<Lambda> {
   assert(typeof files === 'object', '"files" must be an object');
   assert(typeof handler === 'string', '"handler" is not a string');
   assert(typeof runtime === 'string', '"runtime" is not a string');
@@ -78,8 +78,3 @@ async function createLambda({
     sema.release();
   }
 }
-
-module.exports = {
-  Lambda,
-  createLambda,
-};

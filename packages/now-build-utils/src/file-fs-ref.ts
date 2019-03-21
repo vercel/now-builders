@@ -22,7 +22,7 @@ interface FromStreamOptions {
   fsPath: string;
 }
 
-export default class FileFsRef implements File {
+class FileFsRef implements File {
   public type: string;
   public mode: number;
   public fsPath: string;
@@ -86,4 +86,4 @@ export default class FileFsRef implements File {
   }
 }
 
-module.exports = FileFsRef;
+export = FileFsRef;
