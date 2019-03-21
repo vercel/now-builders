@@ -23,7 +23,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "tsc && jest"
+    "test": "tsc && jest",
+    "prepublish": "tsc"
   },
   "devDependencies": {
     "@types/async-retry": "^1.2.1",
