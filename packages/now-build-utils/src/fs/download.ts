@@ -1,8 +1,8 @@
 import path from 'path';
 import FileFsRef from '../file-fs-ref';
-import { File, Files } from '../file';
+import { File, Files } from '../file-ref';
 
-interface DownloadedFiles {
+export interface DownloadedFiles {
   [filePath: string]: FileFsRef
 }
 
@@ -12,7 +12,7 @@ async function downloadFile(file: File, fsPath: string): Promise<FileFsRef> {
   return FileFsRef.fromStream({ mode, stream, fsPath });
 }
 
-async function download(files: Files, basePath: string): Promise<DownloadedFiles> {
+export default async function download(files: Files, basePath: string): Promise<DownloadedFiles> {
   const files2: DownloadedFiles = {};
 
   await Promise.all(
@@ -25,5 +25,3 @@ async function download(files: Files, basePath: string): Promise<DownloadedFiles
 
   return files2;
 };
-
-exports = download;

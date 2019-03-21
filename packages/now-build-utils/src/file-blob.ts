@@ -1,6 +1,6 @@
 import assert from 'assert';
 import intoStream from 'into-stream';
-import { File } from './file';
+import { File } from './file-ref';
 
 interface FileBlobOptions {
   mode?: number;
@@ -12,7 +12,7 @@ interface FromStreamOptions {
   stream: NodeJS.ReadStream;
 }
 
-class FileBlob implements File {
+export default class FileBlob implements File {
   public type: string;
   public mode: number;
   public data: string | Buffer;
@@ -44,5 +44,3 @@ class FileBlob implements File {
     return intoStream(this.data);
   }
 }
-
-exports = FileBlob;

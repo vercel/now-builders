@@ -1,7 +1,7 @@
-import { Files } from '../file';
+import { Files } from '../file-ref';
 type Delegate = (name: string) => string;
 
-function rename(files: Files, delegate: Delegate): Files {
+export default function rename(files: Files, delegate: Delegate): Files {
   return Object.keys(files).reduce(
     (newFiles, name) => ({
       ...newFiles,
@@ -9,6 +9,4 @@ function rename(files: Files, delegate: Delegate): Files {
     }),
     {},
   );
-};
-
-exports = rename;
+}

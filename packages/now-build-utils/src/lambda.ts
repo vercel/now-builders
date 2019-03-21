@@ -2,7 +2,7 @@ import assert from 'assert';
 import Sema from 'async-sema';
 import { ZipFile } from 'yazl';
 import streamToBuffer from './fs/stream-to-buffer';
-import { Files } from './file';
+import { Files } from './file-ref';
 
 interface Environment {
   [key: string]: string;
