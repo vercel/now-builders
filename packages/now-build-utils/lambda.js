@@ -1,1 +1,1 @@
-module.exports = require('./dist/index').Lambda;
+module.exports = require('./dist/index');
