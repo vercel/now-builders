@@ -11,10 +11,10 @@
     "esModuleInterop": true
   },
   "include": [
-    "./packages/now-next"
+    "./"
   ],
   "exclude": [
-    "./packages/now-next/launcher.js",
-    "./packages/now-next/legacy-launcher.js"
+    "./launcher.js",
+    "./legacy-launcher.js"
   ]
 }
