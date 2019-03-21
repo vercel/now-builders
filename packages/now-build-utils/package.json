@@ -2,7 +2,8 @@
   "name": "@now/build-utils",
   "version": "0.4.37-canary.1",
   "license": "MIT",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
@@ -21,7 +22,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "clean": "rm *.js && rm *.d.ts && rm -rf fs",
     "test": "tsc && jest"
   },
   "devDependencies": {
