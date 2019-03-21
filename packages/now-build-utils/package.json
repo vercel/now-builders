@@ -2,6 +2,7 @@
   "name": "@now/build-utils",
   "version": "0.4.37-canary.1",
   "license": "MIT",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",

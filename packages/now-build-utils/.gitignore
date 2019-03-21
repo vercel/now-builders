@@ -1,4 +1,1 @@
-# ignore generated files
-*.js
-*.d.ts
-fs/**
+dist

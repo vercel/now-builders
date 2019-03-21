@@ -10,7 +10,7 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": ".",
+    "outDir": "./dist",
     "types": ["node"],
     "strict": true,
     "target": "esnext"

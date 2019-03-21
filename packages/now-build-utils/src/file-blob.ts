@@ -1,6 +1,6 @@
 import assert from 'assert';
 import intoStream from 'into-stream';
-import { File } from './file-ref';
+import { File } from './types';
 
 interface FileBlobOptions {
   mode?: number;

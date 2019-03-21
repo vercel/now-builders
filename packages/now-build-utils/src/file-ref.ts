@@ -3,16 +3,7 @@ import fetch from 'node-fetch';
 import multiStream from 'multistream';
 import retry from 'async-retry';
 import Sema from 'async-sema';
-
-export interface File {
-  type: string;
-  mode: number;
-  toStream: () => NodeJS.ReadableStream;
-}
-
-export interface Files {
-  [filePath: string]: File
-}
+import { File } from './types';
 
 interface FileRefOptions {
   mode?: number;

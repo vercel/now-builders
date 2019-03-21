@@ -1,4 +1,4 @@
-import { Files } from '../file-ref';
+import { Files } from '../types';
 type Delegate = (name: string) => string;
 
 export default function rename(files: Files, delegate: Delegate): Files {

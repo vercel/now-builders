@@ -1,6 +1,6 @@
 import path from 'path';
 import FileFsRef from '../file-fs-ref';
-import { File, Files } from '../file-ref';
+import { File, Files } from '../types';
 
 export interface DownloadedFiles {
   [filePath: string]: FileFsRef

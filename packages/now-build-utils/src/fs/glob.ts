@@ -1,7 +1,7 @@
 import assert from 'assert';
 import path from 'path';
 import vanillaGlob from 'glob';
-import FileFsRef from '../file-fs-ref.js';
+import FileFsRef from '../file-fs-ref';
 
 type GlobOptions = import('glob').IOptions;
  

@@ -3,7 +3,7 @@ import fs from 'fs-extra';
 import multiStream from 'multistream';
 import path from 'path';
 import Sema from 'async-sema';
-import { File } from './file-ref';
+import { File } from './types';
 
 const semaToPreventEMFILE = new Sema(30);
 
