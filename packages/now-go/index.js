@@ -1,4 +1,4 @@
-const { join, dirname } = require('path');
+const { join, sep, dirname } = require('path');
 const {
   readFile, writeFile, pathExists, move,
 } = require('fs-extra');
@@ -55,7 +55,7 @@ async function build({ files, entrypoint }) {
 
   // check if package name other than main
   const packageName = parseFunctionName.split(',')[1];
-  const isGoModExist = await pathExists(`${entrypointDirname}/go.mod`);
+  const isGoModExist = await pathExists(`${entrypointDirname}${sep}go.mod`);
   if (packageName !== 'main') {
     const go = await createGo(
       goPath,
@@ -88,7 +88,7 @@ async function build({ files, entrypoint }) {
 
     if (isGoModExist) {
       const goModContents = await readFile(
-        `${entrypointDirname}/go.mod`,
+        `${entrypointDirname}${sep}go.mod`,
         'utf8',
       );
       goPackageName = `${
@@ -110,7 +110,7 @@ async function build({ files, entrypoint }) {
     try {
       // default path
       let finalDestination = join(entrypointDirname, packageName, entrypoint);
-      const entrypointArr = entrypoint.split('/');
+      const entrypointArr = entrypoint.split(sep);
 
       // if `entrypoint` include folder, only use filename
       if (entrypointArr.length > 1) {
