@@ -108,10 +108,20 @@ async function build({ files, entrypoint }) {
 
     // move user go file to folder
     try {
-      await move(
-        downloadedFiles[entrypoint].fsPath,
-        `${join(entrypointDirname, packageName, entrypoint)}`,
-      );
+      // default path
+      let finalDestination = join(entrypointDirname, packageName, entrypoint);
+      const entrypointArr = entrypoint.split('/');
+
+      // if `entrypoint` include folder, only use filename
+      if (entrypointArr.length > 1) {
+        finalDestination = join(
+          entrypointDirname,
+          packageName,
+          entrypointArr.pop(),
+        );
+      }
+
+      await move(downloadedFiles[entrypoint].fsPath, finalDestination);
     } catch (err) {
       console.log('failed to move entry to package folder');
       throw err;
