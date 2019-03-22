@@ -55,7 +55,7 @@ async function build({ files, entrypoint }) {
 
   // check if package name other than main
   const packageName = parseFunctionName.split(',')[1];
-  const isGoModExist = await pathExists(`${entrypointDirname}${sep}go.mod`);
+  const isGoModExist = await pathExists(join(entrypointDirname, 'go.mod'));
   if (packageName !== 'main') {
     const go = await createGo(
       goPath,
