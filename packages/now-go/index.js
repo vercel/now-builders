@@ -88,7 +88,7 @@ async function build({ files, entrypoint }) {
 
     if (isGoModExist) {
       const goModContents = await readFile(
-        `${entrypointDirname}${sep}go.mod`,
+        join(entrypointDirname, 'go.mod'),
         'utf8',
       );
       goPackageName = `${
