@@ -13,6 +13,7 @@ _lambda_runtime_api() {
 
 _lambda_runtime_init() {
 	# Initialize user code
+	# shellcheck disable=SC1090
 	. "$SCRIPT_FILENAME" || {
 		local exit_code="$?"
 		local error
