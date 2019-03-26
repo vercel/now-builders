@@ -1,7 +1,13 @@
 {
   "name": "@now/lambda",
-  "version": "0.4.7-canary.5",
-  "peerDependencies": {
-    "@now/build-utils": ">=0.0.1"
+  "version": "0.4.10-canary.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-lambda"
+  },
+  "scripts": {
+    "test": "jest"
   }
 }

@@ -1,6 +1,12 @@
 {
   "name": "@now/cgi",
-  "version": "0.0.13-canary.5",
+  "version": "0.0.16-canary.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-cgi"
+  },
   "scripts": {
     "test": "best -I test/*.js",
     "prepublish": "./build.sh"
@@ -15,8 +21,5 @@
   "devDependencies": {
     "@zeit/best": "0.4.3",
     "rmfr": "2.0.0"
-  },
-  "peerDependencies": {
-    "@now/build-utils": ">=0.0.1"
   }
 }

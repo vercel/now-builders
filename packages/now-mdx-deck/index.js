@@ -1,12 +1,10 @@
-const download = require('@now/build-utils/fs/download.js');
+const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
 const fs = require('fs');
 const { promisify } = require('util');
-const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory.js');
-const glob = require('@now/build-utils/fs/glob.js');
+const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory.js'); // eslint-disable-line import/no-extraneous-dependencies
+const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
-const { runNpmInstall } = require('@now/build-utils/fs/run-user-scripts.js');
-
-exports.analyze = ({ files, entrypoint }) => files[entrypoint].digest;
+const { runNpmInstall } = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
 
 const writeFile = promisify(fs.writeFile);
 
@@ -14,10 +12,10 @@ exports.build = async ({ files, entrypoint, workPath }) => {
   console.log('downloading user files...');
   const downloadedFiles = await download(files, workPath);
   console.log('writing package.json...');
-  const packageJson = { dependencies: { 'mdx-deck': '1.7.7' } };
+  const packageJson = { dependencies: { 'mdx-deck': '1.7.15' } };
   const packageJsonPath = path.join(workPath, 'package.json');
   await writeFile(packageJsonPath, JSON.stringify(packageJson));
-  console.log('running npm install...');
+  console.log('installing dependencies...');
   process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = '1'; // TODO opts argument for runNpmInstall
   await runNpmInstall(path.dirname(packageJsonPath), [
     '--prod',
@@ -47,7 +45,7 @@ exports.build = async ({ files, entrypoint, workPath }) => {
 
 exports.prepareCache = async ({ cachePath }) => {
   console.log('writing package.json...');
-  const packageJson = { dependencies: { 'mdx-deck': '1.7.7' } };
+  const packageJson = { dependencies: { 'mdx-deck': '1.7.15' } };
   const packageJsonPath = path.join(cachePath, 'package.json');
   await writeFile(packageJsonPath, JSON.stringify(packageJson));
   console.log('running npm install...');

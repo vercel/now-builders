@@ -1,13 +1,32 @@
+const path = require('path');
 const {
   excludeFiles,
   validateEntrypoint,
   includeOnlyEntryDirectory,
-  moveEntryDirectoryToRoot,
-  excludeLockFiles,
   normalizePackageJson,
-  excludeStaticDirectory,
+  getNextConfig,
 } = require('@now/next/utils');
-const FileRef = require('@now/build-utils/file-ref');
+const FileRef = require('@now/build-utils/file-ref'); // eslint-disable-line import/no-extraneous-dependencies
+
+describe('getNextConfig', () => {
+  const workPath = path.join(__dirname, 'fixtures');
+  const entryPath = path.join(__dirname, 'fixtures', 'entry');
+
+  it('should find entry file', async () => {
+    const file = await getNextConfig(workPath, entryPath);
+    expect(file).toMatchSnapshot();
+  });
+
+  it('should find work file second', async () => {
+    const file = await getNextConfig(workPath, '/');
+    expect(file).toMatchSnapshot();
+  });
+
+  it('return null on nothing', async () => {
+    const file = await getNextConfig('/', '/');
+    expect(file).toMatchSnapshot();
+  });
+});
 
 describe('excludeFiles', () => {
   it('should exclude files', () => {
@@ -45,7 +64,7 @@ describe('validateEntrypoint', () => {
 });
 
 describe('includeOnlyEntryDirectory', () => {
-  it('should exclude files outside entry directory', () => {
+  it('should include files outside entry directory', () => {
     const entryDirectory = 'frontend';
     const files = {
       'frontend/pages/index.js': new FileRef({ digest: 'index' }),
@@ -57,117 +76,6 @@ describe('includeOnlyEntryDirectory', () => {
     expect(result['package.json']).toBeUndefined();
     expect(result['package-lock.json']).toBeUndefined();
   });
-
-  it('should handle entry directory being dot', () => {
-    const entryDirectory = '.';
-    const files = {
-      'frontend/pages/index.js': new FileRef({ digest: 'index' }),
-      'package.json': new FileRef({ digest: 'package' }),
-      'package-lock.json': new FileRef({ digest: 'package-lock' }),
-    };
-    const result = includeOnlyEntryDirectory(files, entryDirectory);
-    expect(result['frontend/pages/index.js']).toBeDefined();
-    expect(result['package.json']).toBeDefined();
-    expect(result['package-lock.json']).toBeDefined();
-  });
-});
-
-describe('moveEntryDirectoryToRoot', () => {
-  it('should move entrydirectory files to the root', () => {
-    const entryDirectory = 'frontend';
-    const files = {
-      'frontend/pages/index.js': new FileRef({ digest: 'index' }),
-    };
-    const result = moveEntryDirectoryToRoot(files, entryDirectory);
-    expect(result['pages/index.js']).toBeDefined();
-  });
-
-  it('should work with deep nested subdirectories', () => {
-    const entryDirectory = 'frontend/my/app';
-    const files = {
-      'frontend/my/app/pages/index.js': new FileRef({ digest: 'index' }),
-    };
-    const result = moveEntryDirectoryToRoot(files, entryDirectory);
-    expect(result['pages/index.js']).toBeDefined();
-  });
-
-  it('should do nothing when entry directory is dot', () => {
-    const entryDirectory = '.';
-    const files = {
-      'frontend/pages/index.js': new FileRef({ digest: 'index' }),
-    };
-    const result = moveEntryDirectoryToRoot(files, entryDirectory);
-    expect(result['frontend/pages/index.js']).toBeDefined();
-  });
-});
-
-describe('excludeLockFiles', () => {
-  it('should remove package-lock.json', () => {
-    const files = {
-      'frontend/pages/index.js': new FileRef({ digest: 'index' }),
-      'package.json': new FileRef({ digest: 'package' }),
-      'package-lock.json': new FileRef({ digest: 'package-lock' }),
-    };
-    const result = excludeLockFiles(files);
-    expect(result['frontend/pages/index.js']).toBeDefined();
-    expect(result['package-lock.json']).toBeUndefined();
-  });
-
-  it('should remove yarn.lock', () => {
-    const files = {
-      'frontend/pages/index.js': new FileRef({ digest: 'index' }),
-      'package.json': new FileRef({ digest: 'package' }),
-      'yarn.lock': new FileRef({ digest: 'yarn-lock' }),
-    };
-    const result = excludeLockFiles(files);
-    expect(result['frontend/pages/index.js']).toBeDefined();
-    expect(result['yarn.lock']).toBeUndefined();
-  });
-
-  it('should remove both package-lock.json and yarn.lock', () => {
-    const files = {
-      'frontend/pages/index.js': new FileRef({ digest: 'index' }),
-      'package.json': new FileRef({ digest: 'package' }),
-      'yarn.lock': new FileRef({ digest: 'yarn-lock' }),
-      'package-lock.json': new FileRef({ digest: 'package-lock' }),
-    };
-    const result = excludeLockFiles(files);
-    expect(result['frontend/pages/index.js']).toBeDefined();
-    expect(result['yarn.lock']).toBeUndefined();
-    expect(result['package-lock.json']).toBeUndefined();
-  });
-});
-
-describe('excludeStaticDirectory', () => {
-  it('should remove the /static directory files', () => {
-    const files = {
-      'frontend/pages/index.js': new FileRef({ digest: 'index' }),
-      'package.json': new FileRef({ digest: 'package' }),
-      'yarn.lock': new FileRef({ digest: 'yarn-lock' }),
-      'package-lock.json': new FileRef({ digest: 'package-lock' }),
-      'static/image.png': new FileRef({ digest: 'image' }),
-    };
-    const result = excludeStaticDirectory(files);
-    expect(result['frontend/pages/index.js']).toBeDefined();
-    expect(result['yarn.lock']).toBeDefined();
-    expect(result['package-lock.json']).toBeDefined();
-    expect(result['static/image.png']).toBeUndefined();
-  });
-
-  it('should remove the nested /static directory files', () => {
-    const files = {
-      'frontend/pages/index.js': new FileRef({ digest: 'index' }),
-      'package.json': new FileRef({ digest: 'package' }),
-      'yarn.lock': new FileRef({ digest: 'yarn-lock' }),
-      'package-lock.json': new FileRef({ digest: 'package-lock' }),
-      'static/images/png/image.png': new FileRef({ digest: 'image' }),
-    };
-    const result = excludeStaticDirectory(files);
-    expect(result['frontend/pages/index.js']).toBeDefined();
-    expect(result['yarn.lock']).toBeDefined();
-    expect(result['package-lock.json']).toBeDefined();
-    expect(result['static/images/png/image.png']).toBeUndefined();
-  });
 });
 
 describe('normalizePackageJson', () => {
@@ -175,15 +83,16 @@ describe('normalizePackageJson', () => {
     const result = normalizePackageJson();
     expect(result).toEqual({
       dependencies: {
-        'next-server': 'canary',
+        'next-server': 'v7.0.2-canary.49',
         react: 'latest',
         'react-dom': 'latest',
       },
       devDependencies: {
-        next: 'canary',
+        next: 'v7.0.2-canary.49',
       },
       scripts: {
-        'now-build': 'next build --lambdas',
+        'now-build':
+          'NODE_OPTIONS=--max_old_space_size=3000 next build --lambdas',
       },
     });
   });
@@ -191,12 +100,12 @@ describe('normalizePackageJson', () => {
   it('should work with a package.json being supplied', () => {
     const defaultPackage = {
       dependencies: {
-        'next-server': 'canary',
+        'next-server': 'v7.0.2-canary.49',
         react: 'latest',
         'react-dom': 'latest',
       },
       devDependencies: {
-        next: 'canary',
+        next: 'v7.0.2-canary.49',
       },
       scripts: {
         'now-build': 'next build',
@@ -205,15 +114,16 @@ describe('normalizePackageJson', () => {
     const result = normalizePackageJson(defaultPackage);
     expect(result).toEqual({
       dependencies: {
-        'next-server': 'canary',
+        'next-server': 'v7.0.2-canary.49',
         react: 'latest',
         'react-dom': 'latest',
       },
       devDependencies: {
-        next: 'canary',
+        next: 'v7.0.2-canary.49',
       },
       scripts: {
-        'now-build': 'next build --lambdas',
+        'now-build':
+          'NODE_OPTIONS=--max_old_space_size=3000 next build --lambdas',
       },
     });
   });
@@ -229,15 +139,16 @@ describe('normalizePackageJson', () => {
     const result = normalizePackageJson(defaultPackage);
     expect(result).toEqual({
       dependencies: {
-        'next-server': 'canary',
+        'next-server': 'v7.0.2-canary.49',
         react: 'latest',
         'react-dom': 'latest',
       },
       devDependencies: {
-        next: 'canary',
+        next: 'v7.0.2-canary.49',
       },
       scripts: {
-        'now-build': 'next build --lambdas',
+        'now-build':
+          'NODE_OPTIONS=--max_old_space_size=3000 next build --lambdas',
       },
     });
   });
@@ -253,15 +164,16 @@ describe('normalizePackageJson', () => {
     const result = normalizePackageJson(defaultPackage);
     expect(result).toEqual({
       dependencies: {
-        'next-server': 'canary',
+        'next-server': 'v7.0.2-canary.49',
         react: 'latest',
         'react-dom': 'latest',
       },
       devDependencies: {
-        next: 'canary',
+        next: 'v7.0.2-canary.49',
       },
       scripts: {
-        'now-build': 'next build --lambdas',
+        'now-build':
+          'NODE_OPTIONS=--max_old_space_size=3000 next build --lambdas',
       },
     });
   });
@@ -277,15 +189,16 @@ describe('normalizePackageJson', () => {
     const result = normalizePackageJson(defaultPackage);
     expect(result).toEqual({
       dependencies: {
-        'next-server': 'canary',
+        'next-server': 'v7.0.2-canary.49',
         react: 'latest',
         'react-dom': 'latest',
       },
       devDependencies: {
-        next: 'canary',
+        next: 'v7.0.2-canary.49',
       },
       scripts: {
-        'now-build': 'next build --lambdas',
+        'now-build':
+          'NODE_OPTIONS=--max_old_space_size=3000 next build --lambdas',
       },
     });
   });
@@ -347,7 +260,8 @@ describe('normalizePackageJson', () => {
       scripts: {
         dev: 'next',
         build: 'next build',
-        'now-build': 'next build --lambdas',
+        'now-build':
+          'NODE_OPTIONS=--max_old_space_size=3000 next build --lambdas',
         start: 'next start',
         test: "xo && stylelint './pages/**/*.js' && jest",
       },
@@ -364,7 +278,7 @@ describe('normalizePackageJson', () => {
         'stylelint-config-recommended': '^2.1.0',
         'stylelint-config-styled-components': '^0.1.1',
         'stylelint-processor-styled-components': '^1.5.1',
-        next: 'canary',
+        next: 'v7.0.2-canary.49',
         'next-server': undefined,
         xo: '^0.23.0',
         consola: '^2.2.6',
@@ -372,7 +286,7 @@ describe('normalizePackageJson', () => {
         'styled-components': '^4.1.1',
       },
       dependencies: {
-        'next-server': 'canary',
+        'next-server': 'v7.0.2-canary.49',
         react: '^16.6.3',
         'react-dom': '^16.6.3',
       },

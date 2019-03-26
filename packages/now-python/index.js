@@ -1,20 +1,20 @@
 const path = require('path');
 const execa = require('execa');
 const { readFile, writeFile } = require('fs.promised');
-const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory.js');
-const download = require('@now/build-utils/fs/download.js');
-const glob = require('@now/build-utils/fs/glob.js');
-const { createLambda } = require('@now/build-utils/lambda.js');
+const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory.js'); // eslint-disable-line import/no-extraneous-dependencies
+const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
+const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
+const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
 const downloadAndInstallPip = require('./download-and-install-pip');
 
-async function pipInstall(pipPath, srcDir, ...args) {
-  console.log(`running "pip install -t ${srcDir} ${args.join(' ')}"...`);
+async function pipInstall(pipPath, workDir, ...args) {
+  console.log(`running "pip install --target ${workDir} ${args.join(' ')}"...`);
   try {
-    await execa(pipPath, ['install', '-t', srcDir, ...args], {
+    await execa(pipPath, ['install', '--target', '--upgrade', '.', ...args], {
       stdio: 'inherit',
     });
   } catch (err) {
-    console.log(`failed to run "pip install -t ${srcDir} ${args.join(' ')}"`);
+    console.log(`failed to run "pip install -t ${workDir} ${args.join(' ')}"`);
     throw err;
   }
 }
@@ -23,13 +23,11 @@ exports.config = {
   maxLambdaSize: '5mb',
 };
 
-exports.build = async ({ files, entrypoint }) => {
+exports.build = async ({ workDir, files, entrypoint }) => {
   console.log('downloading files...');
 
-  const srcDir = await getWritableDirectory();
-
   // eslint-disable-next-line no-param-reassign
-  files = await download(files, srcDir);
+  files = await download(files, workDir);
 
   // this is where `pip` will be installed to
   // we need it to be under `/tmp`
@@ -38,13 +36,36 @@ exports.build = async ({ files, entrypoint }) => {
 
   const pipPath = await downloadAndInstallPip();
 
-  await pipInstall(pipPath, srcDir, 'requests');
+  try {
+    // See: https://stackoverflow.com/a/44728772/376773
+    //
+    // The `setup.cfg` is required for `now dev` on MacOS, where without
+    // this file being present in the src dir then this error happens:
+    //
+    // distutils.errors.DistutilsOptionError: must supply either home
+    // or prefix/exec-prefix -- not both
+    const setupCfg = path.join(workDir, 'setup.cfg');
+    await writeFile(setupCfg, '[install]\nprefix=\n');
+  } catch (err) {
+    console.log('failed to create "setup.cfg" file');
+    throw err;
+  }
 
-  if (files['requirements.txt']) {
-    console.log('found "requirements.txt"');
+  await pipInstall(pipPath, workDir, 'requests');
+
+  const entryDirectory = path.dirname(entrypoint);
+  const requirementsTxt = path.join(entryDirectory, 'requirements.txt');
+
+  if (files[requirementsTxt]) {
+    console.log('found local "requirements.txt"');
+
+    const requirementsTxtPath = files[requirementsTxt].fsPath;
+    await pipInstall(pipPath, workDir, '-r', requirementsTxtPath);
+  } else if (files['requirements.txt']) {
+    console.log('found global "requirements.txt"');
 
     const requirementsTxtPath = files['requirements.txt'].fsPath;
-    await pipInstall(pipPath, srcDir, '-r', requirementsTxtPath);
+    await pipInstall(pipPath, workDir, '-r', requirementsTxtPath);
   }
 
   const originalNowHandlerPyContents = await readFile(
@@ -67,12 +88,12 @@ exports.build = async ({ files, entrypoint }) => {
   const nowHandlerPyFilename = 'now__handler__python';
 
   await writeFile(
-    path.join(srcDir, `${nowHandlerPyFilename}.py`),
+    path.join(workDir, `${nowHandlerPyFilename}.py`),
     nowHandlerPyContents,
   );
 
   const lambda = await createLambda({
-    files: await glob('**', srcDir),
+    files: await glob('**', workDir),
     handler: `${nowHandlerPyFilename}.now_handler`,
     runtime: 'python3.6',
     environment: {},

@@ -1,0 +1,24 @@
+{
+  "name": "@now/bash",
+  "version": "0.1.5-canary.0",
+  "description": "Now 2.0 builder for HTTP endpoints written in Bash",
+  "main": "index.js",
+  "author": "Nathan Rajlich <nate@zeit.co>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-bash"
+  },
+  "files": [
+    "builder.sh",
+    "runtime.sh",
+    "bootstrap",
+    "index.js",
+    "package.json"
+  ],
+  "dependencies": {
+    "execa": "^1.0.0",
+    "snake-case": "^2.1.0"
+  }
+}

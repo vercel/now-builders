@@ -1,12 +1,15 @@
 {
   "name": "@now/node-server",
-  "version": "0.4.24-canary.6",
-  "dependencies": {
-    "@now/node-bridge": "^0.1.9-canary.5",
-    "fs-extra": "7.0.1"
+  "version": "0.5.2-canary.4",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-node-server"
   },
-  "peerDependencies": {
-    "@now/build-utils": ">=0.0.1"
+  "dependencies": {
+    "@now/node-bridge": "^1.0.1-canary.1",
+    "fs-extra": "7.0.1"
   },
   "scripts": {
     "test": "jest"

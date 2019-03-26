@@ -1,0 +1,7 @@
+mainfile:
+Array
+(
+    [2] => excluded_file.php
+    [3] => included_file.php
+    [4] => index.php
+)

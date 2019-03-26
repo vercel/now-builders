@@ -1,12 +1,19 @@
 {
   "name": "@now/next",
-  "version": "0.0.80-canary.0",
-  "dependencies": {
-    "@now/node-bridge": "0.1.4",
-    "execa": "^1.0.0",
-    "fs.promised": "^3.0.0"
+  "version": "0.1.3-canary.2",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
   },
-  "peerDependencies": {
-    "@now/build-utils": ">=0.0.1"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-next"
+  },
+  "dependencies": {
+    "@now/node-bridge": "^1.0.0",
+    "execa": "^1.0.0",
+    "fs-extra": "^7.0.0",
+    "semver": "^5.6.0"
   }
 }

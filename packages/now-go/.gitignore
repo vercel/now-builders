@@ -1,3 +1,5 @@
 node_modules
 *.log
-bin
+/?.js
+/go
+/get-exported-function-name

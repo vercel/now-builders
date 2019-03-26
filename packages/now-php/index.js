@@ -1,8 +1,8 @@
-const { createLambda } = require('@now/build-utils/lambda.js');
-const glob = require('@now/build-utils/fs/glob.js');
-const minimatch = require('minimatch');
+const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
-const rename = require('@now/build-utils/fs/rename.js');
+const rename = require('@now/build-utils/fs/rename.js'); // eslint-disable-line import/no-extraneous-dependencies
+const { getFiles } = require('@now/php-bridge');
+const minimatch = require('minimatch');
 
 exports.config = {
   maxLambdaSize: '10mb',
@@ -10,7 +10,7 @@ exports.config = {
 
 exports.build = async ({ files, entrypoint, config }) => {
   // Fetch the included files config, or default (**)
-  const includedFilesGlob = (config ? config.include : false) || '**';
+  const includedFilesGlob = (config ? config.includeFiles : false) || '**';
   let includedFiles = files;
   if (includedFilesGlob !== '**') {
     // match the files with the glob
@@ -25,16 +25,18 @@ exports.build = async ({ files, entrypoint, config }) => {
   }
   // move all user code to 'user' subdirectory
   const userFiles = rename(includedFiles, name => path.join('user', name));
-  const launcherFiles = await glob('**', path.join(__dirname, 'dist'));
-  const zipFiles = { ...userFiles, ...launcherFiles };
+  const bridgeFiles = await getFiles();
+
+  // TODO config.extensions. OR php.ini from user
+  delete bridgeFiles['native/modules/mysqli.so'];
+  delete bridgeFiles['native/modules/libmysqlclient.so.16'];
 
   const lambda = await createLambda({
-    files: zipFiles,
-    handler: 'launcher',
-    runtime: 'go1.x',
+    files: { ...userFiles, ...bridgeFiles },
+    handler: 'launcher.launcher',
+    runtime: 'nodejs8.10',
     environment: {
-      SCRIPT_NAME: path.join('/', entrypoint),
-      NOW_PHP_SCRIPT: path.join('user', entrypoint),
+      NOW_ENTRYPOINT: entrypoint,
     },
   });
 

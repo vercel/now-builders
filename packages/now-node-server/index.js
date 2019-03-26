@@ -1,84 +1,152 @@
-const { createLambda } = require('@now/build-utils/lambda.js');
-const download = require('@now/build-utils/fs/download.js');
-const FileBlob = require('@now/build-utils/file-blob.js');
-const FileFsRef = require('@now/build-utils/file-fs-ref.js');
+const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
+const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
+const FileBlob = require('@now/build-utils/file-blob.js'); // eslint-disable-line import/no-extraneous-dependencies
+const FileFsRef = require('@now/build-utils/file-fs-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
 const fs = require('fs-extra');
-const glob = require('@now/build-utils/fs/glob.js');
+const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
-const { promisify } = require('util');
+const rename = require('@now/build-utils/fs/rename.js'); // eslint-disable-line import/no-extraneous-dependencies
 const {
   runNpmInstall,
   runPackageJsonScript,
-} = require('@now/build-utils/fs/run-user-scripts.js');
+} = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
 
-const fsp = {
-  readFile: promisify(fs.readFile),
-};
+/** @typedef { import('@now/build-utils/file-ref') } FileRef */
+/** @typedef {{[filePath: string]: FileRef}} Files */
 
-async function commonForTwo({
-  files, entrypoint, workPath, cachePath,
-}) {
-  const xPath = workPath || cachePath;
-  const preferOfflineArgument = workPath ? ['--prefer-offline'] : [];
+/**
+ * @typedef {Object} BuildParamsType
+ * @property {Files} files - Files object
+ * @property {string} entrypoint - Entrypoint specified for the builder
+ * @property {Object} config - User-passed config from now.json
+ * @property {string} workPath - Working directory for this build
+ */
 
-  const xUserPath = path.join(xPath, 'user');
-  const xNccPath = path.join(xPath, 'ncc');
+/**
+ * @param {BuildParamsType} buildParams
+ * @param {Object} [options]
+ * @param {string[]} [options.npmArguments]
+ */
+async function downloadInstallAndBundle(
+  { files, entrypoint, workPath },
+  { npmArguments = [] } = {},
+) {
+  const userPath = path.join(workPath, 'user');
+  const nccPath = path.join(workPath, 'ncc');
 
   console.log('downloading user files...');
-  const filesOnDisk = await download(files, xUserPath);
+  const downloadedFiles = await download(files, userPath);
 
-  console.log('running npm install for user...');
-  const entrypointFsDirname = path.join(xUserPath, path.dirname(entrypoint));
-  await runNpmInstall(entrypointFsDirname, preferOfflineArgument);
+  console.log("installing dependencies for user's code...");
+  const entrypointFsDirname = path.join(userPath, path.dirname(entrypoint));
+  await runNpmInstall(entrypointFsDirname, npmArguments);
 
   console.log('writing ncc package.json...');
   await download(
     {
       'package.json': new FileBlob({
         data: JSON.stringify({
+          license: 'UNLICENSED',
           dependencies: {
-            '@zeit/ncc': '0.1.6',
+            '@zeit/ncc': '0.17.0',
           },
         }),
       }),
     },
-    xNccPath,
+    nccPath,
   );
 
-  console.log('running npm install for ncc...');
-  await runNpmInstall(xNccPath, preferOfflineArgument);
-  return [filesOnDisk, xNccPath, entrypointFsDirname];
+  console.log('installing dependencies for ncc...');
+  await runNpmInstall(nccPath, npmArguments);
+  return [downloadedFiles, userPath, nccPath, entrypointFsDirname];
 }
 
-async function compile(workNccPath, input) {
+async function compile(workNccPath, downloadedFiles, entrypoint, config) {
+  const input = downloadedFiles[entrypoint].fsPath;
+  const inputDir = path.dirname(input);
   const ncc = require(path.join(workNccPath, 'node_modules/@zeit/ncc'));
-  return ncc(input);
+  const { code, assets } = await ncc(input, { sourceMap: true });
+
+  if (config && config.includeFiles) {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const pattern of config.includeFiles) {
+      // eslint-disable-next-line no-await-in-loop
+      const files = await glob(pattern, inputDir);
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const assetName of Object.keys(files)) {
+        const stream = files[assetName].toStream();
+        const { mode } = files[assetName];
+        // eslint-disable-next-line no-await-in-loop
+        const { data } = await FileBlob.fromStream({ stream });
+
+        assets[assetName] = {
+          source: data,
+          permissions: mode,
+        };
+      }
+    }
+  }
+
+  const preparedFiles = {};
+  const blob = new FileBlob({ data: code });
+  // move all user code to 'user' subdirectory
+  preparedFiles[path.join('user', entrypoint)] = blob;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const assetName of Object.keys(assets)) {
+    const { source: data, permissions: mode } = assets[assetName];
+    const blob2 = new FileBlob({ data, mode });
+    preparedFiles[
+      path.join('user', path.dirname(entrypoint), assetName)
+    ] = blob2;
+  }
+
+  return preparedFiles;
 }
 
 exports.config = {
   maxLambdaSize: '15mb',
 };
 
-exports.build = async ({ files, entrypoint, workPath }) => {
-  const [filesOnDisk, workNccPath, entrypointFsDirname] = await commonForTwo({
-    files,
-    entrypoint,
-    workPath,
-  });
+/**
+ * @param {BuildParamsType} buildParams
+ * @returns {Promise<Files>}
+ */
+exports.build = async ({
+  files, entrypoint, config, workPath,
+}) => {
+  const [
+    downloadedFiles,
+    workUserPath,
+    workNccPath,
+    entrypointFsDirname,
+  ] = await downloadInstallAndBundle(
+    { files, entrypoint, workPath },
+    { npmArguments: ['--prefer-offline'] },
+  );
 
   console.log('running user script...');
   await runPackageJsonScript(entrypointFsDirname, 'now-build');
 
-  console.log('compiling entrypoint with ncc...');
-  const data = await compile(workNccPath, filesOnDisk[entrypoint].fsPath);
-  const blob = new FileBlob({ data });
-
   console.log('preparing lambda files...');
-  // move all user code to 'user' subdirectory
-  const compiledFiles = { [path.join('user', entrypoint)]: blob };
-  const launcherPath = path.join(__dirname, 'launcher.js');
-  let launcherData = await fsp.readFile(launcherPath, 'utf8');
+  let preparedFiles;
 
+  if (config && config.bundle === false) {
+    // move all user code to 'user' subdirectory
+    preparedFiles = await glob('**', workUserPath);
+    preparedFiles = rename(preparedFiles, name => path.join('user', name));
+  } else {
+    console.log('compiling entrypoint with ncc...');
+    preparedFiles = await compile(
+      workNccPath,
+      downloadedFiles,
+      entrypoint,
+      config,
+    );
+  }
+
+  const launcherPath = path.join(__dirname, 'launcher.js');
+  let launcherData = await fs.readFile(launcherPath, 'utf8');
   launcherData = launcherData.replace(
     '// PLACEHOLDER',
     [
@@ -93,7 +161,7 @@ exports.build = async ({ files, entrypoint, workPath }) => {
   };
 
   const lambda = await createLambda({
-    files: { ...compiledFiles, ...launcherFiles },
+    files: { ...preparedFiles, ...launcherFiles },
     handler: 'launcher.launcher',
     runtime: 'nodejs8.10',
   });
@@ -105,7 +173,7 @@ exports.prepareCache = async ({
   files, entrypoint, workPath, cachePath,
 }) => {
   await fs.remove(workPath);
-  await commonForTwo({ files, entrypoint, cachePath });
+  await downloadInstallAndBundle({ files, entrypoint, workPath: cachePath });
 
   return {
     ...(await glob('user/node_modules/**', cachePath)),
