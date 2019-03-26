@@ -7,6 +7,8 @@ cp /usr/lib64/php/modules/mbstring.so /root/app/modules/mbstring.so
 cp /usr/lib64/php/modules/mysqli.so /root/app/modules/mysqli.so
 cp /usr/lib64/mysql/libmysqlclient.so.16 /root/app/modules/libmysqlclient.so.16
 cp /usr/lib64/php/modules/opcache.so /root/app/modules/opcache.so
+cp /usr/lib64/php/modules/simplexml.so /root/app/modules/simplexml.so
+cp /usr/lib64/php/modules/xmlwriter.so /root/app/modules/xmlwriter.so
 rm -rf $(which php)
 rm -rf $(which php-fpm)
 rm -rf /usr/lib64/php

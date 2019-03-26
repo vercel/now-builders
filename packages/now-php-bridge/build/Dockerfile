@@ -1,7 +1,7 @@
 FROM library/centos:6.8
 RUN yum -y install wget git
 RUN rpm -Uvh https://mirror.webtatic.com/yum/el6/latest.rpm
-RUN yum -y install php71w-cli php71w-fpm php71w-mbstring php71w-mysql php71w-opcache
+RUN yum -y install php71w-cli php71w-fpm php71w-mbstring php71w-mysql php71w-opcache php71w-xml php71w-xmlwriter
 RUN yum -y install epel-release
 RUN yum -y install patchelf
 
