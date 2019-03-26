@@ -47,7 +47,7 @@ async function downloadInstallAndBundle({
         data: JSON.stringify({
           license: 'UNLICENSED',
           dependencies: {
-            '@zeit/ncc': '0.16.1',
+            '@zeit/ncc': '0.17.0',
           }
         })
       })
@@ -61,7 +61,7 @@ async function downloadInstallAndBundle({
   return { entrypointPath, workNccPath: nccPath, entrypointFsDirname };
 }
 
-async function compile(workNccPath: string, entrypointPath: string, entrypoint: string, config: CompilerConfig) {
+async function compile(workNccPath: string, entrypointPath: string, entrypoint: string, config: CompilerConfig): Promise<Files> {
   const input = entrypointPath;
   const inputDir = dirname(input);
   const ncc = require(join(workNccPath, 'node_modules/@zeit/ncc'));
@@ -84,7 +84,7 @@ async function compile(workNccPath: string, entrypointPath: string, entrypoint: 
     }
   }
 
-  const preparedFiles = {};
+  const preparedFiles: Files = {};
   const blob = new FileBlob({ data: code });
   // move all user code to 'user' subdirectory
   preparedFiles[join('user', entrypoint)] = blob;
