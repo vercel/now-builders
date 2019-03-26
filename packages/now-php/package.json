@@ -8,7 +8,8 @@
     "directory": "packages/now-php"
   },
   "dependencies": {
-    "@now/php-bridge": "^0.4.16-canary.0"
+    "@now/php-bridge": "^0.4.16-canary.0",
+    "minimatch": "^3.0.4"
   },
   "scripts": {
     "test": "jest"
