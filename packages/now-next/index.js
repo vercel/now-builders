@@ -158,6 +158,9 @@ async function extrapolateEntrypoint(workPath, entrypoint) {
  * @returns {Promise<Files>}
  */
 exports.build = async ({ files, workPath, entrypoint }) => {
+  console.log('downloading user files...');
+  await download(files, workPath);
+
   let experimentalPages = [];
 
   try {
@@ -175,9 +178,7 @@ exports.build = async ({ files, workPath, entrypoint }) => {
 
   validateEntrypoint(entrypoint);
 
-  console.log('downloading user files...');
   const entryDirectory = path.dirname(entrypoint);
-  await download(files, workPath);
   const entryPath = path.join(workPath, entryDirectory);
 
   if (await pathExists(path.join(entryPath, '.next'))) {
