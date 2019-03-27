@@ -16,7 +16,9 @@
     "publish-canary": "lerna version prerelease --preid canary",
     "build": "./.circleci/build.sh",
     "lint": "eslint .",
-    "test": "jest --runInBand --verbose && codecov",
+    "codecov": "codecov",
+    "test": "jest --runInBand --verbose",
+    "test-coverage": "node --expose-gc --max_old_space_size=3072 node_modules/.bin/jest --coverage --globals \"{\\\"coverage\\\":true}\" && codecov",
     "lint-staged": "lint-staged"
   },
   "pre-commit": "lint-staged",
@@ -46,9 +48,5 @@
     "node-fetch": "^2.3.0",
     "pre-commit": "^1.2.2",
     "prettier": "^1.15.2"
-  },
-  "jest": {
-    "coverageDirectory": "./coverage/",
-    "collectCoverage": true
   }
 }
