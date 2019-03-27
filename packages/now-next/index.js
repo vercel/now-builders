@@ -148,7 +148,7 @@ async function extrapolateEntrypoint(workPath, entrypoint) {
   }
 
   return {
-    entry: rootPackageFile,
+    entry: path.relative(workPath, rootPackageFile),
     pages: [path.relative(rootPackagePages, workEntrypoint)],
   };
 }
