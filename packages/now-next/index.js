@@ -8,6 +8,7 @@ const {
   runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts'); // eslint-disable-line import/no-extraneous-dependencies
 const glob = require('@now/build-utils/fs/glob'); // eslint-disable-line import/no-extraneous-dependencies
+const findUp = require('find-up');
 const {
   readFile,
   writeFile,
@@ -16,6 +17,7 @@ const {
   mkdirp,
   rename: renamePath,
   pathExists,
+  lstat,
 } = require('fs-extra');
 const semver = require('semver');
 const nextLegacyVersions = require('./legacy-versions');
@@ -111,11 +113,66 @@ exports.config = {
   maxLambdaSize: '5mb',
 };
 
+async function extrapolateEntrypoint(workPath, entrypoint) {
+  const noop = { entry: entrypoint, pages: [] };
+
+  const workEntrypoint = path.resolve(path.join(workPath, entrypoint));
+  const entrypointStats = await lstat(workEntrypoint);
+
+  // Abort when the user passed a directory (for now)
+  if (entrypointStats.isDirectory()) {
+    return noop;
+  }
+
+  const workEntryDirectory = path.dirname(workEntrypoint);
+  const rootPackageFile = await findUp('package.json', {
+    cwd: workEntryDirectory,
+  });
+  // Abort if we cannot determine the Next.js app root
+  if (rootPackageFile == null) {
+    return noop;
+  }
+
+  const rootPackageDirectory = path.dirname(rootPackageFile);
+  const rootPackagePages = path.join(rootPackageDirectory, 'pages');
+  // Abort if `pages` directory is missing
+  if (!(await pathExists(rootPackagePages))) {
+    return noop;
+  }
+
+  // Abort if the passed entrypoint isnt a page
+  if (
+    !path.relative(rootPackageDirectory, workEntrypoint).startsWith('pages/')
+  ) {
+    return noop;
+  }
+
+  return {
+    entry: rootPackageFile,
+    pages: [path.relative(rootPackagePages, workEntrypoint)],
+  };
+}
+
 /**
  * @param {BuildParamsType} buildParams
  * @returns {Promise<Files>}
  */
 exports.build = async ({ files, workPath, entrypoint }) => {
+  let experimentalPages = [];
+
+  try {
+    validateEntrypoint(entrypoint);
+  } catch (err) {
+    const { entry, pages } = await extrapolateEntrypoint(workPath, entrypoint);
+    if (entry === entrypoint) {
+      throw err;
+    }
+
+    // eslint-disable-next-line no-param-reassign
+    entrypoint = entry;
+    experimentalPages = pages;
+  }
+
   validateEntrypoint(entrypoint);
 
   console.log('downloading user files...');
@@ -172,6 +229,21 @@ exports.build = async ({ files, workPath, entrypoint }) => {
       ...(pkg.scripts || {}),
     };
     console.log('normalized package.json result: ', pkg);
+    await writePackageJson(entryPath, pkg);
+  }
+
+  if (!isLegacy && experimentalPages.length) {
+    console.info('Detected pages build: ', JSON.stringify(experimentalPages));
+    if (pkg.scripts['now-build'] !== 'next build') {
+      throw new Error('A pages build cannot specify a custom now-build.');
+    }
+
+    pkg.scripts = {
+      'now-build': 'next build '.concat(
+        experimentalPages.map(page => `--experimental-page=${page}`).join(' '),
+      ),
+      ...(pkg.scripts || {}),
+    };
     await writePackageJson(entryPath, pkg);
   }
 
