@@ -16,7 +16,7 @@
     "publish-canary": "lerna version prerelease --preid canary",
     "build": "./.circleci/build.sh",
     "lint": "eslint .",
-    "test": "jest --runInBand --verbose && codecov",
+    "test": "jest --runInBand --verbose --coverage \"{\\\"coverage\\\":true}\" && codecov",
     "lint-staged": "lint-staged"
   },
   "pre-commit": "lint-staged",
@@ -46,9 +46,5 @@
     "node-fetch": "^2.3.0",
     "pre-commit": "^1.2.2",
     "prettier": "^1.15.2"
-  },
-  "jest": {
-    "coverageDirectory": "./coverage/",
-    "collectCoverage": true
   }
 }
