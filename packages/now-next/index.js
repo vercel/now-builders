@@ -240,11 +240,13 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     }
 
     pkg.scripts = {
+      ...(pkg.scripts || {}),
       'now-build': 'next build '.concat(
         experimentalPages.map(page => `--experimental-page=${page}`).join(' '),
       ),
-      ...(pkg.scripts || {}),
     };
+
+    console.log('pages build package.json result: ', pkg);
     await writePackageJson(entryPath, pkg);
   }
 
