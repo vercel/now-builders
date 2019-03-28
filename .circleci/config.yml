@@ -30,11 +30,8 @@ jobs:
           name: Tests
           command: yarn test
       - run:
-          name: Check coverage folder if it created
-          command: ls -la
-      # - run:
-      #     name: Coverage
-      #     command: yarn test-coverage
+          name: Coverage
+          command: yarn test-coverage
       - run:
           name: Potentially save npm token
           command: "([[ ! -z $NPM_TOKEN ]] && echo \"//registry.npmjs.org/:_authToken=$NPM_TOKEN\" >> ~/.npmrc) || echo \"Did not write npm token\""
