@@ -110,21 +110,27 @@ async function deploymentGet (deploymentId) {
   return await resp.json();
 }
 
+let token;
+let currentCount = 0;
+const MAX_COUNT = 10;
+
 async function fetchWithAuth (url, opts = {}) {
   if (!opts.headers) opts.headers = {};
 
   if (!opts.headers.Authorization) {
     const { NOW_TOKEN, NOW_TOKEN_FACTORY_URL } = process.env;
-    let token;
-
-    if (NOW_TOKEN) {
-      token = NOW_TOKEN;
-    } else if (NOW_TOKEN_FACTORY_URL) {
-      const resp = await fetch(NOW_TOKEN_FACTORY_URL);
-      token = (await resp.json()).token;
-    } else {
-      const authJsonPath = path.join(homedir(), '.now/auth.json');
-      token = require(authJsonPath).token;
+    currentCount += 1;
+    if (!token || currentCount === MAX_COUNT) {
+      currentCount = 0;
+      if (NOW_TOKEN) {
+        token = NOW_TOKEN;
+      } else if (NOW_TOKEN_FACTORY_URL) {
+        const resp = await fetch(NOW_TOKEN_FACTORY_URL);
+        token = (await resp.json()).token;
+      } else {
+        const authJsonPath = path.join(homedir(), '.now/auth.json');
+        token = require(authJsonPath).token;
+      }
     }
 
     opts.headers.Authorization = `Bearer ${token}`;
