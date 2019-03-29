@@ -18,7 +18,7 @@
     "lint": "eslint .",
     "codecov": "codecov",
     "test": "jest --runInBand --verbose",
-    "test-coverage": "jest --coverage --globals \"{\\\"coverage\\\":true}\" && codecov",
+    "test-coverage": "jest --runInBand --verbose --coverage --globals \"{\\\"coverage\\\":true}\" && codecov",
     "lint-staged": "lint-staged"
   },
   "pre-commit": "lint-staged",
