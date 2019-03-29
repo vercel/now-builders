@@ -27,10 +27,7 @@ jobs:
           name: Linting
           command: yarn lint
       - run:
-          name: Tests
-          command: yarn test
-      - run:
-          name: Coverage
+          name: Tests and Coverage
           command: yarn test-coverage
       - run:
           name: Potentially save npm token
