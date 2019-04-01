@@ -9,11 +9,11 @@ interface FileBlobOptions {
 
 interface FromStreamOptions {
   mode?: number;
-  stream: NodeJS.ReadStream;
+  stream: NodeJS.ReadableStream;
 }
 
 export default class FileBlob implements File {
-  public type: string;
+  public type: 'FileBlob';
   public mode: number;
   public data: string | Buffer;
 
