@@ -10,7 +10,8 @@ const downloadAndInstallPip = require('./download-and-install-pip');
 async function pipInstall(pipPath, workDir, ...args) {
   console.log(`running "pip install --target ${workDir} ${args.join(' ')}"...`);
   try {
-    await execa(pipPath, ['install', '--target', '--upgrade', '.', ...args], {
+    await execa(pipPath, ['install', '--target', '.', ...args], {
+      cwd: workDir,
       stdio: 'inherit',
     });
   } catch (err) {
@@ -19,15 +20,44 @@ async function pipInstall(pipPath, workDir, ...args) {
   }
 }
 
+async function pipInstallUser(pipPath, ...args) {
+  console.log(`running "pip install --user ${args.join(' ')}"...`);
+  try {
+    await execa(pipPath, ['install', '--user', ...args], {
+      stdio: 'inherit',
+    });
+  } catch (err) {
+    console.log(`failed to run "pip install --user ${args.join(' ')}"`);
+    throw err;
+  }
+}
+
+async function pipenvInstall(pyUserBase, srcDir) {
+  console.log('running "pipenv_to_requirements -f');
+  process.chdir(srcDir);
+  try {
+    await execa(
+      path.join(pyUserBase, 'bin', 'pipenv_to_requirements'),
+      ['-f'],
+      { stdio: 'inherit' },
+    );
+  } catch (err) {
+    console.log('failed to run "pipenv_to_requirements -f"');
+    throw err;
+  }
+}
+
 exports.config = {
   maxLambdaSize: '5mb',
 };
 
-exports.build = async ({ workDir, files, entrypoint }) => {
+exports.build = async ({
+  workPath, files, entrypoint, config,
+}) => {
   console.log('downloading files...');
 
   // eslint-disable-next-line no-param-reassign
-  files = await download(files, workDir);
+  files = await download(files, workPath);
 
   // this is where `pip` will be installed to
   // we need it to be under `/tmp`
@@ -35,6 +65,8 @@ exports.build = async ({ workDir, files, entrypoint }) => {
   process.env.PYTHONUSERBASE = pyUserBase;
 
   const pipPath = await downloadAndInstallPip();
+
+  await pipInstall(pipPath, workPath, 'werkzeug');
 
   try {
     // See: https://stackoverflow.com/a/44728772/376773
@@ -44,34 +76,56 @@ exports.build = async ({ workDir, files, entrypoint }) => {
     //
     // distutils.errors.DistutilsOptionError: must supply either home
     // or prefix/exec-prefix -- not both
-    const setupCfg = path.join(workDir, 'setup.cfg');
+    const setupCfg = path.join(workPath, 'setup.cfg');
     await writeFile(setupCfg, '[install]\nprefix=\n');
   } catch (err) {
     console.log('failed to create "setup.cfg" file');
     throw err;
   }
 
-  await pipInstall(pipPath, workDir, 'requests');
+  await pipInstall(pipPath, workPath, 'requests');
 
   const entryDirectory = path.dirname(entrypoint);
   const requirementsTxt = path.join(entryDirectory, 'requirements.txt');
+
+  if (files['Pipfile.lock']) {
+    console.log('found "Pipfile.lock"');
+
+    // Install pipenv.
+    await pipInstallUser(pipPath, ' pipenv_to_requirements');
+
+    await pipenvInstall(pyUserBase, workPath);
+  }
+
+  // eslint-disable-next-line no-param-reassign
+  files = await glob('**', workPath);
 
   if (files[requirementsTxt]) {
     console.log('found local "requirements.txt"');
 
     const requirementsTxtPath = files[requirementsTxt].fsPath;
-    await pipInstall(pipPath, workDir, '-r', requirementsTxtPath);
+    await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   } else if (files['requirements.txt']) {
     console.log('found global "requirements.txt"');
 
     const requirementsTxtPath = files['requirements.txt'].fsPath;
-    await pipInstall(pipPath, workDir, '-r', requirementsTxtPath);
+    await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   }
 
-  const originalNowHandlerPyContents = await readFile(
-    path.join(__dirname, 'now_handler.py'),
-    'utf8',
-  );
+  let originalNowHandlerPyContents;
+
+  if (config && config.wsgi === true) {
+    originalNowHandlerPyContents = await readFile(
+      path.join(__dirname, 'now_handler_wsgi.py'),
+      'utf8',
+    );
+  } else {
+    originalNowHandlerPyContents = await readFile(
+      path.join(__dirname, 'now_handler.py'),
+      'utf8',
+    );
+  }
+
   // will be used on `from $here import handler`
   // for example, `from api.users import handler`
   console.log('entrypoint is', entrypoint);
@@ -88,12 +142,12 @@ exports.build = async ({ workDir, files, entrypoint }) => {
   const nowHandlerPyFilename = 'now__handler__python';
 
   await writeFile(
-    path.join(workDir, `${nowHandlerPyFilename}.py`),
+    path.join(workPath, `${nowHandlerPyFilename}.py`),
     nowHandlerPyContents,
   );
 
   const lambda = await createLambda({
-    files: await glob('**', workDir),
+    files: await glob('**', workPath),
     handler: `${nowHandlerPyFilename}.now_handler`,
     runtime: 'python3.6',
     environment: {},

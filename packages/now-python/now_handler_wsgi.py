@@ -26,7 +26,7 @@ from __NOW_HANDLER_FILENAME import app
 
 def now_handler(event, context):
     payload = json.loads(event['body'])
-    
+
     headers = Headers(payload.get('headers', {}))
 
     body = payload.get('body', '')
@@ -35,9 +35,9 @@ def now_handler(event, context):
             body = base64.b64decode(body)
     if isinstance(body, string_types):
         body = to_bytes(body, charset='utf-8')
-    
+
     urlinfo = urlparse(payload['path'])
-    
+
     environ = {
         'CONTENT_LENGTH': str(len(body)),
         'CONTENT_TYPE': headers.get('content-type', ''),
@@ -70,7 +70,7 @@ def now_handler(event, context):
         key = 'HTTP_' + key.upper().replace('-', '_')
         if key not in ('HTTP_CONTENT_TYPE', 'HTTP_CONTENT_LENGTH'):
             environ[key] = value
-    
+
     response = Response.from_app(app, environ)
 
     return_dict = {
