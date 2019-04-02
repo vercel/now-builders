@@ -5,11 +5,19 @@ import { spawn, SpawnOptions } from 'child_process';
 
 function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOptions = {}) {
   return new Promise<void>((resolve, reject) => {
-    const child = spawn(command, args, { stdio: 'ignore', cwd, ...opts });
+    const stderrLogs: Buffer[] = []
+    const child = spawn(command, args, { cwd, ...opts });
+
+    child.stderr.on('data', data => stderrLogs.push(data));
     child.on('error', reject);
-    child.on('close', (code, signal) => (code !== 0
-      ? reject(new Error(`Exited with ${code || signal}`))
-      : resolve()));
+    child.on('close', (code, signal) => {
+      if (code === 0) {
+        return resolve()
+      }
+
+      const errorLogs = stderrLogs.map(line => line.toString()).join('');
+      reject(new Error(`Exited with ${code || signal}\n${errorLogs}`));
+    });
   });
 }
 
