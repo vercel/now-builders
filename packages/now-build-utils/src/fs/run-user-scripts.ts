@@ -16,7 +16,7 @@ function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOpt
       }
 
       const errorLogs = stderrLogs.map(line => line.toString()).join('');
-      reject(new Error(`Exited with ${code || signal}\n${errorLogs}`));
+      reject(new Error(`Exited with ${code || signal}\n\n${errorLogs}`));
     });
   });
 }
