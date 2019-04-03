@@ -36,12 +36,11 @@ async function pipInstallUser(pipPath, ...args) {
 
 async function pipenvInstall(pyUserBase, srcDir) {
   console.log('running "pipenv_to_requirements -f');
-  process.chdir(srcDir);
   try {
     await execa(
       path.join(pyUserBase, 'bin', 'pipenv_to_requirements'),
       ['-f'],
-      { stdio: 'inherit' },
+      { cwd: srcDir, stdio: 'inherit' },
     );
   } catch (err) {
     console.log('failed to run "pipenv_to_requirements -f"');
