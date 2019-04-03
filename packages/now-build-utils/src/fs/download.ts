@@ -8,16 +8,16 @@ export interface DownloadedFiles {
 
 const CHUNK_SIZE = 50;
 
-function chunkArray(array: Array<any>, chunkSize: number){
-  const chunks = [];
-  while (array.length) {
+function chunkFilenames(array: string[], chunkSize: number): Array<string[]> {
+  const chunks: string[][] = [];
+  while (array.length > 0) {
     chunks.push(array.splice(0, chunkSize));
   }
   return chunks;
 }
 
-function inSequence(tasks: Array<any>) {
-  return tasks.reduce((promise, task) => promise.then(task), Promise.resolve())
+function inSequence(tasks: Array<Promise<void[]>>) {
+  return tasks.reduce((promise: Promise<any>, task: any) => promise.then(task), Promise.resolve())
 }
 
 async function downloadFile(file: File, fsPath: string): Promise<FileFsRef> {
@@ -29,11 +29,11 @@ async function downloadFile(file: File, fsPath: string): Promise<FileFsRef> {
 export default async function download(files: Files, basePath: string): Promise<DownloadedFiles> {
   const files2: DownloadedFiles = {};
 
-  const filenamesChunks = chunkArray(Object.keys(files), CHUNK_SIZE);
+  const filenamesChunks = chunkFilenames(Object.keys(files), CHUNK_SIZE);
 
-  const tasks = filenamesChunks.map(filenames => () => {
+  const tasks: any[] = filenamesChunks.map(filenames => (): Promise<void[]> => {
     return Promise.all(
-      filenames.map(async (name) => {
+      filenames.map(async (name: string) => {
         const file = files[name];
         const fsPath = path.join(basePath, name);
         files2[name] = await downloadFile(file, fsPath);
