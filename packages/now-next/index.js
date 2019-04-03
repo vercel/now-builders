@@ -9,7 +9,6 @@ const {
   runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts'); // eslint-disable-line import/no-extraneous-dependencies
 const glob = require('@now/build-utils/fs/glob'); // eslint-disable-line import/no-extraneous-dependencies
-const getWritableDirectory = require('@now/build-utils/fs/get-writable-directory'); // eslint-disable-line import/no-extraneous-dependencies
 const {
   readFile,
   writeFile,
@@ -424,22 +423,18 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
 };
 
 exports.subscribe = async ({ entrypoint, files }) => {
-  const srcDir = await getWritableDirectory();
-  await download(files, srcDir);
-
   const entryDirectory = path.dirname(entrypoint);
-  const pagesPath = path.join(srcDir, entryDirectory, 'pages');
-
-  const pages = await glob('**', pagesPath);
-
-  await removePath(srcDir);
+  const pageFiles = includeOnlyEntryDirectory(
+    files,
+    entryDirectory === '.' ? 'pages' : path.join(entryDirectory, 'pages'),
+  );
 
   return [
-    '_next/**',
+    entryDirectory === '.' ? '_next/**' : path.join(entryDirectory, '_next/**'),
     // List all pages without their extensions
-    ...Object.keys(pages).map(page => page
+    ...Object.keys(pageFiles).map(page => page
       .split('.')
       .slice(0, -1)
       .join('.')),
-  ].map(v => path.join(entryDirectory, v));
+  ];
 };
