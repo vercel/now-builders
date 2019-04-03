@@ -32,10 +32,17 @@ const {
 /** @typedef { import('@now/build-utils/fs/download').DownloadedFiles } DownloadedFiles */
 
 /**
+ * @typedef {Object} BuildParamsMeta
+ * @property {boolean} [isDev] - Files object
+ * @property {?string} [requestPath] - Entrypoint specified for the builder
+ */
+
+/**
  * @typedef {Object} BuildParamsType
  * @property {Files} files - Files object
  * @property {string} entrypoint - Entrypoint specified for the builder
  * @property {string} workPath - Working directory for this build
+ * @property {BuildParamsMeta} [meta] - Various meta settings
  */
 
 /**
@@ -115,7 +122,9 @@ exports.config = {
  * @param {BuildParamsType} buildParams
  * @returns {Promise<Files>}
  */
-exports.build = async ({ files, workPath, entrypoint }) => {
+exports.build = async ({
+  files, workPath, entrypoint, meta,
+}) => {
   validateEntrypoint(entrypoint);
 
   console.log('downloading user files...');
@@ -179,6 +188,13 @@ exports.build = async ({ files, workPath, entrypoint }) => {
     console.log('found NPM_AUTH_TOKEN in environment, creating .npmrc');
     await writeNpmRc(entryPath, process.env.NPM_AUTH_TOKEN);
   }
+
+  if (meta && meta.isDev) {
+    // eslint-disable-next-line no-underscore-dangle
+    process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
+  }
+
+  // TODO: set __NEXT_BUILDER_EXPERIMENTAL_PAGE
 
   console.log('installing dependencies...');
   await runNpmInstall(entryPath, ['--prefer-offline']);
