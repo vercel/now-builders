@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 const execa = require('execa');
 const { createWriteStream } = require('fs');
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { getWritableDirectory } = require('@now/build-utils');
+const { getWriteableDirectory } = require('@now/build-utils');
 
 const url = 'https://bootstrap.pypa.io/get-pip.py';
 
@@ -16,7 +16,7 @@ async function downloadGetPipScript() {
     throw new Error(`Could not download "get-pip.py" from "${url}"`);
   }
 
-  const dir = await getWritableDirectory();
+  const dir = await getWriteableDirectory();
   const filePath = join(dir, 'get-pip.py');
   const writeStream = createWriteStream(filePath);
 

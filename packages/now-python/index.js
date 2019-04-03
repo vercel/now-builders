@@ -2,7 +2,7 @@ const path = require('path');
 const execa = require('execa');
 const { readFile, writeFile } = require('fs.promised');
 const {
-  getWritableDirectory,
+  getWriteableDirectory,
   download,
   glob,
   createLambda,
@@ -62,7 +62,7 @@ exports.build = async ({
 
   // this is where `pip` will be installed to
   // we need it to be under `/tmp`
-  const pyUserBase = await getWritableDirectory();
+  const pyUserBase = await getWriteableDirectory();
   process.env.PYTHONUSERBASE = pyUserBase;
 
   const pipPath = await downloadAndInstallPip();
