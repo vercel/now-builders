@@ -12,7 +12,7 @@ const downloadAndInstallPip = require('./download-and-install-pip');
 async function pipInstall(pipPath, workDir, ...args) {
   console.log(`running "pip install --target ${workDir} ${args.join(' ')}"...`);
   try {
-    await execa(pipPath, ['install', '--target', '.', ...args], {
+    await execa(pipPath, ['install', '--target', '.', '--upgrade', ...args], {
       cwd: workDir,
       stdio: 'inherit',
     });
