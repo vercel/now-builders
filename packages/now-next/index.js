@@ -3,6 +3,7 @@ const download = require('@now/build-utils/fs/download'); // eslint-disable-line
 const FileFsRef = require('@now/build-utils/file-fs-ref'); // eslint-disable-line import/no-extraneous-dependencies
 const FileBlob = require('@now/build-utils/file-blob'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
+const url = require('url');
 const {
   runNpmInstall,
   runPackageJsonScript,
@@ -193,8 +194,11 @@ exports.build = async ({
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
   }
-
-  // TODO: set __NEXT_BUILDER_EXPERIMENTAL_PAGE
+  if (meta && meta.requestPath) {
+    const { pathname } = url.parse(meta.requestPath);
+    // eslint-disable-next-line no-underscore-dangle
+    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = pathname;
+  }
 
   console.log('installing dependencies...');
   await runNpmInstall(entryPath, ['--prefer-offline']);
