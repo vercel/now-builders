@@ -441,5 +441,5 @@ exports.subscribe = async ({ entrypoint, files }) => {
       .split('.')
       .slice(0, -1)
       .join('.')),
-  ];
+  ].map(v => path.join(entryDirectory, v));
 };
