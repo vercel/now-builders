@@ -124,7 +124,7 @@ exports.config = {
  * @returns {Promise<Files>}
  */
 exports.build = async ({
-  files, workPath, entrypoint, meta,
+  files, workPath, entrypoint, meta = {},
 }) => {
   validateEntrypoint(entrypoint);
 
@@ -190,11 +190,11 @@ exports.build = async ({
     await writeNpmRc(entryPath, process.env.NPM_AUTH_TOKEN);
   }
 
-  if (meta && meta.isDev) {
+  if (meta.isDev) {
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
   }
-  if (meta && meta.requestPath) {
+  if (meta.requestPath) {
     const { pathname } = url.parse(meta.requestPath);
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = pathname;
