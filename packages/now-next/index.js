@@ -443,7 +443,7 @@ exports.subscribe = async ({ entrypoint, files }) => {
   const entryDirectory = path.dirname(entrypoint);
   const pageFiles = includeOnlyEntryDirectory(
     files,
-    entryDirectory === '.' ? 'pages' : path.join(entryDirectory, 'pages'),
+    path.join(entryDirectory, 'pages'),
   );
 
   return [
