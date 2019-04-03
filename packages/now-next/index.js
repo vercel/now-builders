@@ -190,6 +190,18 @@ exports.build = async ({
     await writeNpmRc(entryPath, process.env.NPM_AUTH_TOKEN);
   }
 
+  if (
+    (meta.isDev || meta.requestPath)
+    && !(
+      semver.satisfies(nextVersion, '>=8.0.5-canary.2')
+      || nextVersion === 'canary'
+    )
+  ) {
+    throw new Error(
+      '`now dev` can only be used with Next.js >=8.0.5-canary.2!',
+    );
+  }
+
   if (meta.isDev) {
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
