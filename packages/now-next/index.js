@@ -431,6 +431,9 @@ exports.subscribe = async ({ entrypoint, files }) => {
   const pagesPath = path.join(srcDir, entryDirectory, 'pages');
 
   const pages = await glob('**', pagesPath);
+
+  await removePath(srcDir);
+
   return [
     '_next/**',
     // List all pages without their extensions
