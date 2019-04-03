@@ -209,7 +209,7 @@ exports.build = async ({
   if (meta.requestPath) {
     const { pathname } = url.parse(meta.requestPath);
     const assetPath = pathname.match(
-      /^\/_next\/static\/[^/]+\/pages\/(.+)\.js$$/,
+      /^\/_next\/static\/[^/]+\/pages\/(.+)\.js$/,
     );
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = assetPath
