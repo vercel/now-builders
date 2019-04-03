@@ -208,8 +208,11 @@ exports.build = async ({
   }
   if (meta.requestPath) {
     const { pathname } = url.parse(meta.requestPath);
+    const assetPath = pathname.match(/_next\/static\/[^/]+\/pages(\/.+)$/);
     // eslint-disable-next-line no-underscore-dangle
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = pathname;
+    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = assetPath
+      ? assetPath[1]
+      : pathname;
   }
 
   console.log('installing dependencies...');
