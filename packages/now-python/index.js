@@ -52,9 +52,7 @@ exports.config = {
   maxLambdaSize: '5mb',
 };
 
-exports.build = async ({
-  workPath, files, entrypoint, config,
-}) => {
+exports.build = async ({ workPath, files, entrypoint }) => {
   console.log('downloading files...');
 
   // eslint-disable-next-line no-param-reassign
@@ -113,19 +111,8 @@ exports.build = async ({
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   }
 
-  let originalNowHandlerPyContents;
-
-  if (config && config.wsgi === true) {
-    originalNowHandlerPyContents = await readFile(
-      path.join(__dirname, 'now_handler_wsgi.py'),
-      'utf8',
-    );
-  } else {
-    originalNowHandlerPyContents = await readFile(
-      path.join(__dirname, 'now_handler.py'),
-      'utf8',
-    );
-  }
+  const originalPyPath = path.join(__dirname, 'now_init.py');
+  const originalNowHandlerPyContents = await readFile(originalPyPath, 'utf8');
 
   // will be used on `from $here import handler`
   // for example, `from api.users import handler`
