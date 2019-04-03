@@ -450,6 +450,7 @@ exports.subscribe = async ({ entrypoint, files }) => {
     path.join(entryDirectory, '_next/**'),
     // List all pages without their extensions
     ...Object.keys(pageFiles).map(page => page
+      .replace(/^pages\//i, '')
       .split('.')
       .slice(0, -1)
       .join('.')),
