@@ -121,7 +121,7 @@ exports.build = async ({ workPath, files, entrypoint }) => {
     .replace(/\//g, '.')
     .replace(/\.py$/, '');
   const nowHandlerPyContents = originalNowHandlerPyContents.replace(
-    '__NOW_HANDLER_FILENAME',
+    /__NOW_HANDLER_FILENAME/g,
     userHandlerFilePath,
   );
 
