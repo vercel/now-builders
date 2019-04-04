@@ -1,7 +1,8 @@
 {
   "name": "@now/python",
   "version": "0.0.42-canary.2",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -9,11 +10,16 @@
     "directory": "packages/now-python"
   },
   "scripts": {
-    "test": "jest"
+    "build": "tsc",
+    "test": "tsc && jest",
+    "prepublish": "tsc"
   },
   "dependencies": {
     "execa": "^1.0.0",
     "fs.promised": "^3.0.0",
     "node-fetch": "^2.2.0"
+  },
+  "devDependencies": {
+    "typescript": "3.3.4000"
   }
 }
