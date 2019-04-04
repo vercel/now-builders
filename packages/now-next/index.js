@@ -197,8 +197,10 @@ exports.build = async ({
     await writeNpmRc(entryPath, process.env.NPM_AUTH_TOKEN);
   }
 
-  const isUpdated = (v) => {
+  const isUpdated = (version) => {
+    let v = version;
     if (v === 'canary') return true;
+    if (v.charAt(0) === '^' || v.charAt(0) === '~') v = v.substr(1);
 
     try {
       return semver.satisfies(v, '>=8.0.5-canary.8', {
