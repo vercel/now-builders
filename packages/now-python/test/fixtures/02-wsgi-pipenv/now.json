@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.py", "use": "@now/python", "config": { "wsgi": true } }
+    { "src": "index.py", "use": "@now/python" }
   ],
   "probes": [
     { "path": "/", "mustContain": "wsgi:RANDOMNESS_PLACEHOLDER" }

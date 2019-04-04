@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-cowpy = "*"
+flask = "*"
 
 [requires]
 python_version = "3.7"
