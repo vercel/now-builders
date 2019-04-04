@@ -19,6 +19,7 @@ const {
   pathExists,
 } = require('fs-extra');
 const semver = require('semver');
+const recursiveDelete = require('./recursive-delete');
 const nextLegacyVersions = require('./legacy-versions');
 const {
   excludeFiles,
@@ -132,11 +133,16 @@ exports.build = async ({
   const entryDirectory = path.dirname(entrypoint);
   await download(files, workPath);
   const entryPath = path.join(workPath, entryDirectory);
+  const dotNext = path.join(entryPath, '.next');
 
-  if (await pathExists(path.join(entryPath, '.next'))) {
-    console.warn(
-      'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
-    );
+  if (await pathExists(dotNext)) {
+    if (meta.isDev) {
+      recursiveDelete(dotNext);
+    } else {
+      console.warn(
+        'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
+      );
+    }
   }
 
   const pkg = await readPackageJson(entryPath);
@@ -214,7 +220,9 @@ exports.build = async ({
   }
   if (meta.requestPath) {
     const { pathname } = url.parse(meta.requestPath);
-    const assetPath = pathname.match(/^_next\/static\/[^/]+\/pages\/(.+)\.js$/);
+    const assetPath = pathname.match(
+      /^\/?_next\/static\/[^/]+\/pages\/(.+)\.js$/,
+    );
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = assetPath
       ? assetPath[1]
@@ -451,7 +459,7 @@ exports.subscribe = async ({ entrypoint, files }) => {
   );
 
   return [
-    path.join(entryDirectory, '_next/**'),
+    path.join(entryDirectory, '_next/static/**'),
     // List all pages without their extensions
     ...Object.keys(pageFiles).map(page => page
       .replace(/^pages\//i, '')
