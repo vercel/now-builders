@@ -136,7 +136,7 @@ exports.build = async ({
 
   if (await pathExists(dotNext)) {
     if (meta.isDev) {
-      removePath(dotNext).catch((e) => {
+      await removePath(dotNext).catch((e) => {
         if (e.code !== 'ENOENT') throw e;
       });
     } else {
