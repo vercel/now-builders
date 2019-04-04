@@ -85,14 +85,10 @@ async function writeNpmRc(workPath, token) {
   );
 }
 
-function getNextVersion(packageJson) {
-  let nextVersion;
-  if (packageJson.dependencies && packageJson.dependencies.next) {
-    nextVersion = packageJson.dependencies.next;
-  } else if (packageJson.devDependencies && packageJson.devDependencies.next) {
-    nextVersion = packageJson.devDependencies.next;
-  }
-  return nextVersion;
+function getNextVersion() {
+  const nextPackage = require('next/package.json');
+
+  return nextPackage.version;
 }
 
 function isLegacyNext(nextVersion) {
@@ -148,7 +144,7 @@ exports.build = async ({
 
   const pkg = await readPackageJson(entryPath);
 
-  const nextVersion = getNextVersion(pkg);
+  const nextVersion = getNextVersion();
   if (!nextVersion) {
     throw new Error(
       'No Next.js version could be detected in "package.json". Make sure `"next"` is installed in "dependencies" or "devDependencies"',
@@ -197,10 +193,8 @@ exports.build = async ({
     await writeNpmRc(entryPath, process.env.NPM_AUTH_TOKEN);
   }
 
-  const isUpdated = (version) => {
-    let v = version;
+  const isUpdated = (v) => {
     if (v === 'canary') return true;
-    if (v.charAt(0) === '^' || v.charAt(0) === '~') v = v.substr(1);
 
     try {
       return semver.satisfies(v, '>=8.0.5-canary.8', {
