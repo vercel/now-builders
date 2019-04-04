@@ -2,6 +2,7 @@ const { createLambda } = require('@now/build-utils/lambda'); // eslint-disable-l
 const download = require('@now/build-utils/fs/download'); // eslint-disable-line import/no-extraneous-dependencies
 const FileFsRef = require('@now/build-utils/file-fs-ref'); // eslint-disable-line import/no-extraneous-dependencies
 const FileBlob = require('@now/build-utils/file-blob'); // eslint-disable-line import/no-extraneous-dependencies
+const resolveFrom = require('resolve-from');
 const path = require('path');
 const url = require('url');
 const {
@@ -86,7 +87,7 @@ async function writeNpmRc(workPath, token) {
 }
 
 function getNextVersion(userPath) {
-  const nextPackage = require(`${userPath}/node_modules/next/package.json`);
+  const nextPackage = resolveFrom(userPath, 'next/package.json');
 
   return nextPackage.version;
 }
