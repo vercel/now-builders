@@ -19,7 +19,6 @@ const {
   pathExists,
 } = require('fs-extra');
 const semver = require('semver');
-const recursiveDelete = require('./recursive-delete');
 const nextLegacyVersions = require('./legacy-versions');
 const {
   excludeFiles,
@@ -137,7 +136,9 @@ exports.build = async ({
 
   if (await pathExists(dotNext)) {
     if (meta.isDev) {
-      recursiveDelete(dotNext);
+      removePath(dotNext).catch((e) => {
+        if (e.code !== 'ENOENT') throw e;
+      });
     } else {
       console.warn(
         'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
