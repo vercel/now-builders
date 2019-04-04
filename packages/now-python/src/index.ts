@@ -111,7 +111,7 @@ exports.build = async ({ workPath, files, entrypoint }) => {
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   }
 
-  const originalPyPath = path.join(__dirname, 'now_init.py');
+  const originalPyPath = path.join(__dirname, '..', 'now_init.py');
   const originalNowHandlerPyContents = await readFile(originalPyPath, 'utf8');
 
   // will be used on `from $here import handler`
