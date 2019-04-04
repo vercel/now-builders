@@ -85,8 +85,8 @@ async function writeNpmRc(workPath, token) {
   );
 }
 
-function getNextVersion() {
-  const nextPackage = require('next/package.json');
+function getNextVersion(userPath) {
+  const nextPackage = require(`${userPath}/node_modules/next/package.json`);
 
   return nextPackage.version;
 }
@@ -144,7 +144,7 @@ exports.build = async ({
 
   const pkg = await readPackageJson(entryPath);
 
-  const nextVersion = getNextVersion();
+  const nextVersion = getNextVersion(entryPath);
   if (!nextVersion) {
     throw new Error(
       'No Next.js version could be detected in "package.json". Make sure `"next"` is installed in "dependencies" or "devDependencies"',
