@@ -1,15 +1,19 @@
-const path = require('path');
-const execa = require('execa');
-const { readFile, writeFile } = require('fs.promised');
-const {
+import { join, dirname } from 'path';
+import execa from 'execa';
+import fs from 'fs';
+import { promisify } from 'util';
+const readFile = promisify(fs.readFile);
+const writeFile = promisify(fs.writeFile);
+import {
   getWriteableDirectory,
   download,
   glob,
   createLambda,
-} = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
-const downloadAndInstallPip = require('./download-and-install-pip');
+  BuildOptions,
+} from '@now/build-utils';
+import { downloadAndInstallPip } from './download-and-install-pip';
 
-async function pipInstall(pipPath, workDir, ...args) {
+async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
   console.log(`running "pip install --target ${workDir} ${args.join(' ')}"...`);
   try {
     await execa(pipPath, ['install', '--target', '.', '--upgrade', ...args], {
@@ -22,7 +26,7 @@ async function pipInstall(pipPath, workDir, ...args) {
   }
 }
 
-async function pipInstallUser(pipPath, ...args) {
+async function pipInstallUser(pipPath: string, ...args: string[]) {
   console.log(`running "pip install --user ${args.join(' ')}"...`);
   try {
     await execa(pipPath, ['install', '--user', ...args], {
@@ -34,11 +38,11 @@ async function pipInstallUser(pipPath, ...args) {
   }
 }
 
-async function pipenvInstall(pyUserBase, srcDir) {
+async function pipenvInstall(pyUserBase: string, srcDir: string) {
   console.log('running "pipenv_to_requirements -f');
   try {
     await execa(
-      path.join(pyUserBase, 'bin', 'pipenv_to_requirements'),
+      join(pyUserBase, 'bin', 'pipenv_to_requirements'),
       ['-f'],
       { cwd: srcDir, stdio: 'inherit' },
     );
@@ -48,11 +52,11 @@ async function pipenvInstall(pyUserBase, srcDir) {
   }
 }
 
-exports.config = {
+export const config = {
   maxLambdaSize: '5mb',
 };
 
-exports.build = async ({ workPath, files, entrypoint }) => {
+export const build = async ({ workPath, files, entrypoint }: BuildOptions) => {
   console.log('downloading files...');
 
   // eslint-disable-next-line no-param-reassign
@@ -75,7 +79,7 @@ exports.build = async ({ workPath, files, entrypoint }) => {
     //
     // distutils.errors.DistutilsOptionError: must supply either home
     // or prefix/exec-prefix -- not both
-    const setupCfg = path.join(workPath, 'setup.cfg');
+    const setupCfg = join(workPath, 'setup.cfg');
     await writeFile(setupCfg, '[install]\nprefix=\n');
   } catch (err) {
     console.log('failed to create "setup.cfg" file');
@@ -84,8 +88,8 @@ exports.build = async ({ workPath, files, entrypoint }) => {
 
   await pipInstall(pipPath, workPath, 'requests');
 
-  const entryDirectory = path.dirname(entrypoint);
-  const requirementsTxt = path.join(entryDirectory, 'requirements.txt');
+  const entryDirectory = dirname(entrypoint);
+  const requirementsTxt = join(entryDirectory, 'requirements.txt');
 
   if (files['Pipfile.lock']) {
     console.log('found "Pipfile.lock"');
@@ -96,22 +100,21 @@ exports.build = async ({ workPath, files, entrypoint }) => {
     await pipenvInstall(pyUserBase, workPath);
   }
 
-  // eslint-disable-next-line no-param-reassign
-  files = await glob('**', workPath);
+  const fsFiles = await glob('**', workPath);
 
-  if (files[requirementsTxt]) {
+  if (fsFiles[requirementsTxt]) {
     console.log('found local "requirements.txt"');
 
-    const requirementsTxtPath = files[requirementsTxt].fsPath;
+    const requirementsTxtPath = fsFiles[requirementsTxt].fsPath;
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
-  } else if (files['requirements.txt']) {
+  } else if (fsFiles['requirements.txt']) {
     console.log('found global "requirements.txt"');
 
-    const requirementsTxtPath = files['requirements.txt'].fsPath;
+    const requirementsTxtPath = fsFiles['requirements.txt'].fsPath;
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   }
 
-  const originalPyPath = path.join(__dirname, '..', 'now_init.py');
+  const originalPyPath = join(__dirname, '..', 'now_init.py');
   const originalNowHandlerPyContents = await readFile(originalPyPath, 'utf8');
 
   // will be used on `from $here import handler`
@@ -130,12 +133,12 @@ exports.build = async ({ workPath, files, entrypoint }) => {
   const nowHandlerPyFilename = 'now__handler__python';
 
   await writeFile(
-    path.join(workPath, `${nowHandlerPyFilename}.py`),
+    join(workPath, `${nowHandlerPyFilename}.py`),
     nowHandlerPyContents,
   );
 
   const lambda = await createLambda({
-    files: await glob('**', workPath),
+    files: fsFiles,
     handler: `${nowHandlerPyFilename}.now_handler`,
     runtime: 'python3.6',
     environment: {},
