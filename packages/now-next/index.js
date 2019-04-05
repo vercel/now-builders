@@ -133,10 +133,14 @@ exports.build = async ({
   const entryDirectory = path.dirname(entrypoint);
   await download(files, workPath);
   const entryPath = path.join(workPath, entryDirectory);
-  const dotNext = path.join(entryPath, '.next');
 
+  const pkg = await readPackageJson(entryPath);
+  const flyingShuttle = Boolean(pkg.next) && Boolean(pkg.next.flyingShuttle);
+
+  const dotNext = path.join(entryPath, '.next');
   if (await pathExists(dotNext)) {
-    if (meta.isDev) {
+    // TODO: remove branch for `flyingShuttle` and make it an error
+    if (flyingShuttle || meta.isDev) {
       await removePath(dotNext).catch((e) => {
         if (e.code !== 'ENOENT') throw e;
       });
@@ -146,8 +150,6 @@ exports.build = async ({
       );
     }
   }
-
-  const pkg = await readPackageJson(entryPath);
 
   let nextVersion = getNextVersion(pkg);
   if (!nextVersion) {
