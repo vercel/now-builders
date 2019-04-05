@@ -1,8 +1,7 @@
 {
   "name": "@now/python",
   "version": "0.0.42-canary.2",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "index.js",
   "license": "MIT",
   "repository": {
     "type": "git",

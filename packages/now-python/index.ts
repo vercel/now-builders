@@ -135,7 +135,7 @@ export const build = async ({ workPath, files, entrypoint }: BuildOptions) => {
   );
 
   const lambda = await createLambda({
-    files: fsFiles,
+    files: await glob('**', workPath),
     handler: `${nowHandlerPyFilename}.now_handler`,
     runtime: 'python3.6',
     environment: {},
