@@ -14,14 +14,15 @@ import {
 import { downloadAndInstallPip } from './download-and-install-pip';
 
 async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
-  console.log(`running "pip install --target ${workDir} ${args.join(' ')}"...`);
+  const target = '.';
+  console.log(`running "pip install --target ${target} --upgrade ${args.join(' ')}"...`);
   try {
-    await execa(pipPath, ['install', '--target', '.', '--upgrade', ...args], {
+    await execa(pipPath, ['install', '--target', target, '--upgrade', ...args], {
       cwd: workDir,
       stdio: 'inherit',
     });
   } catch (err) {
-    console.log(`failed to run "pip install -t ${workDir} ${args.join(' ')}"`);
+    console.log(`failed to run "pip install --target ${target} --upgrade ${args.join(' ')}"...`);
     throw err;
   }
 }
@@ -66,10 +67,7 @@ export const build = async ({ workPath, files, entrypoint }: BuildOptions) => {
   // we need it to be under `/tmp`
   const pyUserBase = await getWriteableDirectory();
   process.env.PYTHONUSERBASE = pyUserBase;
-
   const pipPath = await downloadAndInstallPip();
-
-  await pipInstall(pipPath, workPath, 'werkzeug');
 
   try {
     // See: https://stackoverflow.com/a/44728772/376773
@@ -86,6 +84,7 @@ export const build = async ({ workPath, files, entrypoint }: BuildOptions) => {
     throw err;
   }
 
+  await pipInstall(pipPath, workPath, 'werkzeug');
   await pipInstall(pipPath, workPath, 'requests');
 
   const entryDirectory = dirname(entrypoint);
@@ -104,17 +103,15 @@ export const build = async ({ workPath, files, entrypoint }: BuildOptions) => {
 
   if (fsFiles[requirementsTxt]) {
     console.log('found local "requirements.txt"');
-
     const requirementsTxtPath = fsFiles[requirementsTxt].fsPath;
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   } else if (fsFiles['requirements.txt']) {
     console.log('found global "requirements.txt"');
-
     const requirementsTxtPath = fsFiles['requirements.txt'].fsPath;
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   }
 
-  const originalPyPath = join(__dirname, '..', 'now_init.py');
+  const originalPyPath = join(__dirname, 'now_init.py');
   const originalNowHandlerPyContents = await readFile(originalPyPath, 'utf8');
 
   // will be used on `from $here import handler`
