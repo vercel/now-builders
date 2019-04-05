@@ -236,6 +236,11 @@ exports.build = async ({
       : pathname;
   }
 
+  if (flyingShuttle) {
+    // eslint-disable-next-line no-underscore-dangle
+    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = '**';
+  }
+
   console.log('running user script...');
   await runPackageJsonScript(entryPath, 'now-build');
 
