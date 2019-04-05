@@ -437,6 +437,26 @@ async function getFlyingShuttleCache({ cachePath, entryDirectory }) {
     return noop;
   }
 
+  const buildIdPath = path.join(
+    entryDirectory,
+    '.next',
+    'static',
+    'HEAD_BUILD_ID',
+  );
+  const hasBuildId = await pathExists(buildIdPath);
+  if (!hasBuildId) {
+    console.debug('no build id');
+    return noop;
+  }
+
+  const shuttleBuildIdPath = path.join(
+    entryDirectory,
+    '.flying-shuttle',
+    'HEAD_BUILD_ID',
+  );
+  await mkdirp(path.dirname(shuttleBuildIdPath));
+  await copyPath(buildIdPath, shuttleBuildIdPath);
+
   const manifest = require(manifestPath);
   if (manifest.chunks && Object.keys(manifest.chunks).length) {
     console.debug('manifest has chunks, abort');
