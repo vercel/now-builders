@@ -149,7 +149,7 @@ exports.build = async ({
 
   const pkg = await readPackageJson(entryPath);
 
-  let nextVersion = getNextVersion(entryPath);
+  let nextVersion = getNextVersion(pkg);
   if (!nextVersion) {
     throw new Error(
       'No Next.js version could be detected in "package.json". Make sure `"next"` is installed in "dependencies" or "devDependencies"',
