@@ -422,6 +422,68 @@ exports.build = async ({
   return { ...lambdas, ...staticFiles, ...staticDirectoryFiles };
 };
 
+async function getFlyingShuttleCache({ cachePath, entryDirectory }) {
+  const noop = {};
+
+  const manifestPath = path.join(
+    entryDirectory,
+    '.next',
+    'compilation-modules.json',
+  );
+  const hasManifest = await pathExists(manifestPath);
+  if (!hasManifest) {
+    console.debug('no manifest');
+    return noop;
+  }
+
+  const manifest = require(manifestPath);
+  if (manifest.chunks && Object.keys(manifest.chunks).length) {
+    console.debug('manifest has chunks, abort');
+    return noop;
+  }
+  console.debug('manifest', manifest);
+
+  const previousManifestPath = path.join(
+    entryDirectory,
+    '.flying-shuttle',
+    'compilation-modules.json',
+  );
+  const hasPreviousManifest = await pathExists(previousManifestPath);
+  let previousManifest = { pages: {}, chunks: {}, hashes: {} };
+  if (hasPreviousManifest) {
+    previousManifest = require(previousManifestPath);
+  }
+  console.debug('previous manifest', previousManifest);
+
+  const updatedPages = Object.keys(manifest.pages).filter(
+    p => p !== '/_error' && p !== '/_app',
+  );
+  console.debug('updated pages', updatedPages);
+
+  const weavedManifest = {
+    pages: Object.assign(
+      previousManifest.pages,
+      updatedPages.reduce(
+        (acc, page) => Object.assign(acc, { [page]: manifest.pages[page] }),
+        {},
+      ),
+    ),
+    hashes: Object.assign(previousManifest.hashes, manifest.hashes),
+    chunks: {},
+  };
+  console.debug('weaved manifest', weavedManifest);
+  await mkdirp(path.dirname(previousManifestPath));
+  await writeFile(previousManifestPath, JSON.stringify(weavedManifest));
+
+  return glob(
+    path.join(
+      path.relative(cachePath, path.join(entryDirectory, '.flying-shuttle')),
+      '**',
+    ),
+    cachePath,
+  );
+}
+
 exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
   console.log('preparing cache ...');
 
@@ -444,6 +506,16 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
 
   console.log('copying build files for cache ...');
   await renamePath(entryPath, cacheEntryPath);
+  const flyingShuttle = Boolean(pkg.next) && Boolean(pkg.next.flyingShuttle);
+  let flyingShuttleCache = {};
+  if (flyingShuttle) {
+    console.log('[flying shuttle] weaving build caches ...');
+    flyingShuttleCache = await getFlyingShuttleCache({
+      cachePath,
+      entryDirectory: cacheEntryPath,
+    });
+    console.debug('flying shuttle cache: ', flyingShuttleCache);
+  }
 
   console.log('producing cache file manifest ...');
 
@@ -458,6 +530,7 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
     )),
     ...(await glob(path.join(cacheEntrypoint, 'package-lock.json'), cachePath)),
     ...(await glob(path.join(cacheEntrypoint, 'yarn.lock'), cachePath)),
+    ...flyingShuttleCache,
   };
 };
 
