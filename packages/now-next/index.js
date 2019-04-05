@@ -18,6 +18,7 @@ const {
   mkdirp,
   rename: renamePath,
   pathExists,
+  copy: copyPath,
 } = require('fs-extra');
 const semver = require('semver');
 const nextLegacyVersions = require('./legacy-versions');
@@ -449,7 +450,12 @@ async function getFlyingShuttleCache({ cachePath, entryDirectory }) {
     'compilation-modules.json',
   );
   const hasPreviousManifest = await pathExists(previousManifestPath);
-  let previousManifest = { pages: {}, chunks: {}, hashes: {} };
+  let previousManifest = {
+    pages: {},
+    pageChunks: {},
+    chunks: {},
+    hashes: {},
+  };
   if (hasPreviousManifest) {
     previousManifest = require(previousManifestPath);
   }
@@ -462,18 +468,41 @@ async function getFlyingShuttleCache({ cachePath, entryDirectory }) {
 
   const weavedManifest = {
     pages: Object.assign(
+      {},
       previousManifest.pages,
       updatedPages.reduce(
         (acc, page) => Object.assign(acc, { [page]: manifest.pages[page] }),
         {},
       ),
     ),
-    hashes: Object.assign(previousManifest.hashes, manifest.hashes),
+    pageChunks: Object.assign(
+      {},
+      previousManifest.pageChunks,
+      manifest.pageChunks,
+    ),
+    hashes: Object.assign({}, previousManifest.hashes, manifest.hashes),
     chunks: {},
   };
   console.debug('weaved manifest', weavedManifest);
   await mkdirp(path.dirname(previousManifestPath));
   await writeFile(previousManifestPath, JSON.stringify(weavedManifest));
+
+  const usedChunks = Object.keys(weavedManifest.pageChunks)
+    .reduce(
+      (acc, curr) => [...new Set([...acc, ...weavedManifest.pageChunks[curr]])],
+      [],
+    )
+    .sort();
+  console.debug('used chunks', usedChunks);
+  await mkdirp(path.join(entryDirectory, '.flying-shuttle', 'chunks'));
+  // eslint-disable-next-line no-restricted-syntax
+  for (const usedChunk of usedChunks) {
+    // eslint-disable-next-line no-await-in-loop
+    await copyPath(
+      path.join(entryDirectory, '.next', usedChunk),
+      path.join(entryDirectory, '.flying-shuttle', 'chunks', usedChunk),
+    );
+  }
 
   return glob(
     path.join(
