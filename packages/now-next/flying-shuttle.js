@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const fs = require('fs-extra');
 const path = require('path');
 
@@ -20,6 +21,37 @@ export async function hasFlyingShuttle({ entryPath }) {
   ]);
 
   return files.some(b => !b);
+}
+
+export async function getUnchangedPages({ entryPath }) {
+  const manifestPath = path.join(entryPath, '.next', FILE_MANIFEST);
+  const manifest = require(manifestPath);
+
+  const { pages: pageFileDictionary, hashes } = manifest;
+  const pageNames = Object.keys(pageFileDictionary);
+  const allFiles = new Set();
+  pageNames.forEach(pageName => pageFileDictionary[pageName].forEach(file => allFiles.add(file)));
+  const fileChanged = new Map();
+  await Promise.all(
+    [...allFiles].map(async (file) => {
+      const filePath = path.join(entryPath, file);
+      const exists = await fs.pathExists(filePath);
+      if (!exists) {
+        fileChanged.set(file, true);
+        return;
+      }
+
+      const hash = crypto
+        .createHash('sha1')
+        .update(await fs.readFile(filePath))
+        .digest('hex');
+      fileChanged.set(file, hash !== hashes[file]);
+    }),
+  );
+
+  return pageNames.filter(
+    p => !pageFileDictionary[p].map(f => fileChanged.get(f)).some(Boolean),
+  );
 }
 
 export async function getCache({ workPath, entryPath }) {
