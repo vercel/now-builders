@@ -252,7 +252,17 @@ exports.build = async ({
         process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = `**,${unchangedPages
           .map(p => '-'.concat(p))
           .join(',')}`;
+
+        console.log(
+          `[FLYING SHUTTLE] shuttle found :: skipping pages: ${unchangedPages.join(
+            ' ',
+          )}`,
+        );
+      } else {
+        console.log('[FLYING SHUTTLE] shuttle mismatch :: building all pages');
       }
+    } else {
+      console.log('[FLYING SHUTTLE] shuttle is missing :: building all pages');
     }
   }
 
