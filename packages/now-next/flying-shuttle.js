@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const fs = require('fs-extra');
 const path = require('path');
+const { Sema } = require('async-sema');
 
 const glob = require('@now/build-utils/fs/glob'); // eslint-disable-line import/no-extraneous-dependencies
 
@@ -85,6 +86,8 @@ module.exports.stageLambda = async function stageLambda({
   await fs.writeFile(pagePath, JSON.stringify(lambda));
 };
 
+const recallSema = new Sema(1);
+
 module.exports.recallLambda = async function recallLambda({
   entryPath,
   entryDirectory,
@@ -117,6 +120,104 @@ module.exports.recallLambda = async function recallLambda({
   await this.stageLambda({ entryPath, pageName, lambda });
 
   // TODO: hydrate .next/FILE_MANIFEST and .next/filesystem with recalled lambda
+
+  const flyingShuttlePath = path.join(entryPath, DIR_FLYING_SHUTTLE);
+  const currentPath = path.join(entryPath, '.next');
+
+  const shuttleManifestPath = path.join(flyingShuttlePath, FILE_MANIFEST);
+  const currentManifestPath = path.join(currentPath, FILE_MANIFEST);
+  const shuttleBuildIdPath = path.join(flyingShuttlePath, FILE_BUILD_ID);
+  const currentBuildIdPath = path.join(currentPath, 'static', FILE_BUILD_ID);
+
+  const recallPageName = path.isAbsolute(pageName) ? pageName : `/${pageName}`;
+
+  await recallSema.acquire();
+  try {
+    const shuttleManifest = JSON.parse(
+      await fs.readFile(shuttleManifestPath, 'utf8'),
+    );
+    const currentManifest = JSON.parse(
+      await fs.readFile(currentManifestPath, 'utf8'),
+    );
+
+    const shuttleBuildId = (await fs.readFile(
+      shuttleBuildIdPath,
+      'utf8',
+    )).trim();
+    const currentBuildId = (await fs.readFile(
+      currentBuildIdPath,
+      'utf8',
+    )).trim();
+
+    const {
+      pages: recallPages,
+      pageChunks: recallPageChunks,
+      hashes: recallHashes,
+    } = shuttleManifest;
+    const { pages, pageChunks, hashes } = currentManifest;
+
+    const recallPage = recallPages[recallPageName];
+
+    const movedPageChunks = [];
+    const rewriteRegex = new RegExp(`${shuttleBuildId}[\\/\\\\]`);
+    await Promise.all(
+      recallPageChunks[recallPageName].map(async (recallFileName) => {
+        if (!rewriteRegex.test(recallFileName)) {
+          if (!(await fs.pathExists(path.join(currentPath, recallFileName)))) {
+            await fs.copy(
+              path.join(flyingShuttlePath, DIR_CHUNKS_NAME, recallFileName),
+              path.join(currentPath, recallFileName),
+            );
+            console.debug(
+              'recall',
+              path.join(flyingShuttlePath, DIR_CHUNKS_NAME, recallFileName),
+              'as',
+              path.join(currentPath, recallFileName),
+            );
+          }
+          movedPageChunks.push(recallFileName);
+          return;
+        }
+
+        const newFileName = recallFileName.replace(
+          rewriteRegex,
+          `${currentBuildId}/`,
+        );
+        if (!(await fs.pathExists(path.join(currentPath, newFileName)))) {
+          await fs.copy(
+            path.join(flyingShuttlePath, DIR_CHUNKS_NAME, recallFileName),
+            path.join(currentPath, newFileName),
+          );
+          console.debug(
+            'rewrite',
+            path.join(flyingShuttlePath, DIR_CHUNKS_NAME, recallFileName),
+            'as',
+            path.join(currentPath, newFileName),
+          );
+        }
+        movedPageChunks.push(newFileName);
+      }),
+    );
+
+    await fs.writeJson(
+      currentManifestPath,
+      Object.assign(currentManifest, {
+        pages: Object.assign(pages, { [recallPageName]: recallPage }),
+        pageChunks: Object.assign(pageChunks, {
+          [recallPageName]: movedPageChunks,
+        }),
+        hashes: Object.assign(
+          hashes,
+          recallPage.reduce(
+            (acc, cur) => Object.assign(acc, { [cur]: recallHashes[cur] }),
+            {},
+          ),
+        ),
+      }),
+    );
+  } finally {
+    recallSema.release();
+  }
 };
 
 module.exports.getCache = async function getCache({ workPath, entryPath }) {
