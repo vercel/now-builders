@@ -15,10 +15,7 @@ const {
   writeFile,
   unlink: unlinkFile,
   remove: removePath,
-  mkdirp,
-  rename: renamePath,
   pathExists,
-  copy: copyPath,
 } = require('fs-extra');
 const semver = require('semver');
 const nextLegacyVersions = require('./legacy-versions');
@@ -30,6 +27,7 @@ const {
   onlyStaticDirectory,
   getNextConfig,
 } = require('./utils');
+const flyingShuttle = require('./flying-shuttle');
 
 /** @typedef { import('@now/build-utils/file-ref').Files } Files */
 /** @typedef { import('@now/build-utils/fs/download').DownloadedFiles } DownloadedFiles */
@@ -136,12 +134,12 @@ exports.build = async ({
   const entryPath = path.join(workPath, entryDirectory);
 
   const pkg = await readPackageJson(entryPath);
-  const flyingShuttle = Boolean(pkg.next && pkg.next.flyingShuttle);
+  const isFlyingShuttle = Boolean(pkg.next && pkg.next.flyingShuttle);
 
   const dotNext = path.join(entryPath, '.next');
   if (await pathExists(dotNext)) {
-    // TODO: remove branch for `flyingShuttle` and make it an error
-    if (flyingShuttle || meta.isDev) {
+    // TODO: remove branch for `isFlyingShuttle` and make it an error
+    if (isFlyingShuttle || meta.isDev) {
       await removePath(dotNext).catch((e) => {
         if (e.code !== 'ENOENT') throw e;
       });
@@ -237,7 +235,7 @@ exports.build = async ({
       : pathname;
   }
 
-  if (flyingShuttle) {
+  if (isFlyingShuttle) {
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = '**';
   }
@@ -423,122 +421,11 @@ exports.build = async ({
   return { ...lambdas, ...staticFiles, ...staticDirectoryFiles };
 };
 
-async function getFlyingShuttleCache({ cachePath, entryDirectory }) {
-  const noop = {};
-
-  const manifestPath = path.join(
-    entryDirectory,
-    '.next',
-    'compilation-modules.json',
-  );
-  const hasManifest = await pathExists(manifestPath);
-  if (!hasManifest) {
-    console.debug('no manifest');
-    return noop;
-  }
-
-  const buildIdPath = path.join(
-    entryDirectory,
-    '.next',
-    'static',
-    'HEAD_BUILD_ID',
-  );
-  const hasBuildId = await pathExists(buildIdPath);
-  if (!hasBuildId) {
-    console.debug('no build id');
-    return noop;
-  }
-
-  const shuttleBuildIdPath = path.join(
-    entryDirectory,
-    '.flying-shuttle',
-    'HEAD_BUILD_ID',
-  );
-  await mkdirp(path.dirname(shuttleBuildIdPath));
-  await copyPath(buildIdPath, shuttleBuildIdPath);
-
-  const manifest = require(manifestPath);
-  if (manifest.chunks && Object.keys(manifest.chunks).length) {
-    console.debug('manifest has chunks, abort');
-    return noop;
-  }
-  console.debug('manifest', manifest);
-
-  const previousManifestPath = path.join(
-    entryDirectory,
-    '.flying-shuttle',
-    'compilation-modules.json',
-  );
-  const hasPreviousManifest = await pathExists(previousManifestPath);
-  let previousManifest = {
-    pages: {},
-    pageChunks: {},
-    chunks: {},
-    hashes: {},
-  };
-  if (hasPreviousManifest) {
-    previousManifest = require(previousManifestPath);
-  }
-  console.debug('previous manifest', previousManifest);
-
-  const updatedPages = Object.keys(manifest.pages).filter(
-    p => p !== '/_error' && p !== '/_app',
-  );
-  console.debug('updated pages', updatedPages);
-
-  const weavedManifest = {
-    pages: Object.assign(
-      {},
-      previousManifest.pages,
-      updatedPages.reduce(
-        (acc, page) => Object.assign(acc, { [page]: manifest.pages[page] }),
-        {},
-      ),
-    ),
-    pageChunks: Object.assign(
-      {},
-      previousManifest.pageChunks,
-      manifest.pageChunks,
-    ),
-    hashes: Object.assign({}, previousManifest.hashes, manifest.hashes),
-    chunks: {},
-  };
-  console.debug('weaved manifest', weavedManifest);
-  await mkdirp(path.dirname(previousManifestPath));
-  await writeFile(previousManifestPath, JSON.stringify(weavedManifest));
-
-  const usedChunks = Object.keys(weavedManifest.pageChunks)
-    .reduce(
-      (acc, curr) => [...new Set([...acc, ...weavedManifest.pageChunks[curr]])],
-      [],
-    )
-    .sort();
-  console.debug('used chunks', usedChunks);
-  await mkdirp(path.join(entryDirectory, '.flying-shuttle', 'chunks'));
-  // eslint-disable-next-line no-restricted-syntax
-  for (const usedChunk of usedChunks) {
-    // eslint-disable-next-line no-await-in-loop
-    await copyPath(
-      path.join(entryDirectory, '.next', usedChunk),
-      path.join(entryDirectory, '.flying-shuttle', 'chunks', usedChunk),
-    );
-  }
-
-  return glob(
-    path.join(
-      path.relative(cachePath, path.join(entryDirectory, '.flying-shuttle')),
-      '**',
-    ),
-    cachePath,
-  );
-}
-
-exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
+exports.prepareCache = async ({ workPath, entrypoint }) => {
   console.log('preparing cache ...');
 
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
-  const cacheEntryPath = path.join(cachePath, entryDirectory);
 
   const pkg = await readPackageJson(entryPath);
   const nextVersion = getNextVersion(pkg);
@@ -549,36 +436,25 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
     return {};
   }
 
-  console.log('clearing old cache ...');
-  await removePath(cacheEntryPath);
-  await mkdirp(cacheEntryPath);
-
-  console.log('copying build files for cache ...');
-  await renamePath(entryPath, cacheEntryPath);
-  const flyingShuttle = Boolean(pkg.next) && Boolean(pkg.next.flyingShuttle);
+  const isFlyingShuttle = Boolean(pkg.next && pkg.next.flyingShuttle);
   let flyingShuttleCache = {};
-  if (flyingShuttle) {
-    console.log('[flying shuttle] weaving build caches ...');
-    flyingShuttleCache = await getFlyingShuttleCache({
-      cachePath,
-      entryDirectory: cacheEntryPath,
-    });
-    console.debug('flying shuttle cache: ', flyingShuttleCache);
+  if (isFlyingShuttle) {
+    flyingShuttleCache = await flyingShuttle.getCache({ workPath, entryPath });
   }
 
   console.log('producing cache file manifest ...');
 
-  const cacheEntrypoint = path.relative(cachePath, cacheEntryPath);
+  const cacheEntrypoint = path.relative(workPath, entryPath);
   return {
     ...(await glob(
       path.join(
         cacheEntrypoint,
         'node_modules/{**,!.*,.yarn*,.cache/next-minifier/**}',
       ),
-      cachePath,
+      workPath,
     )),
-    ...(await glob(path.join(cacheEntrypoint, 'package-lock.json'), cachePath)),
-    ...(await glob(path.join(cacheEntrypoint, 'yarn.lock'), cachePath)),
+    ...(await glob(path.join(cacheEntrypoint, 'package-lock.json'), workPath)),
+    ...(await glob(path.join(cacheEntrypoint, 'yarn.lock'), workPath)),
     ...flyingShuttleCache,
   };
 };
