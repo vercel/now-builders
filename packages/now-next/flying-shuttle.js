@@ -23,7 +23,7 @@ module.exports.hasFlyingShuttle = async function hasFlyingShuttle({
     fs.pathExists(path.join(flyingShuttlePath, DIR_CHUNKS_NAME)),
   ]);
 
-  return files.some(b => !b);
+  return files.reduce((acc, cur) => acc && cur, true);
 };
 
 module.exports.getUnchangedPages = async function getUnchangedPages({
