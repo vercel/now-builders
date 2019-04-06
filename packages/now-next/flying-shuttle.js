@@ -54,8 +54,16 @@ module.exports.getUnchangedPages = async function getUnchangedPages({
     }),
   );
 
-  return pageNames.filter(
+  const unchangedPages = pageNames.filter(
     p => !pageFileDictionary[p].map(f => fileChanged.get(f)).some(Boolean),
+  );
+  if (
+    !(unchangedPages.includes('/_app') && unchangedPages.includes('/_error'))
+  ) {
+    return [];
+  }
+  return unchangedPages.filter(
+    pageName => pageName !== '/_app' && pageName !== '/_error',
   );
 };
 
