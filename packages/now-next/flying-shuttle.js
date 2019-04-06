@@ -29,7 +29,7 @@ module.exports.hasFlyingShuttle = async function hasFlyingShuttle({
 module.exports.getUnchangedPages = async function getUnchangedPages({
   entryPath,
 }) {
-  const manifestPath = path.join(entryPath, '.next', FILE_MANIFEST);
+  const manifestPath = path.join(entryPath, DIR_FLYING_SHUTTLE, FILE_MANIFEST);
   const manifest = require(manifestPath);
 
   const { pages: pageFileDictionary, hashes } = manifest;
