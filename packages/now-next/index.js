@@ -136,7 +136,7 @@ exports.build = async ({
   const entryPath = path.join(workPath, entryDirectory);
 
   const pkg = await readPackageJson(entryPath);
-  const flyingShuttle = Boolean(pkg.next) && Boolean(pkg.next.flyingShuttle);
+  const flyingShuttle = Boolean(pkg.next && pkg.next.flyingShuttle);
 
   const dotNext = path.join(entryPath, '.next');
   if (await pathExists(dotNext)) {
