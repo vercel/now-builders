@@ -479,6 +479,8 @@ exports.prepareCache = async ({ workPath, entrypoint }) => {
   if (isFlyingShuttle) {
     console.log('[FLYING SHUTTLE] storing shuttle');
     flyingShuttleCache = await flyingShuttle.getCache({ workPath, entryPath });
+
+    console.debug(flyingShuttleCache);
   }
 
   console.log('producing cache file manifest ...');
