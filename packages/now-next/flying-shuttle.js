@@ -70,6 +70,33 @@ module.exports.stageLambda = async function stageLambda({
   await fs.writeFile(pagePath, JSON.stringify(lambda));
 };
 
+module.exports.recallLambda = async function recallLambda({
+  entryPath,
+  pageName,
+}) {
+  const pagePath = path.join(
+    entryPath,
+    DIR_FLYING_SHUTTLE,
+    DIR_LAMBDAS_NAME,
+    pageName,
+  );
+  if (!(await fs.pathExists(pagePath))) {
+    throw new Error(
+      `[FLYING SHUTTLE] failed shuttle :: unable to find page: ${pageName}`,
+    );
+  }
+
+  const lambda = JSON.parse(await fs.readFile(pagePath, 'utf8'));
+  Object.keys(lambda).forEach((lambdaKey) => {
+    if (lambda[lambdaKey].type !== 'Buffer') {
+      return;
+    }
+
+    lambda[lambdaKey] = Buffer.from(lambda[lambdaKey].data);
+  });
+  return lambda;
+};
+
 module.exports.getCache = async function getCache({ workPath, entryPath }) {
   const flyingShuttlePath = path.join(entryPath, DIR_FLYING_SHUTTLE);
   if (await fs.pathExists(flyingShuttlePath)) {

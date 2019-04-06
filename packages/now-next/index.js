@@ -239,12 +239,13 @@ exports.build = async ({
       : pathname;
   }
 
+  let unchangedPages = [];
   if (isFlyingShuttle) {
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = '**';
 
     if (hasFlyingShuttle) {
-      const unchangedPages = await flyingShuttle.getUnchangedPages({
+      unchangedPages = await flyingShuttle.getUnchangedPages({
         entryPath,
       });
       if (unchangedPages.length) {
@@ -437,7 +438,24 @@ exports.build = async ({
         }
       }),
     );
+
+    if (isFlyingShuttle) {
+      await Promise.all(
+        unchangedPages.map(async (unchangedPage) => {
+          console.log(
+            `[FLYING SHUTTLE] unload shuttle :: re-hydrate page: ${unchangedPage}`,
+          );
+          const lambda = await flyingShuttle.recallLambda({
+            entryPath,
+            pageName: unchangedPage,
+          });
+          lambdas[path.join(entryDirectory, unchangedPage)] = lambda;
+        }),
+      );
+    }
   }
+
+  // TODO: hydrate unchanged page static files [rewrite build id folder]
 
   const nextStaticFiles = await glob(
     '**',
