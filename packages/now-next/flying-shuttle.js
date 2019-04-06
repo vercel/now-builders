@@ -23,6 +23,8 @@ module.exports.hasFlyingShuttle = async function hasFlyingShuttle({
     fs.pathExists(path.join(flyingShuttlePath, DIR_CHUNKS_NAME)),
   ]);
 
+  // TODO: check that `yarn.lock`, `package.json`, `package-lock.json`,
+  // and `pages/_document.js` (and _document deps) are unchanged.
   return files.reduce((acc, cur) => acc && cur, true);
 };
 
