@@ -114,6 +114,8 @@ module.exports.recallLambda = async function recallLambda({
 
   onLambda(path.join(entryDirectory, pageName), lambda);
 
+  await this.stageLambda({ entryPath, pageName, lambda });
+
   // TODO: hydrate .next/FILE_MANIFEST and .next/filesystem with recalled lambda
 };
 
