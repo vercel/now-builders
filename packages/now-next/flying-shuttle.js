@@ -72,7 +72,9 @@ module.exports.stageLambda = async function stageLambda({
 
 module.exports.recallLambda = async function recallLambda({
   entryPath,
+  entryDirectory,
   pageName,
+  onLambda,
 }) {
   const pagePath = path.join(
     entryPath,
@@ -94,7 +96,10 @@ module.exports.recallLambda = async function recallLambda({
 
     lambda[lambdaKey] = Buffer.from(lambda[lambdaKey].data);
   });
-  return lambda;
+
+  onLambda(path.join(entryDirectory, pageName), lambda);
+
+  // TODO: hydrate .next/FILE_MANIFEST and .next/filesystem with recalled lambda
 };
 
 module.exports.getCache = async function getCache({ workPath, entryPath }) {

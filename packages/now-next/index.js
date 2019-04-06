@@ -445,17 +445,18 @@ exports.build = async ({
           console.log(
             `[FLYING SHUTTLE] unload shuttle :: re-hydrate page: ${unchangedPage}`,
           );
-          const lambda = await flyingShuttle.recallLambda({
+          await flyingShuttle.recallLambda({
             entryPath,
+            entryDirectory,
             pageName: unchangedPage,
+            onLambda: (pathname, lambda) => {
+              lambdas[pathname] = lambda;
+            },
           });
-          lambdas[path.join(entryDirectory, unchangedPage)] = lambda;
         }),
       );
     }
   }
-
-  // TODO: hydrate unchanged page static files [rewrite build id folder]
 
   const nextStaticFiles = await glob(
     '**',
