@@ -135,6 +135,10 @@ exports.build = async ({
 
   const pkg = await readPackageJson(entryPath);
   const isFlyingShuttle = Boolean(pkg.next && pkg.next.flyingShuttle);
+  const hasFlyingShuttle = isFlyingShuttle
+    && (await flyingShuttle.hasFlyingShuttle({
+      entryPath,
+    }));
 
   const dotNext = path.join(entryPath, '.next');
   if (await pathExists(dotNext)) {
@@ -238,6 +242,18 @@ exports.build = async ({
   if (isFlyingShuttle) {
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = '**';
+
+    if (hasFlyingShuttle) {
+      const unchangedPages = await flyingShuttle.getUnchangedPages({
+        entryPath,
+      });
+      if (unchangedPages.length) {
+        // eslint-disable-next-line no-underscore-dangle
+        process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = `**,${unchangedPages
+          .map(p => '-'.concat(p))
+          .join(',')}`;
+      }
+    }
   }
 
   console.log('running user script...');
