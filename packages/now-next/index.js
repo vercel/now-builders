@@ -413,7 +413,7 @@ exports.build = async ({
         const pathname = page.replace(/\.js$/, '');
 
         console.log(`Creating lambda for page: "${page}"...`);
-        lambdas[path.join(entryDirectory, pathname)] = await createLambda({
+        const lambda = await createLambda({
           files: {
             ...launcherFiles,
             ...assets,
@@ -422,7 +422,19 @@ exports.build = async ({
           handler: 'now__launcher.launcher',
           runtime: 'nodejs8.10',
         });
+        lambdas[path.join(entryDirectory, pathname)] = lambda;
         console.log(`Created lambda for page: "${page}"`);
+
+        if (isFlyingShuttle) {
+          await flyingShuttle.stageLambda({
+            entryPath,
+            pageName: pathname,
+            lambda,
+          });
+          console.log(
+            `[FLYING SHUTTLE] staging shuttle :: page: "${pathname}"`,
+          );
+        }
       }),
     );
   }
