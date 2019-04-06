@@ -12,7 +12,9 @@ const EMPTY = Object.freeze({});
 const FILE_MANIFEST = 'compilation-modules.json';
 const FILE_BUILD_ID = 'HEAD_BUILD_ID';
 
-export async function hasFlyingShuttle({ entryPath }) {
+module.exports.hasFlyingShuttle = async function hasFlyingShuttle({
+  entryPath,
+}) {
   const flyingShuttlePath = path.join(entryPath, DIR_FLYING_SHUTTLE);
 
   const files = await Promise.all([
@@ -22,9 +24,11 @@ export async function hasFlyingShuttle({ entryPath }) {
   ]);
 
   return files.some(b => !b);
-}
+};
 
-export async function getUnchangedPages({ entryPath }) {
+module.exports.getUnchangedPages = async function getUnchangedPages({
+  entryPath,
+}) {
   const manifestPath = path.join(entryPath, '.next', FILE_MANIFEST);
   const manifest = require(manifestPath);
 
@@ -53,16 +57,20 @@ export async function getUnchangedPages({ entryPath }) {
   return pageNames.filter(
     p => !pageFileDictionary[p].map(f => fileChanged.get(f)).some(Boolean),
   );
-}
+};
 
-export async function stageLambda({ entryPath, pageName, lambda }) {
+module.exports.stageLambda = async function stageLambda({
+  entryPath,
+  pageName,
+  lambda,
+}) {
   const pagePath = path.join(entryPath, '.next', DIR_LAMBDAS_NAME, pageName);
 
   await fs.mkdirp(path.dirname(pagePath));
   await fs.writeFile(pagePath, JSON.stringify(lambda));
-}
+};
 
-export async function getCache({ workPath, entryPath }) {
+module.exports.getCache = async function getCache({ workPath, entryPath }) {
   const flyingShuttlePath = path.join(entryPath, DIR_FLYING_SHUTTLE);
   if (await fs.pathExists(flyingShuttlePath)) {
     await fs.remove(flyingShuttlePath);
@@ -104,4 +112,4 @@ export async function getCache({ workPath, entryPath }) {
     path.join(path.relative(workPath, flyingShuttlePath), '**'),
     workPath,
   );
-}
+};
