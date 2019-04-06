@@ -134,7 +134,18 @@ exports.build = async ({
   const entryPath = path.join(workPath, entryDirectory);
 
   const pkg = await readPackageJson(entryPath);
-  const isFlyingShuttle = Boolean(pkg.next && pkg.next.flyingShuttle);
+  let nextVersion = getNextVersion(pkg);
+  if (!nextVersion) {
+    throw new Error(
+      'No Next.js version could be detected in "package.json". Make sure `"next"` is installed in "dependencies" or "devDependencies"',
+    );
+  }
+
+  const isLegacy = isLegacyNext(nextVersion);
+
+  console.log(`MODE: ${isLegacy ? 'legacy' : 'serverless'}`);
+
+  const isFlyingShuttle = !isLegacy && Boolean(pkg.next && pkg.next.flyingShuttle);
   const hasFlyingShuttle = isFlyingShuttle
     && (await flyingShuttle.hasFlyingShuttle({
       entryPath,
@@ -153,17 +164,6 @@ exports.build = async ({
       );
     }
   }
-
-  let nextVersion = getNextVersion(pkg);
-  if (!nextVersion) {
-    throw new Error(
-      'No Next.js version could be detected in "package.json". Make sure `"next"` is installed in "dependencies" or "devDependencies"',
-    );
-  }
-
-  const isLegacy = isLegacyNext(nextVersion);
-
-  console.log(`MODE: ${isLegacy ? 'legacy' : 'serverless'}`);
 
   if (isLegacy) {
     try {
