@@ -465,6 +465,7 @@ exports.prepareCache = async ({ workPath, entrypoint }) => {
   const isFlyingShuttle = Boolean(pkg.next && pkg.next.flyingShuttle);
   let flyingShuttleCache = {};
   if (isFlyingShuttle) {
+    console.log('[FLYING SHUTTLE] storing shuttle');
     flyingShuttleCache = await flyingShuttle.getCache({ workPath, entryPath });
   }
 
