@@ -74,7 +74,12 @@ module.exports.stageLambda = async function stageLambda({
   pageName,
   lambda,
 }) {
-  const pagePath = path.join(entryPath, '.next', DIR_LAMBDAS_NAME, pageName);
+  const pagePath = path.join(
+    entryPath,
+    '.next',
+    DIR_LAMBDAS_NAME,
+    `${pageName}.json`,
+  );
 
   await fs.mkdirp(path.dirname(pagePath));
   await fs.writeFile(pagePath, JSON.stringify(lambda));
@@ -90,7 +95,7 @@ module.exports.recallLambda = async function recallLambda({
     entryPath,
     DIR_FLYING_SHUTTLE,
     DIR_LAMBDAS_NAME,
-    pageName,
+    `${pageName}.json`,
   );
   if (!(await fs.pathExists(pagePath))) {
     throw new Error(
