@@ -1,7 +1,7 @@
 import path from 'path';
 import FileFsRef from '../file-fs-ref';
 import { File, Files } from '../types';
-import { readlink, symlink } from 'fs-extra';
+import { mkdirp, readlink, symlink } from 'fs-extra';
 
 export interface DownloadedFiles {
   [filePath: string]: FileFsRef
@@ -17,7 +17,10 @@ export function isSymbolicLink(mode: number): boolean {
 async function downloadFile(file: File, fsPath: string): Promise<FileFsRef> {
   const { mode } = file;
   if (mode && isSymbolicLink(mode) && file.type === 'FileFsRef') {
-    const target = await readlink((file as FileFsRef).fsPath);
+    const [ target ] = await Promise.all([
+      readlink((file as FileFsRef).fsPath),
+      mkdirp(path.dirname(fsPath))
+    ]);
     await symlink(target, fsPath);
     return FileFsRef.fromFsPath({ mode, fsPath });
   } else {
