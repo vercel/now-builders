@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "lerna": "lerna",
-    "bootstrap": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap && lerna link",
     "publish-stable": "lerna version",
     "publish-canary": "lerna version prerelease --preid canary",
     "build": "./.circleci/build.sh",
