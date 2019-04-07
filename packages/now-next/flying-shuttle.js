@@ -116,8 +116,6 @@ module.exports.recallLambda = async function recallLambda({
 
   await this.stageLambda({ entryPath, pageName, lambda });
 
-  // TODO: hydrate .next/FILE_MANIFEST and .next/filesystem with recalled lambda
-
   const flyingShuttlePath = path.join(entryPath, DIR_FLYING_SHUTTLE);
   const currentPath = path.join(entryPath, '.next');
 
