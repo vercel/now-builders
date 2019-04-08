@@ -96,20 +96,17 @@ module.exports.recallLambda = async function recallLambda({
   pageName,
   onLambda,
 }) {
-  if (pageName === '/') {
-    // eslint-disable-next-line no-param-reassign
-    pageName = '/index';
-  }
+  const lambdaPageName = pageName === '/' ? '/index' : pageName;
 
   const pagePath = path.join(
     entryPath,
     DIR_FLYING_SHUTTLE,
     DIR_LAMBDAS_NAME,
-    `${pageName}.json`,
+    `${lambdaPageName}.json`,
   );
   if (!(await fs.pathExists(pagePath))) {
     throw new Error(
-      `[FLYING SHUTTLE] failed shuttle :: unable to find page: ${pageName}`,
+      `[FLYING SHUTTLE] failed shuttle :: unable to find page: ${lambdaPageName}`,
     );
   }
 
@@ -122,9 +119,9 @@ module.exports.recallLambda = async function recallLambda({
     lambda[lambdaKey] = Buffer.from(lambda[lambdaKey].data);
   });
 
-  onLambda(path.join(entryDirectory, pageName), lambda);
+  onLambda(path.join(entryDirectory, lambdaPageName), lambda);
 
-  await this.stageLambda({ entryPath, pageName, lambda });
+  await this.stageLambda({ entryPath, pageName: lambdaPageName, lambda });
 
   const flyingShuttlePath = path.join(entryPath, DIR_FLYING_SHUTTLE);
   const currentPath = path.join(entryPath, '.next');
@@ -134,7 +131,7 @@ module.exports.recallLambda = async function recallLambda({
   const shuttleBuildIdPath = path.join(flyingShuttlePath, FILE_BUILD_ID);
   const currentBuildIdPath = path.join(currentPath, 'static', FILE_BUILD_ID);
 
-  const recallPageName = path.isAbsolute(pageName) ? pageName : `/${pageName}`;
+  const recallPageKey = path.isAbsolute(pageName) ? pageName : `/${pageName}`;
 
   await recallSema.acquire();
   try {
@@ -161,12 +158,12 @@ module.exports.recallLambda = async function recallLambda({
     } = shuttleManifest;
     const { pages, pageChunks, hashes } = currentManifest;
 
-    const recallPage = recallPages[recallPageName];
+    const recallPage = recallPages[recallPageKey];
 
     const movedPageChunks = [];
     const rewriteRegex = new RegExp(`${shuttleBuildId}[\\/\\\\]`);
     await Promise.all(
-      recallPageChunks[recallPageName].map(async (recallFileName) => {
+      recallPageChunks[recallPageKey].map(async (recallFileName) => {
         if (!rewriteRegex.test(recallFileName)) {
           if (!(await fs.pathExists(path.join(currentPath, recallFileName)))) {
             await fs.copy(
@@ -207,9 +204,9 @@ module.exports.recallLambda = async function recallLambda({
     await fs.writeJson(
       currentManifestPath,
       Object.assign(currentManifest, {
-        pages: Object.assign(pages, { [recallPageName]: recallPage }),
+        pages: Object.assign(pages, { [recallPageKey]: recallPage }),
         pageChunks: Object.assign(pageChunks, {
-          [recallPageName]: movedPageChunks,
+          [recallPageKey]: movedPageChunks,
         }),
         hashes: Object.assign(
           hashes,
