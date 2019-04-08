@@ -513,8 +513,6 @@ exports.prepareCache = async ({ cachePath, workPath, entrypoint }) => {
       workPath: cachePath,
       entryPath: cacheEntryPath,
     });
-
-    console.debug(flyingShuttleCache);
   }
 
   console.log('producing cache file manifest ...');

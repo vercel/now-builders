@@ -170,12 +170,6 @@ module.exports.recallLambda = async function recallLambda({
               path.join(flyingShuttlePath, DIR_CHUNKS_NAME, recallFileName),
               path.join(currentPath, recallFileName),
             );
-            console.debug(
-              'recall',
-              path.join(flyingShuttlePath, DIR_CHUNKS_NAME, recallFileName),
-              'as',
-              path.join(currentPath, recallFileName),
-            );
           }
           movedPageChunks.push(recallFileName);
           return;
@@ -188,12 +182,6 @@ module.exports.recallLambda = async function recallLambda({
         if (!(await fs.pathExists(path.join(currentPath, newFileName)))) {
           await fs.copy(
             path.join(flyingShuttlePath, DIR_CHUNKS_NAME, recallFileName),
-            path.join(currentPath, newFileName),
-          );
-          console.debug(
-            'rewrite',
-            path.join(flyingShuttlePath, DIR_CHUNKS_NAME, recallFileName),
-            'as',
             path.join(currentPath, newFileName),
           );
         }
