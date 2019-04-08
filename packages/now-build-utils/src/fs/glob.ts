@@ -5,8 +5,8 @@ import { promisify } from 'util';
 import { lstat, Stats } from 'fs-extra';
 import FileFsRef from '../file-fs-ref';
 
-type GlobOptions = import('glob').IOptions;
- 
+type GlobOptions = vanillaGlob_.IOptions;
+
 interface FsFiles {
   [filePath: string]: FileFsRef
 }
