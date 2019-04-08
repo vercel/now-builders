@@ -1,6 +1,5 @@
 import { join, dirname } from 'path';
 import { remove, readFile } from 'fs-extra';
-import ncc from '@zeit/ncc';
 import {
   glob,
   download,
@@ -45,6 +44,7 @@ async function downloadInstallAndBundle({
 async function compile(entrypointPath: string, entrypoint: string, config: CompilerConfig): Promise<Files> {
   const input = entrypointPath;
   const inputDir = dirname(input);
+  const ncc = require('@zeit/ncc');
   const { code, assets } = await ncc(input);
 
   if (config && config.includeFiles) {
@@ -86,7 +86,7 @@ export async function build({ files, entrypoint, workPath, config }: BuildOption
   const {
     entrypointPath,
     entrypointFsDirname
- } = await downloadInstallAndBundle(
+  } = await downloadInstallAndBundle(
     { files, entrypoint, workPath, npmArguments: ['--prefer-offline'] }
   );
 
