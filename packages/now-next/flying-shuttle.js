@@ -72,6 +72,11 @@ module.exports.stageLambda = async function stageLambda({
   pageName,
   lambda,
 }) {
+  if (pageName === '/') {
+    // eslint-disable-next-line no-param-reassign
+    pageName = '/index';
+  }
+
   const pagePath = path.join(
     entryPath,
     '.next',
@@ -91,6 +96,11 @@ module.exports.recallLambda = async function recallLambda({
   pageName,
   onLambda,
 }) {
+  if (pageName === '/') {
+    // eslint-disable-next-line no-param-reassign
+    pageName = '/index';
+  }
+
   const pagePath = path.join(
     entryPath,
     DIR_FLYING_SHUTTLE,
