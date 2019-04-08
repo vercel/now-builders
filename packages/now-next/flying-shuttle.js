@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { Sema } = require('async-sema');
 
-const glob = require('@now/build-utils/fs/glob'); // eslint-disable-line import/no-extraneous-dependencies
+const { glob } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 
 const DIR_FLYING_SHUTTLE = '.flying-shuttle';
 const DIR_CHUNKS_NAME = 'chunks';
