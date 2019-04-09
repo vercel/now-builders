@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import multiStream from 'multistream';
 import path from 'path';
 import Sema from 'async-sema';
+import retry from 'async-retry';
 import { File } from './types';
 
 const semaToPreventEMFILE = new Sema(20);
@@ -54,7 +55,23 @@ class FileFsRef implements File {
       dest.on('error', reject);
     });
 
-    await fs.chmod(fsPath, mode.toString(8).slice(-3));
+    // In certain edge cases, the file does not yet exist even though the "finish"
+    // event occurred above. So retry it a couple times when that happens.
+    await retry(async (bail: (e: Error) => void) => {
+      try {
+        await fs.chmod(fsPath, mode.toString(8).slice(-3));
+      } catch (err) {
+        if (err.code === 'ENOENT') {
+          // retry if the file does not yet exist
+          throw err;
+        } else {
+          return bail(err);
+        }
+      }
+    }, {
+      retries: 3
+    });
+
     return new FileFsRef({ mode, fsPath });
   }
 
