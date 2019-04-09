@@ -48,7 +48,7 @@ class FileFsRef implements File {
 
     await new Promise<void>((resolve, reject) => {
       const dest = fs.createWriteStream(fsPath, {
-        mode: mode.toString(8).slice(-3)
+        mode: parseInt(mode.toString(8).slice(-3), 8)
       });
       stream.pipe(dest);
       stream.on('error', reject);
