@@ -125,7 +125,7 @@ function setNextExperimentalPage(files, entry, meta) {
 
     const { pathname } = url.parse(meta.requestPath);
     const assetPath = pathname.match(
-      /^\/?_next\/static\/client\/pages\/(.+)\.[^/]+\.js$/,
+      /^\/?_next\/static\/[^/]+\/pages\/(.+)\.js$/,
     );
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = assetPath
@@ -469,7 +469,7 @@ exports.subscribe = async ({ entrypoint, files }) => {
   );
 
   return [
-    path.join(entryDirectory, '_next/static/**'),
+    path.join(entryDirectory, '_next/static/*/pages/**'),
     path.join(entryDirectory, 'static/**'),
     // List all pages without their extensions
     ...Object.keys(pageFiles).map(page => page
