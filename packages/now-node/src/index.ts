@@ -67,12 +67,12 @@ async function compile(entrypointPath: string, entrypoint: string, config: Compi
   const preparedFiles: Files = {};
   const blob = new FileBlob({ data: code });
   // move all user code to 'user' subdirectory
-  preparedFiles[join('user', entrypoint)] = blob;
+  preparedFiles[entrypoint] = blob;
   // eslint-disable-next-line no-restricted-syntax
   for (const assetName of Object.keys(assets)) {
     const { source: data, permissions: mode } = assets[assetName];
     const blob2 = new FileBlob({ data, mode });
-    preparedFiles[join('user', dirname(entrypoint), assetName)] = blob2;
+    preparedFiles[join(dirname(entrypoint), assetName)] = blob2;
   }
 
   return preparedFiles;
@@ -101,8 +101,7 @@ export async function build({ files, entrypoint, workPath, config }: BuildOption
   launcherData = launcherData.replace(
     '// PLACEHOLDER',
     [
-      'process.chdir("./user");',
-      `listener = require("./${join('user', entrypoint)}");`,
+      `listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;'
     ].join(' ')
   );
