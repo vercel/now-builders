@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && jest",
+    "test": "npm run build && node test/unhandled-error.js && jest",
     "prepublish": "npm run build"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import { AddressInfo } from 'net';
+import { AddressInfo, Socket } from 'net';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import {
   Server,
@@ -25,6 +25,30 @@ export interface NowProxyResponse {
   headers: OutgoingHttpHeaders;
   body: string;
   encoding: string;
+}
+
+export interface Deferred<T> {
+  promise: Promise<T>;
+  resolve: (value?: T | PromiseLike<T>) => void;
+  reject: (reason?: any) => void;
+}
+
+export function createDeferred<T>(): Deferred<T> {
+  let r;
+  let j;
+  const promise = new Promise<T>(
+    (
+      resolve: (value?: T | PromiseLike<T>) => void,
+      reject: (reason?: any) => void
+    ): void => {
+      r = resolve;
+      j = reject;
+    }
+  );
+  if (!r || !j) {
+    throw new Error('resolve or reject are undefined');
+  }
+  return { promise, resolve: r, reject: j };
 }
 
 function normalizeNowProxyEvent(event: NowProxyEvent): NowProxyRequest {
@@ -81,36 +105,38 @@ function normalizeEvent(
 
 export class Bridge {
   private server: Server | null;
-  private listening: Promise<AddressInfo>;
-  private resolveListening: (info: AddressInfo) => void;
+  private listening: Deferred<AddressInfo>;
+  private currentRequest: Deferred<NowProxyResponse> | null;
+  private connections: Set<Socket>;
 
   constructor(server?: Server) {
     this.server = null;
     if (server) {
       this.setServer(server);
     }
+    this.currentRequest = null;
     this.launcher = this.launcher.bind(this);
-
-    // This is just to appease TypeScript strict mode, since it doesn't
-    // understand that the Promise constructor is synchronous
-    this.resolveListening = (info: AddressInfo) => {};
-
-    this.listening = new Promise(resolve => {
-      this.resolveListening = resolve;
-    });
+    this.listening = createDeferred<AddressInfo>();
+    this.connections = new Set();
   }
 
   setServer(server: Server) {
     this.server = server;
+    const unhandled = (err: Error) => {
+      this.onUnhandledRejection(err);
+    };
+    process.on('unhandledRejection', unhandled);
     server.once('listening', () => {
-      const addr = server.address();
-      if (typeof addr === 'string') {
-        throw new Error(`Unexpected string for \`server.address()\`: ${addr}`);
-      } else if (!addr) {
-        throw new Error('`server.address()` returned `null`');
-      } else {
-        this.resolveListening(addr);
-      }
+      this.onListening();
+    });
+    server.once('close', () => {
+      process.removeListener('unhandledRejection', unhandled);
+    });
+    server.on('connection', (socket: Socket) => {
+      this.connections.add(socket);
+      socket.on('close', () => {
+        this.connections.delete(socket);
+      });
     });
   }
 
@@ -125,10 +151,52 @@ export class Bridge {
     });
   }
 
-  async launcher(
+  onListening() {
+    if (!this.server) {
+      throw new Error('Server has not been set!');
+    }
+    const addr = this.server.address();
+    if (typeof addr === 'string') {
+      const err = new Error(`Unexpected string for \`server.address()\`: ${addr}`);
+      this.listening.reject(err);
+    } else if (!addr) {
+      const err = new Error('`server.address()` returned `null`');
+      this.listening.reject(err);
+    } else {
+      this.listening.resolve(addr);
+    }
+  }
+
+  onUnhandledRejection(err: Error) {
+    if (this.currentRequest) {
+      this.currentRequest.reject(err);
+      for (const socket of this.connections) {
+        socket.destroy();
+      }
+    } else {
+      console.error(err);
+      process.exit(1);
+    }
+  }
+
+  launcher(
     event: NowProxyEvent | APIGatewayProxyEvent
   ): Promise<NowProxyResponse> {
-    const { port } = await this.listening;
+    this.currentRequest = createDeferred<NowProxyResponse>();
+    this.doReq(event).then((response: NowProxyResponse) => {
+      this.currentRequest!.resolve(response);
+      this.currentRequest = null;
+    }).catch((err: Error) => {
+      this.currentRequest!.reject(err);
+      this.currentRequest = null;
+    });
+    return this.currentRequest.promise;
+  }
+
+  async doReq(
+    event: NowProxyEvent | APIGatewayProxyEvent
+  ): Promise<NowProxyResponse> {
+    const { port } = await this.listening.promise;
 
     const { isApiGateway, method, path, headers, body } = normalizeEvent(
       event
@@ -145,23 +213,22 @@ export class Bridge {
     // eslint-disable-next-line consistent-return
     return new Promise((resolve, reject) => {
       const req = request(opts, res => {
-        const response = res;
         const respBodyChunks: Buffer[] = [];
-        response.on('data', chunk => respBodyChunks.push(Buffer.from(chunk)));
-        response.on('error', reject);
-        response.on('end', () => {
+        res.on('data', chunk => respBodyChunks.push(Buffer.from(chunk)));
+        res.on('error', reject);
+        res.on('end', () => {
           const bodyBuffer = Buffer.concat(respBodyChunks);
-          delete response.headers.connection;
+          delete res.headers.connection;
 
           if (isApiGateway) {
-            delete response.headers['content-length'];
-          } else if (response.headers['content-length']) {
-            response.headers['content-length'] = String(bodyBuffer.length);
+            delete res.headers['content-length'];
+          } else if (res.headers['content-length']) {
+            res.headers['content-length'] = String(bodyBuffer.length);
           }
 
           resolve({
-            statusCode: response.statusCode || 200,
-            headers: response.headers,
+            statusCode: res.statusCode || 200,
+            headers: res.headers,
             body: bodyBuffer.toString('base64'),
             encoding: 'base64'
           });
@@ -176,8 +243,7 @@ export class Bridge {
         }, 2);
       });
 
-      if (body) req.write(body);
-      req.end();
+      req.end(body);
     });
   }
 }
