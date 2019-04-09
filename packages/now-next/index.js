@@ -125,7 +125,7 @@ function setNextExperimentalPage(files, entry, meta) {
 
     const { pathname } = url.parse(meta.requestPath);
     const assetPath = pathname.match(
-      /^\/?_next\/static\/[^/]+\/pages\/(.+)\.js$/,
+      /^\/?_next\/static\/client\/pages\/(.+)\.[^/]+\.js$/,
     );
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = assetPath
