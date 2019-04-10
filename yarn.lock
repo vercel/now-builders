@@ -728,11 +728,6 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@now/node-bridge@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@now/node-bridge/-/node-bridge-1.0.0.tgz#3e7c1cd5760dc681febb4689201bbea6fdd35230"
-  integrity sha512-tHcr0GlgNlE8ucjuw4w7mseJ68R4VkxuHbFQpSUJ5cZqTJbKggtsdv9UL3u5uBJBXgqDmidlEepF3wOm7A99IQ==
-
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@samverschueren/stream-to-observable/-/stream-to-observable-0.3.0.tgz#ecdf48d532c58ea477acfcab80348424f8d0662f"
@@ -761,6 +756,13 @@
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@types/events/-/events-1.2.0.tgz#81a6731ce4df43619e5c8c945383b3e62a89ea86"
   integrity sha512-KEIlhXnIutzKwRbQkGWb/I4HFqBuUykAdHgDED6xqwXJfONCjF5VoE0cXEiurh3XauygxzeDzgtXUqvLkxFzzA==
+
+"@types/execa@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@types/execa/-/execa-0.9.0.tgz#9b025d2755f17e80beaf9368c3f4f319d8b0fb93"
+  integrity sha512-mgfd93RhzjYBUHHV532turHC2j4l/qxsF/PbfDmprHDEUHmNZGlDn1CEsulGK3AfsPdhkWzZQT/S/k0UGhLGsA==
+  dependencies:
+    "@types/node" "*"
 
 "@types/fs-extra@^5.0.4":
   version "5.0.4"
@@ -831,6 +833,11 @@
     diff "3.5.0"
     globby "8.0.0"
     signal-exit "3.0.2"
+
+"@zeit/ncc@0.17.3":
+  version "0.17.3"
+  resolved "https://registry.yarnpkg.com/@zeit/ncc/-/ncc-0.17.3.tgz#a6ec83933d209ac2956d642db772838515d93077"
+  integrity sha512-WV1pZZx3vj7E6HMGPKlwqIrCHNtn21C7kvwRNXKQovhpaU/q5iRCAlQ9Peijd1cDUTfakDKb8e8Kp7IRI8Hp3A==
 
 JSONStream@^1.0.4, JSONStream@^1.3.4:
   version "1.3.5"
@@ -1014,6 +1021,11 @@ argparse@^1.0.7:
   integrity sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==
   dependencies:
     sprintf-js "~1.0.2"
+
+argv@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/argv/-/argv-0.0.2.tgz#ecbd16f8949b157183711b1bda334f37840185ab"
+  integrity sha1-7L0W+JSbFXGDcRsb2jNPN4QBhas=
 
 arr-diff@^2.0.0:
   version "2.0.0"
@@ -1913,6 +1925,17 @@ code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
+
+codecov@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/codecov/-/codecov-3.2.0.tgz#4465ee19884528092d8c313e1f9e4bdc7d3065cd"
+  integrity sha512-3NJvNARXxilqnqVfgzDHyVrF4oeVgaYW1c1O6Oi5mn93exE7HTSSFNiYdwojWW6IwrCZABJ8crpNbKoo9aUHQw==
+  dependencies:
+    argv "^0.0.2"
+    ignore-walk "^3.0.1"
+    js-yaml "^3.12.0"
+    teeny-request "^3.7.0"
+    urlgrey "^0.4.4"
 
 collapse-white-space@^1.0.0, collapse-white-space@^1.0.2:
   version "1.0.4"
@@ -3338,11 +3361,6 @@ fs-write-stream-atomic@^1.0.8:
     iferr "^0.1.5"
     imurmurhash "^0.1.4"
     readable-stream "1 || 2"
-
-fs.promised@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/fs.promised/-/fs.promised-3.0.0.tgz#ab77379f7c1ad0939e1262a8c2ced93fa6c39d3b"
-  integrity sha1-q3c3n3wa0JOeEmKows7ZP6bDnTs=
 
 fs.realpath@^1.0.0:
   version "1.0.0"
@@ -8551,6 +8569,15 @@ tar@^4, tar@^4.4.6, tar@^4.4.8:
     safe-buffer "^5.1.2"
     yallist "^3.0.2"
 
+teeny-request@^3.7.0:
+  version "3.11.3"
+  resolved "https://registry.yarnpkg.com/teeny-request/-/teeny-request-3.11.3.tgz#335c629f7645e5d6599362df2f3230c4cbc23a55"
+  integrity sha512-CKncqSF7sH6p4rzCgkb/z/Pcos5efl0DmolzvlqRQUNcpRIruOhY9+T1FsIlyEbfWd7MsFpodROOwHYh2BaXzw==
+  dependencies:
+    https-proxy-agent "^2.2.1"
+    node-fetch "^2.2.0"
+    uuid "^3.3.2"
+
 temp-dir@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/temp-dir/-/temp-dir-1.0.0.tgz#0a7c0ea26d3a39afa7e0ebea9c1fc0bc4daa011d"
@@ -9004,6 +9031,11 @@ url-regex@^3.0.0:
   integrity sha1-260eDJ4p4QXdCx8J9oYvf9tIJyQ=
   dependencies:
     ip-regex "^1.0.1"
+
+urlgrey@^0.4.4:
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/urlgrey/-/urlgrey-0.4.4.tgz#892fe95960805e85519f1cd4389f2cb4cbb7652f"
+  integrity sha1-iS/pWWCAXoVRnxzUOJ8stMu3ZS8=
 
 use@^3.1.0:
   version "3.1.1"

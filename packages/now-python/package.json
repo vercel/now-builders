@@ -1,6 +1,6 @@
 {
   "name": "@now/python",
-  "version": "0.0.42-canary.1",
+  "version": "0.1.0-canary.1",
   "main": "index.js",
   "license": "MIT",
   "repository": {
@@ -8,9 +8,17 @@
     "url": "https://github.com/zeit/now-builders.git",
     "directory": "packages/now-python"
   },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && jest",
+    "prepublish": "tsc"
+  },
   "dependencies": {
     "execa": "^1.0.0",
-    "fs.promised": "^3.0.0",
     "node-fetch": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/execa": "^0.9.0",
+    "typescript": "3.3.4000"
   }
 }
