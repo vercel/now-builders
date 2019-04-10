@@ -1,29 +1,39 @@
-const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
+const {
+  createLambda, rename, glob, download,
+} = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
-const rename = require('@now/build-utils/fs/rename.js'); // eslint-disable-line import/no-extraneous-dependencies
 const { getFiles } = require('@now/php-bridge');
-const minimatch = require('minimatch');
 
 exports.config = {
   maxLambdaSize: '10mb',
 };
 
-exports.build = async ({ files, entrypoint, config }) => {
-  // Fetch the included files config, or default (**)
-  const includedFilesGlob = (config ? config.includeFiles : false) || '**';
-  let includedFiles = files;
-  if (includedFilesGlob !== '**') {
-    // match the files with the glob
-    includedFiles = Object.keys(files)
-      .filter(minimatch.filter(includedFilesGlob))
-      .reduce((res, key) => {
-        res[key] = files[key];
-        return res;
-      }, {});
+exports.build = async ({
+  files, entrypoint, workPath, config,
+}) => {
+  // Download all files to workPath
+  const fileDir = path.join(workPath, 'userfiles');
+  const downloadedFiles = await download(files, fileDir);
+
+  let includedFiles = {};
+  if (config && config.includeFiles) {
+    // Find files for each glob
+    // eslint-disable-next-line no-restricted-syntax
+    for (const pattern of config.includeFiles) {
+      // eslint-disable-next-line no-await-in-loop
+      const matchedFiles = await glob(pattern, fileDir);
+      Object.assign(includedFiles, matchedFiles);
+    }
     // explicit and always include the entrypoint
-    includedFiles[entrypoint] = files[entrypoint];
+    Object.assign(includedFiles, {
+      [entrypoint]: files[entrypoint],
+    });
+  } else {
+    // Backwards compatibility
+    includedFiles = downloadedFiles;
   }
-  // move all user code to 'user' subdirectory
+  console.log('Included files:', Object.keys(includedFiles));
+
   const userFiles = rename(includedFiles, name => path.join('user', name));
   const bridgeFiles = await getFiles();
 
