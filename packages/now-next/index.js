@@ -474,7 +474,10 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
   if (
     new RegExp(`^${path.join(entryDirectory, 'static')}/.+`).test(requestPath)
   ) {
-    return true;
+    if (requestPath in files) {
+      return true;
+    }
+    return false;
   }
 
   const pageFiles = includeOnlyEntryDirectory(
