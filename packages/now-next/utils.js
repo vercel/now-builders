@@ -153,6 +153,20 @@ async function getNextConfig(workPath, entryPath) {
   return null;
 }
 
+async function getWatchers(nextPath) {
+  const watch = [];
+  const manifest = path.join(nextPath, './compilation-modules.json');
+  if (await fs.pathExists(manifest)) {
+    const { pages } = JSON.parse(await fs.readFile(manifest, 'utf8'));
+
+    Object.keys(pages).forEach(page => pages[page].forEach((dep) => {
+      watch.push(dep);
+    }));
+  }
+
+  return watch;
+}
+
 module.exports = {
   excludeFiles,
   validateEntrypoint,
@@ -161,4 +175,5 @@ module.exports = {
   normalizePackageJson,
   onlyStaticDirectory,
   getNextConfig,
+  getWatchers,
 };

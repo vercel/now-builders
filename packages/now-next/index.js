@@ -26,6 +26,7 @@ const {
   normalizePackageJson,
   onlyStaticDirectory,
   getNextConfig,
+  getWatchers,
 } = require('./utils');
 
 /** @typedef { import('@now/build-utils/file-ref').Files } Files */
@@ -44,6 +45,8 @@ const {
  * @property {string} workPath - Working directory for this build
  * @property {BuildParamsMeta} [meta] - Various meta settings
  */
+
+exports.version = 2;
 
 /**
  * Read package.json from files
@@ -117,15 +120,17 @@ function isLegacyNext(nextVersion) {
 function setNextExperimentalPage(files, entry, meta) {
   if (meta.requestPath) {
     if (meta.requestPath.startsWith(path.join(entry, 'static'))) {
-      return onlyStaticDirectory(
-        includeOnlyEntryDirectory(files, entry),
-        entry,
-      );
+      return {
+        output: onlyStaticDirectory(
+          includeOnlyEntryDirectory(files, entry),
+          entry,
+        ),
+      };
     }
 
     const { pathname } = url.parse(meta.requestPath);
     const assetPath = pathname.match(
-      /^\/?_next\/static\/[^/]+\/pages\/(.+)\.js$/,
+      /_next\/static\/unoptimized-build\/pages\/(.+)\.js$/,
     );
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = assetPath
@@ -429,7 +434,10 @@ exports.build = async ({
     entryDirectory,
   );
 
-  return { ...lambdas, ...staticFiles, ...staticDirectoryFiles };
+  return {
+    output: { ...lambdas, ...staticFiles, ...staticDirectoryFiles },
+    watch: await getWatchers(dotNext),
+  };
 };
 
 exports.prepareCache = async ({ workPath, entrypoint }) => {
@@ -461,21 +469,35 @@ exports.prepareCache = async ({ workPath, entrypoint }) => {
   };
 };
 
-exports.subscribe = async ({ entrypoint, files }) => {
+exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
   const entryDirectory = path.dirname(entrypoint);
+  if (
+    new RegExp(`^${path.join(entryDirectory, 'static')}/.+`).test(requestPath)
+  ) {
+    return true;
+  }
+
   const pageFiles = includeOnlyEntryDirectory(
     files,
     path.join(entryDirectory, 'pages'),
   );
 
-  return [
-    path.join(entryDirectory, '_next/static/unoptimized-build/pages/**'),
-    path.join(entryDirectory, 'static/**'),
-    // List all pages without their extensions
-    ...Object.keys(pageFiles).map(page => page
-      .replace(/^pages\//i, '')
-      .split('.')
-      .slice(0, -1)
-      .join('.')),
-  ];
+  if (
+    new RegExp(
+      `^${path.join(entryDirectory, '_next/static/unoptimized-build/pages')}/.+`,
+    ).test(requestPath)
+  ) {
+    const pagePath = requestPath.match(
+      /_next\/static\/unoptimized-build\/pages\/(.+)\.js$/,
+    );
+    if (pagePath[1] in pageFiles) {
+      return true;
+    }
+    return false;
+  }
+
+  if (requestPath in pageFiles) {
+    return true;
+  }
+  return false;
 };
