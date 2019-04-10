@@ -27,7 +27,6 @@ const {
   onlyStaticDirectory,
   getNextConfig,
 } = require('./utils');
-const flyingShuttle = require('./flying-shuttle');
 
 /** @typedef { import('@now/build-utils/file-ref').Files } Files */
 /** @typedef { import('@now/build-utils/fs/download').DownloadedFiles } DownloadedFiles */
@@ -115,6 +114,33 @@ function isLegacyNext(nextVersion) {
   return true;
 }
 
+function setNextExperimentalPage(files, entry, meta) {
+  if (meta.requestPath) {
+    if (meta.requestPath.startsWith(path.join(entry, 'static'))) {
+      return onlyStaticDirectory(
+        includeOnlyEntryDirectory(files, entry),
+        entry,
+      );
+    }
+
+    const { pathname } = url.parse(meta.requestPath);
+    const assetPath = pathname.match(
+      /^\/?_next\/static\/[^/]+\/pages\/(.+)\.js$/,
+    );
+    // eslint-disable-next-line no-underscore-dangle
+    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = assetPath
+      ? assetPath[1]
+      : pathname;
+  }
+
+  if (meta.isDev) {
+    // eslint-disable-next-line no-underscore-dangle
+    process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
+  }
+
+  return null;
+}
+
 exports.config = {
   maxLambdaSize: '5mb',
 };
@@ -128,12 +154,29 @@ exports.build = async ({
 }) => {
   validateEntrypoint(entrypoint);
 
-  console.log('downloading user files...');
   const entryDirectory = path.dirname(entrypoint);
+  const maybeStaticFiles = setNextExperimentalPage(files, entryDirectory, meta);
+  if (maybeStaticFiles) return maybeStaticFiles; // return early if requestPath is static file
+
+  console.log('downloading user files...');
   await download(files, workPath);
   const entryPath = path.join(workPath, entryDirectory);
+  const dotNext = path.join(entryPath, '.next');
+
+  if (await pathExists(dotNext)) {
+    if (meta.isDev) {
+      await removePath(dotNext).catch((e) => {
+        if (e.code !== 'ENOENT') throw e;
+      });
+    } else {
+      console.warn(
+        'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
+      );
+    }
+  }
 
   const pkg = await readPackageJson(entryPath);
+
   let nextVersion = getNextVersion(pkg);
   if (!nextVersion) {
     throw new Error(
@@ -144,26 +187,6 @@ exports.build = async ({
   const isLegacy = isLegacyNext(nextVersion);
 
   console.log(`MODE: ${isLegacy ? 'legacy' : 'serverless'}`);
-
-  const isFlyingShuttle = !isLegacy && Boolean(pkg.next && pkg.next.flyingShuttle);
-  const hasFlyingShuttle = isFlyingShuttle
-    && (await flyingShuttle.hasFlyingShuttle({
-      entryPath,
-    }));
-
-  const dotNext = path.join(entryPath, '.next');
-  if (await pathExists(dotNext)) {
-    // TODO: remove branch for `isFlyingShuttle` and make it an error
-    if (isFlyingShuttle || meta.isDev) {
-      await removePath(dotNext).catch((e) => {
-        if (e.code !== 'ENOENT') throw e;
-      });
-    } else {
-      console.warn(
-        'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
-      );
-    }
-  }
 
   if (isLegacy) {
     try {
@@ -226,49 +249,6 @@ exports.build = async ({
     throw new Error(
       '`now dev` can only be used with Next.js >=8.0.5-canary.14!',
     );
-  }
-
-  if (meta.isDev) {
-    // eslint-disable-next-line no-underscore-dangle
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
-  }
-  if (meta.requestPath) {
-    const { pathname } = url.parse(meta.requestPath);
-    const assetPath = pathname.match(
-      /^\/?_next\/static\/[^/]+\/pages\/(.+)\.js$/,
-    );
-    // eslint-disable-next-line no-underscore-dangle
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = assetPath
-      ? assetPath[1]
-      : pathname;
-  }
-
-  let unchangedPages = [];
-  if (isFlyingShuttle) {
-    // eslint-disable-next-line no-underscore-dangle
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = '**';
-
-    if (hasFlyingShuttle) {
-      unchangedPages = await flyingShuttle.getUnchangedPages({
-        entryPath,
-      });
-      if (unchangedPages.length) {
-        // eslint-disable-next-line no-underscore-dangle
-        process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = `**,${unchangedPages
-          .map(p => '-'.concat(p))
-          .join(',')}`;
-
-        console.log(
-          `[FLYING SHUTTLE] shuttle found :: skipping pages: ${unchangedPages.join(
-            ' ',
-          )}`,
-        );
-      } else {
-        console.log('[FLYING SHUTTLE] shuttle mismatch :: building all pages');
-      }
-    } else {
-      console.log('[FLYING SHUTTLE] shuttle is missing :: building all pages');
-    }
   }
 
   console.log('running user script...');
@@ -418,7 +398,7 @@ exports.build = async ({
         const pathname = page.replace(/\.js$/, '');
 
         console.log(`Creating lambda for page: "${page}"...`);
-        const lambda = await createLambda({
+        lambdas[path.join(entryDirectory, pathname)] = await createLambda({
           files: {
             ...launcherFiles,
             ...assets,
@@ -427,39 +407,9 @@ exports.build = async ({
           handler: 'now__launcher.launcher',
           runtime: 'nodejs8.10',
         });
-        lambdas[path.join(entryDirectory, pathname)] = lambda;
         console.log(`Created lambda for page: "${page}"`);
-
-        if (isFlyingShuttle) {
-          await flyingShuttle.stageLambda({
-            entryPath,
-            pageName: pathname,
-            lambda,
-          });
-          console.log(
-            `[FLYING SHUTTLE] staging shuttle :: page: "${pathname}"`,
-          );
-        }
       }),
     );
-
-    if (isFlyingShuttle) {
-      await Promise.all(
-        unchangedPages.map(async (unchangedPage) => {
-          console.log(
-            `[FLYING SHUTTLE] unload shuttle :: re-hydrate page: ${unchangedPage}`,
-          );
-          await flyingShuttle.recallLambda({
-            entryPath,
-            entryDirectory,
-            pageName: unchangedPage,
-            onLambda: (pathname, lambda) => {
-              lambdas[pathname] = lambda;
-            },
-          });
-        }),
-      );
-    }
   }
 
   const nextStaticFiles = await glob(
@@ -496,26 +446,18 @@ exports.prepareCache = async ({ workPath, entrypoint }) => {
     return {};
   }
 
-  const isFlyingShuttle = Boolean(pkg.next && pkg.next.flyingShuttle);
-  let flyingShuttleCache = {};
-  if (isFlyingShuttle) {
-    console.log('[FLYING SHUTTLE] storing shuttle');
-    flyingShuttleCache = await flyingShuttle.getCache({ workPath, entryPath });
-  }
-
   console.log('producing cache file manifest ...');
   const cacheEntrypoint = path.relative(workPath, entryPath);
   return {
     ...(await glob(
       path.join(
         cacheEntrypoint,
-        'node_modules/{**,!.*,.yarn*,.cache/next-minifier/**}',
+        'node_modules/{**,!.*,.yarn*,.cache/next-minifier/**,.cache/next-flying-shuttle/**}',
       ),
       workPath,
     )),
     ...(await glob(path.join(cacheEntrypoint, 'package-lock.json'), workPath)),
     ...(await glob(path.join(cacheEntrypoint, 'yarn.lock'), workPath)),
-    ...flyingShuttleCache,
   };
 };
 
@@ -527,7 +469,8 @@ exports.subscribe = async ({ entrypoint, files }) => {
   );
 
   return [
-    path.join(entryDirectory, '_next/static/**'),
+    path.join(entryDirectory, '_next/static/unoptimized-build/pages/**'),
+    path.join(entryDirectory, 'static/**'),
     // List all pages without their extensions
     ...Object.keys(pageFiles).map(page => page
       .replace(/^pages\//i, '')
