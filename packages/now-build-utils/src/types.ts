@@ -116,9 +116,4 @@ export interface ShouldServeParams {
    * A path string for a request.
    */
   requestPath: string;
-  /**
-   * An arbitrary object passed by the user in the build definition defined
-   * in `now.json`.
-   */
-  config: Config;
 }
