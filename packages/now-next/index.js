@@ -119,23 +119,25 @@ function isLegacyNext(nextVersion) {
 
 function setNextExperimentalPage(files, entry, meta) {
   if (meta.requestPath) {
-    if (meta.requestPath.startsWith(path.join(entry, 'static'))) {
+    if (meta.requestPath.startsWith(`${entry ? `${entry}/` : ''}static`)) {
       return {
-        output: onlyStaticDirectory(
-          includeOnlyEntryDirectory(files, entry),
-          entry,
-        ),
+        output: {
+          [meta.requestPath]: files[meta.requestPath],
+        },
       };
     }
 
     const { pathname } = url.parse(meta.requestPath);
-    const assetPath = pathname.match(
-      /_next\/static\/unoptimized-build\/pages\/(.+)\.js$/,
+    const clientPageRegex = new RegExp(
+      `^${
+        entry ? `${entry}/` : ''
+      }_next/static/unoptimized-build/pages/(.+)\\.js$`,
     );
+    const clientPage = pathname.match(clientPageRegex);
     // eslint-disable-next-line no-underscore-dangle
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = assetPath
-      ? assetPath[1]
-      : pathname;
+    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = clientPage
+      ? clientPage[1]
+      : pathname || '/';
   }
 
   if (meta.isDev) {
@@ -144,6 +146,28 @@ function setNextExperimentalPage(files, entry, meta) {
   }
 
   return null;
+}
+
+function pageExists(name, pages) {
+  const inPages = (...names) => {
+    while (names.length >= 1) {
+      if (names[0] in pages) return true;
+      names.pop();
+    }
+
+    return false;
+  };
+
+  if (name === '/') {
+    return inPages('index.js', 'index.ts');
+  }
+
+  return inPages(
+    `${name}.js`,
+    `${name}.ts`,
+    `${name}/index.js`,
+    `${name}/index.ts`,
+  );
 }
 
 exports.config = {
@@ -470,37 +494,59 @@ exports.prepareCache = async ({ workPath, entrypoint }) => {
 };
 
 exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
-  const entryDirectory = path.dirname(entrypoint);
-  if (
-    new RegExp(`^${path.join(entryDirectory, 'static')}/.+`).test(requestPath)
-  ) {
+  // the scope of the Next project
+  const entry = path.dirname(entrypoint);
+  const entryDirectory = entry !== '.' ? `${entry}/` : '';
+
+  // check if request is for a static file in scope
+  const isStatic = new RegExp(`^${entryDirectory}static/.+$`);
+  if (isStatic.test(requestPath)) {
     if (requestPath in files) {
       return true;
     }
     return false;
   }
 
-  const pageFiles = includeOnlyEntryDirectory(
+  // files scoped to pages only
+  const pages = includeOnlyEntryDirectory(
     files,
     path.join(entryDirectory, 'pages'),
   );
 
-  if (
-    new RegExp(
-      `^${path.join(entryDirectory, '_next/static/unoptimized-build/pages')}/.+`,
-    ).test(requestPath)
-  ) {
-    const pagePath = requestPath.match(
-      /_next\/static\/unoptimized-build\/pages\/(.+)\.js$/,
-    );
-    if (pagePath[1] in pageFiles) {
+  // check if request is for a static page in scope
+  const isClientPage = new RegExp(
+    `^${entryDirectory}_next/static/unoptimized-build/pages/(.+)\\.js$`,
+  );
+  if (isClientPage.test(requestPath)) {
+    const requestedPage = requestPath.match(isClientPage)[1];
+    if (pageExists(requestedPage, pages)) {
       return true;
     }
     return false;
   }
 
-  if (requestPath in pageFiles) {
+  // check if request is for a static next asset
+  const isNextAsset = new RegExp(`^${entryDirectory}_next.+$`);
+  if (isNextAsset.test(requestPath)) {
+    if (requestPath in files) {
+      return true;
+    }
+    return false;
+  }
+
+  if (
+    pageExists(
+      requestPath.substr(-1) === '/' ? requestPath.slice(0, -1) : requestPath,
+      pages,
+    )
+  ) {
     return true;
   }
+
+  // check if request is in scope but not a page
+  if (new RegExp(`^${entryDirectory}/.*`).test(requestPath)) {
+    return requestPath in files;
+  }
+
   return false;
 };
