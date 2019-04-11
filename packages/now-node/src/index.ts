@@ -1,4 +1,4 @@
-import { join, dirname, basename, extname } from 'path';
+import { join, parse, dirname, basename, extname } from 'path';
 import { readFile } from 'fs-extra';
 import {
   glob,
@@ -141,7 +141,7 @@ export function shouldServe({
 
   if (isIndex(entrypoint)) {
     const cleanRequestPath = requestPath.replace(/\/$/, '');
-    if (dirname(entrypoint) === cleanRequestPath) {
+    if (parse(entrypoint).dir === cleanRequestPath) {
       return true;
     }
   }

@@ -44,30 +44,46 @@ test('shouldServe on 01-cowsay', async () => {
       files,
       entrypoint: 'index.js',
       requestPath: 'index.js',
-    }) === true,
-  );
+    }),
+  ).toBe(true);
 
   expect(
     shouldServe({
       files,
       entrypoint: 'index.js',
       requestPath: '',
-    }) === true,
-  );
+    }),
+  ).toBe(true);
 
   expect(
     shouldServe({
       files,
       entrypoint: 'index.js',
       requestPath: '/',
-    }) === true,
-  );
+    }),
+  ).toBe(true);
 
   expect(
     shouldServe({
       files,
       entrypoint: 'index.js',
       requestPath: 'subdirectory/index.js',
-    }) === false,
-  );
+    }),
+  ).toBe(false);
+
+  expect(
+    shouldServe({
+      files,
+      entrypoint: 'subdirectory/index.js',
+      requestPath: 'subdirectory/',
+    }),
+  ).toBe(true);
+
+  expect(
+    shouldServe({
+      files,
+      entrypoint: 'subdirectory/index.js',
+      requestPath: 'subdirectory',
+    }),
+  ).toBe(true);
 });
