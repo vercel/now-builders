@@ -159,14 +159,26 @@ function pageExists(name, pages) {
   };
 
   if (name === '/') {
-    return inPages('index.js', 'index.ts');
+    return inPages(
+      'index.js',
+      'index.ts',
+      'index.jsx',
+      'index.tsx',
+      'index.mdx',
+    );
   }
 
   return inPages(
     `${name}.js`,
     `${name}.ts`,
+    `${name}.jsx`,
+    `${name}.tsx`,
+    `${name}.mdx`,
     `${name}/index.js`,
     `${name}/index.ts`,
+    `${name}/index.jsx`,
+    `${name}/index.tsx`,
+    `${name}/index.mdx`,
   );
 }
 
