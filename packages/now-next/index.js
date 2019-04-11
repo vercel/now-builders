@@ -548,7 +548,7 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
 
   if (
     pageExists(
-      requestPath.substr(-1) === '/' ? requestPath.slice(0, -1) : requestPath,
+      requestPath.endsWith('/') ? requestPath.slice(0, -1) : requestPath,
       pages,
     )
   ) {
