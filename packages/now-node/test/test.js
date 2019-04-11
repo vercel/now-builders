@@ -1,6 +1,9 @@
 /* global beforeAll, expect, it, jest */
 const fs = require('fs');
 const path = require('path');
+const buildUtils = require('@now/build-utils');
+
+const { shouldServe } = require('../dist');
 
 const {
   packAndDeploy,
@@ -31,3 +34,40 @@ for (const fixture of fs.readdirSync(fixturesPath)) {
     ).resolves.toBeDefined();
   });
 }
+
+test('shouldServe on 01-cowsay', async () => {
+  const cwd = path.resolve(__dirname, './fixtures/01-cowsay');
+  const files = await buildUtils.glob('**', cwd);
+
+  expect(
+    shouldServe({
+      files,
+      entrypoint: 'index.js',
+      requestPath: 'index.js',
+    }) === true,
+  );
+
+  expect(
+    shouldServe({
+      files,
+      entrypoint: 'index.js',
+      requestPath: '',
+    }) === true,
+  );
+
+  expect(
+    shouldServe({
+      files,
+      entrypoint: 'index.js',
+      requestPath: '/',
+    }) === true,
+  );
+
+  expect(
+    shouldServe({
+      files,
+      entrypoint: 'index.js',
+      requestPath: 'subdirectory/index.js',
+    }) === false,
+  );
+});

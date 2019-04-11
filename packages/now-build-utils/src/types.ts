@@ -120,5 +120,5 @@ export interface ShouldServeParams {
    * An arbitrary object passed by the user in the build definition defined
    * in `now.json`.
    */
-  config?: object;
+  config: Config;
 }
