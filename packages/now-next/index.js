@@ -158,7 +158,7 @@ function pageExists(name, pages) {
     return false;
   };
 
-  if (name === '/') {
+  if (name === '' || name === '/') {
     return inPages(
       'index.js',
       'index.ts',
