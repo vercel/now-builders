@@ -134,14 +134,19 @@ export function shouldServe({
   entrypoint,
   files,
   requestPath
-}: ShouldServeParams) {
+}: ShouldServeParams): boolean {
+  if (!Object.hasOwnProperty.call(files, entrypoint)) {
+    return false;
+  }
+
   if (isIndex(entrypoint)) {
-    const indexPath = join(requestPath, basename(entrypoint));
-    if (entrypoint === indexPath && indexPath in files) {
+    const cleanRequestPath = requestPath.replace(/\/$/, '');
+    if (dirname(entrypoint) === cleanRequestPath) {
       return true;
     }
   }
-  return entrypoint === requestPath && requestPath in files;
+
+  return entrypoint === requestPath;
 }
 
 function isIndex(path: string): boolean {
