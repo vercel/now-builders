@@ -99,3 +99,26 @@ export interface PrepareCacheOptions {
    */
   config: Config;
 }
+
+export interface ShouldServeParams {
+  /**
+   * All source files of the project
+   */
+  files: Files;
+  /**
+   * Name of entrypoint file for this particular build job. Value
+   * `files[entrypoint]` is guaranteed to exist and be a valid File reference.
+   * `entrypoint` is always a discrete file and never a glob, since globs are
+   * expanded into separate builds at deployment time.
+   */
+  entrypoint: string;
+  /**
+   * A path string for a request.
+   */
+  requestPath: string;
+  /**
+   * An arbitrary object passed by the user in the build definition defined
+   * in `now.json`.
+   */
+  config?: object;
+}

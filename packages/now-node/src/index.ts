@@ -1,5 +1,5 @@
-import { join, dirname } from 'path';
-import { remove, readFile } from 'fs-extra';
+import { join, dirname, basename, extname } from 'path';
+import { readFile } from 'fs-extra';
 import {
   glob,
   download,
@@ -11,6 +11,8 @@ import {
   runPackageJsonScript,
   PrepareCacheOptions,
   BuildOptions,
+  // @ts-ignore // should remove this after @now/build-utils updated
+  ShouldServeParams,
 } from '@now/build-utils';
 
 interface CompilerConfig {
@@ -127,3 +129,24 @@ export async function prepareCache({ workPath }: PrepareCacheOptions) {
     ...(await glob('yarn.lock', workPath))
   };
 }
+
+export function shouldServe({
+  entrypoint,
+  files,
+  requestPath
+}: ShouldServeParams) {
+  if (isIndex(entrypoint)) {
+    const indexPath = join(requestPath, basename(entrypoint));
+    if (entrypoint === indexPath && indexPath in files) {
+      return true;
+    }
+  }
+  return entrypoint === requestPath && requestPath in files;
+}
+
+function isIndex(path: string): boolean {
+  const ext = extname(path);
+  const name = basename(path, ext);
+  return name === 'index';
+}
+
