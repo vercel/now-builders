@@ -22,7 +22,6 @@
     "dist"
   ],
   "devDependencies": {
-    "@now/build-utils": "^0.4.40",
     "@types/node": "11.9.4",
     "jest": "24.1.0",
     "typescript": "3.3.3"
