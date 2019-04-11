@@ -1,4 +1,5 @@
-/* global beforeAll, expect, it, jest */
+/* global beforeAll, expect, it, jest, test */
+/* eslint-disable import/no-extraneous-dependencies */
 const fs = require('fs');
 const path = require('path');
 const buildUtils = require('@now/build-utils');
