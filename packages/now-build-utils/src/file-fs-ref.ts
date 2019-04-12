@@ -5,14 +5,10 @@ import path from 'path';
 import Sema from 'async-sema';
 import { File } from './types';
 
-const semaToPreventEMFILE = new Sema(30);
+const semaToPreventEMFILE = new Sema(20);
 
 interface FileFsRefOptions {
   mode?: number;
-  fsPath: string;
-}
-
-interface FromOptions {
   fsPath: string;
 }
 
@@ -35,9 +31,13 @@ class FileFsRef implements File {
     this.fsPath = fsPath;
   }
 
-  static async fromFsPath({ fsPath }: FromOptions): Promise<FileFsRef> {
-    const { mode } = await fs.lstat(fsPath);
-    return new FileFsRef({ mode, fsPath });
+  static async fromFsPath({ mode, fsPath }: FileFsRefOptions): Promise<FileFsRef> {
+    let m = mode;
+    if (!m) {
+      const stat = await fs.lstat(fsPath);
+      m = stat.mode;
+    }
+    return new FileFsRef({ mode: m, fsPath });
   }
 
   static async fromStream({ mode = 0o100644, stream, fsPath }: FromStreamOptions): Promise<FileFsRef> {
@@ -47,14 +47,15 @@ class FileFsRef implements File {
     await fs.mkdirp(path.dirname(fsPath));
 
     await new Promise<void>((resolve, reject) => {
-      const dest = fs.createWriteStream(fsPath);
+      const dest = fs.createWriteStream(fsPath, {
+        mode: mode & 0o777
+      });
       stream.pipe(dest);
       stream.on('error', reject);
       dest.on('finish', resolve);
       dest.on('error', reject);
     });
 
-    await fs.chmod(fsPath, mode.toString(8).slice(-3));
     return new FileFsRef({ mode, fsPath });
   }
 

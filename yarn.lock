@@ -728,11 +728,6 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@now/node-bridge@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@now/node-bridge/-/node-bridge-1.0.0.tgz#3e7c1cd5760dc681febb4689201bbea6fdd35230"
-  integrity sha512-tHcr0GlgNlE8ucjuw4w7mseJ68R4VkxuHbFQpSUJ5cZqTJbKggtsdv9UL3u5uBJBXgqDmidlEepF3wOm7A99IQ==
-
 "@samverschueren/stream-to-observable@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@samverschueren/stream-to-observable/-/stream-to-observable-0.3.0.tgz#ecdf48d532c58ea477acfcab80348424f8d0662f"
@@ -761,6 +756,13 @@
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@types/events/-/events-1.2.0.tgz#81a6731ce4df43619e5c8c945383b3e62a89ea86"
   integrity sha512-KEIlhXnIutzKwRbQkGWb/I4HFqBuUykAdHgDED6xqwXJfONCjF5VoE0cXEiurh3XauygxzeDzgtXUqvLkxFzzA==
+
+"@types/execa@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@types/execa/-/execa-0.9.0.tgz#9b025d2755f17e80beaf9368c3f4f319d8b0fb93"
+  integrity sha512-mgfd93RhzjYBUHHV532turHC2j4l/qxsF/PbfDmprHDEUHmNZGlDn1CEsulGK3AfsPdhkWzZQT/S/k0UGhLGsA==
+  dependencies:
+    "@types/node" "*"
 
 "@types/fs-extra@^5.0.4":
   version "5.0.4"
@@ -831,6 +833,11 @@
     diff "3.5.0"
     globby "8.0.0"
     signal-exit "3.0.2"
+
+"@zeit/ncc@0.17.3":
+  version "0.17.3"
+  resolved "https://registry.yarnpkg.com/@zeit/ncc/-/ncc-0.17.3.tgz#a6ec83933d209ac2956d642db772838515d93077"
+  integrity sha512-WV1pZZx3vj7E6HMGPKlwqIrCHNtn21C7kvwRNXKQovhpaU/q5iRCAlQ9Peijd1cDUTfakDKb8e8Kp7IRI8Hp3A==
 
 JSONStream@^1.0.4, JSONStream@^1.3.4:
   version "1.3.5"
@@ -3354,11 +3361,6 @@ fs-write-stream-atomic@^1.0.8:
     iferr "^0.1.5"
     imurmurhash "^0.1.4"
     readable-stream "1 || 2"
-
-fs.promised@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/fs.promised/-/fs.promised-3.0.0.tgz#ab77379f7c1ad0939e1262a8c2ced93fa6c39d3b"
-  integrity sha1-q3c3n3wa0JOeEmKows7ZP6bDnTs=
 
 fs.realpath@^1.0.0:
   version "1.0.0"

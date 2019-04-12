@@ -88,7 +88,6 @@ export async function installDependencies(destPath: string, args: string[] = [])
   if (hasPackageLockJson) {
     commandArgs = args.filter(a => a !== '--prefer-offline');
     await spawnAsync('npm', ['install'].concat(commandArgs), destPath, opts);
-    await spawnAsync('npm', ['cache', 'clean', '--force'], destPath, opts);
   } else {
     await spawnAsync(
       'yarn',
@@ -96,7 +95,6 @@ export async function installDependencies(destPath: string, args: string[] = [])
       destPath,
       opts,
     );
-    await spawnAsync('yarn', ['cache', 'clean'], destPath, opts);
   }
 }
 
