@@ -155,13 +155,16 @@ async function getNextConfig(workPath, entryPath) {
 
 async function getWatchers(nextPath) {
   const watch = [];
-  const manifest = path.join(nextPath, './compilation-modules.json');
-  if (await fs.pathExists(manifest)) {
+  const manifest = path.join(nextPath, 'compilation-modules.json');
+
+  try {
     const { pages } = JSON.parse(await fs.readFile(manifest, 'utf8'));
 
     Object.keys(pages).forEach(page => pages[page].forEach((dep) => {
       watch.push(dep);
     }));
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
   }
 
   return watch;

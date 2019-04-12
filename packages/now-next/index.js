@@ -118,8 +118,10 @@ function isLegacyNext(nextVersion) {
 }
 
 function setNextExperimentalPage(files, entry, meta) {
-  if (meta.requestPath) {
-    if (meta.requestPath.startsWith(`${entry ? `${entry}/` : ''}static`)) {
+  if (meta.requestPath || meta.requestPath === '') {
+    if (
+      meta.requestPath.startsWith(`${entry !== '.' ? `${entry}/` : ''}static`)
+    ) {
       return {
         output: {
           [meta.requestPath]: files[meta.requestPath],
@@ -127,17 +129,19 @@ function setNextExperimentalPage(files, entry, meta) {
       };
     }
 
-    const { pathname } = url.parse(meta.requestPath);
+    const { pathname } = meta.requestPath
+      ? url.parse(meta.requestPath)
+      : { pathname: '/' };
     const clientPageRegex = new RegExp(
       `^${
-        entry ? `${entry}/` : ''
+        entry !== '.' ? `${entry}/` : ''
       }_next/static/unoptimized-build/pages/(.+)\\.js$`,
     );
     const clientPage = pathname.match(clientPageRegex);
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = clientPage
       ? clientPage[1]
-      : pathname || '/';
+      : pathname;
   }
 
   if (meta.isDev) {
@@ -152,15 +156,19 @@ function has(key) {
   return Object.prototype.hasOwnProperty.call(this, key);
 }
 
-function pageExists(name, pages) {
+function pageExists(name, pages, entry) {
+  const pageWhere = has.bind(pages);
   const inPages = (...names) => {
-    const pageWhere = has.bind(pages);
+    let exists = false;
     while (names.length >= 1) {
-      if (pageWhere(names[0])) return true;
-      names.pop();
+      if (pageWhere(`${entry ? `${entry}/` : ''}pages/${names[0]}`)) {
+        exists = true;
+        break;
+      }
+      names.shift();
     }
 
-    return false;
+    return exists;
   };
 
   if (name === '' || name === '/') {
@@ -527,7 +535,7 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
   );
   if (isClientPage.test(requestPath)) {
     const requestedPage = requestPath.match(isClientPage)[1];
-    return pageExists(requestedPage, pages);
+    return pageExists(requestedPage, pages, entryDirectory);
   }
 
   // check if request is for a static next asset
@@ -538,6 +546,7 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
     pageExists(
       requestPath.endsWith('/') ? requestPath.slice(0, -1) : requestPath,
       pages,
+      entryDirectory,
     )
   ) {
     return true;
