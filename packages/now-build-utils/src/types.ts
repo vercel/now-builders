@@ -100,7 +100,7 @@ export interface PrepareCacheOptions {
   config: Config;
 }
 
-export interface ShouldServeParams {
+export interface ShouldServeOptions {
   /**
    * A path string from a request.
    */

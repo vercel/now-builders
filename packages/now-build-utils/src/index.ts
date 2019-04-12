@@ -1,7 +1,7 @@
 import FileBlob from './file-blob';
 import FileFsRef from './file-fs-ref';
 import FileRef from './file-ref';
-import { File, Files, AnalyzeOptions, BuildOptions, PrepareCacheOptions, ShouldServeParams } from './types';
+import { File, Files, AnalyzeOptions, BuildOptions, PrepareCacheOptions, ShouldServeOptions } from './types';
 import { Lambda, createLambda } from './lambda';
 import download from './fs/download';
 import getWriteableDirectory from './fs/get-writable-directory'
@@ -27,5 +27,5 @@ export {
     AnalyzeOptions,
     BuildOptions,
     PrepareCacheOptions,
-    ShouldServeParams,
+    ShouldServeOptions,
 };
