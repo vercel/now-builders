@@ -148,10 +148,15 @@ function setNextExperimentalPage(files, entry, meta) {
   return null;
 }
 
+function has(key) {
+  return Object.prototype.hasOwnProperty.call(this, key);
+}
+
 function pageExists(name, pages) {
   const inPages = (...names) => {
+    const pageWhere = has.bind(pages);
     while (names.length >= 1) {
-      if (names[0] in pages) return true;
+      if (pageWhere(names[0])) return true;
       names.pop();
     }
 
@@ -504,10 +509,11 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
   // the scope of the Next project
   const entry = path.dirname(entrypoint);
   const entryDirectory = entry !== '.' ? `${entry}/` : '';
+  const fileExists = has.bind(files);
 
   // check if request is for a static file in scope
   const isStatic = new RegExp(`^${entryDirectory}static/.+$`);
-  if (isStatic.test(requestPath)) return requestPath in files;
+  if (isStatic.test(requestPath)) return fileExists(requestPath);
 
   // files scoped to pages only
   const pages = includeOnlyEntryDirectory(
@@ -526,7 +532,7 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
 
   // check if request is for a static next asset
   const isNextAsset = new RegExp(`^${entryDirectory}_next.+$`);
-  if (isNextAsset.test(requestPath)) return requestPath in files;
+  if (isNextAsset.test(requestPath)) return fileExists(requestPath);
 
   if (
     pageExists(
@@ -538,9 +544,7 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
   }
 
   // check if request is in scope but not a page
-  if (new RegExp(`^${entryDirectory}/.*`).test(requestPath)) {
-    return requestPath in files;
-  }
+  if (new RegExp(`^${entryDirectory}/.*`).test(requestPath)) return fileExists(requestPath);
 
   return false;
 };
