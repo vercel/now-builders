@@ -1,10 +1,6 @@
-/* global beforeAll, expect, it, jest, test */
-/* eslint-disable import/no-extraneous-dependencies */
+/* global beforeAll, expect, it, jest */
 const fs = require('fs');
 const path = require('path');
-const buildUtils = require('@now/build-utils');
-
-const { shouldServe } = require('../dist');
 
 const {
   packAndDeploy,
@@ -35,56 +31,3 @@ for (const fixture of fs.readdirSync(fixturesPath)) {
     ).resolves.toBeDefined();
   });
 }
-
-test('shouldServe on 01-cowsay', async () => {
-  const cwd = path.resolve(__dirname, './fixtures/01-cowsay');
-  const files = await buildUtils.glob('**', cwd);
-
-  expect(
-    shouldServe({
-      files,
-      entrypoint: 'index.js',
-      requestPath: 'index.js',
-    }),
-  ).toBe(true);
-
-  expect(
-    shouldServe({
-      files,
-      entrypoint: 'index.js',
-      requestPath: '',
-    }),
-  ).toBe(true);
-
-  expect(
-    shouldServe({
-      files,
-      entrypoint: 'index.js',
-      requestPath: '/',
-    }),
-  ).toBe(true);
-
-  expect(
-    shouldServe({
-      files,
-      entrypoint: 'index.js',
-      requestPath: 'subdirectory/index.js',
-    }),
-  ).toBe(false);
-
-  expect(
-    shouldServe({
-      files,
-      entrypoint: 'subdirectory/index.js',
-      requestPath: 'subdirectory/',
-    }),
-  ).toBe(true);
-
-  expect(
-    shouldServe({
-      files,
-      entrypoint: 'subdirectory/index.js',
-      requestPath: 'subdirectory',
-    }),
-  ).toBe(true);
-});
