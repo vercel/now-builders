@@ -102,9 +102,9 @@ export interface PrepareCacheOptions {
 
 export interface ShouldServeParams {
   /**
-   * All source files of the project
+   * A path string from a request.
    */
-  files: Files;
+  requestPath: string;
   /**
    * Name of entrypoint file for this particular build job. Value
    * `files[entrypoint]` is guaranteed to exist and be a valid File reference.
@@ -113,7 +113,12 @@ export interface ShouldServeParams {
    */
   entrypoint: string;
   /**
-   * A path string for a request.
+   * All source files of the project
    */
-  requestPath: string;
+  files: Files;
+  /**
+   * An arbitrary object passed by the user in the build definition defined
+   * in `now.json`.
+   */
+  config?: Config;
 }
