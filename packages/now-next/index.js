@@ -507,12 +507,7 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
 
   // check if request is for a static file in scope
   const isStatic = new RegExp(`^${entryDirectory}static/.+$`);
-  if (isStatic.test(requestPath)) {
-    if (requestPath in files) {
-      return true;
-    }
-    return false;
-  }
+  if (isStatic.test(requestPath)) return requestPath in files;
 
   // files scoped to pages only
   const pages = includeOnlyEntryDirectory(
@@ -526,20 +521,12 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
   );
   if (isClientPage.test(requestPath)) {
     const requestedPage = requestPath.match(isClientPage)[1];
-    if (pageExists(requestedPage, pages)) {
-      return true;
-    }
-    return false;
+    return pageExists(requestedPage, pages);
   }
 
   // check if request is for a static next asset
   const isNextAsset = new RegExp(`^${entryDirectory}_next.+$`);
-  if (isNextAsset.test(requestPath)) {
-    if (requestPath in files) {
-      return true;
-    }
-    return false;
-  }
+  if (isNextAsset.test(requestPath)) return requestPath in files;
 
   if (
     pageExists(
