@@ -9,6 +9,7 @@ import glob from './fs/glob';
 import rename from './fs/rename';
 import { installDependencies, runPackageJsonScript, runNpmInstall, runShellScript } from './fs/run-user-scripts';
 import streamToBuffer from './fs/stream-to-buffer';
+import shouldServe from './should-serve';
 
 export {
     FileBlob,
@@ -28,4 +29,5 @@ export {
     BuildOptions,
     PrepareCacheOptions,
     ShouldServeOptions,
+    shouldServe,
 };

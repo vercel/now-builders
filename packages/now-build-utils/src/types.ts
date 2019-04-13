@@ -1,3 +1,5 @@
+import FileFsRef from './file-fs-ref';
+
 export interface File {
   type: string;
   mode: number;
@@ -115,7 +117,7 @@ export interface ShouldServeOptions {
   /**
    * All source files of the project
    */
-  files: Files;
+  files: Map<string, FileFsRef>;
   /**
    * An arbitrary object passed by the user in the build definition defined
    * in `now.json`.
