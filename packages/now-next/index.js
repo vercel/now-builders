@@ -120,7 +120,10 @@ function isLegacyNext(nextVersion) {
 function setNextExperimentalPage(files, entry, meta) {
   if (meta.requestPath || meta.requestPath === '') {
     if (
-      meta.requestPath.startsWith(`${entry !== '.' ? `${entry}/` : ''}static`)
+      meta.requestPath.startsWith(
+        `${entry !== '.' ? `${entry}/` : ''}static`,
+      )
+      || meta.requestPath.startsWith(`${entry !== '.' ? `${entry}/` : ''}_next`)
     ) {
       return {
         output: {
@@ -152,12 +155,8 @@ function setNextExperimentalPage(files, entry, meta) {
   return null;
 }
 
-function has(key) {
-  return Object.prototype.hasOwnProperty.call(this, key);
-}
-
 function pageExists(name, pages, entry) {
-  const pageWhere = has.bind(pages);
+  const pageWhere = key => Object.prototype.hasOwnProperty.call(pages, key);
   const inPages = (...names) => {
     let exists = false;
     while (names.length >= 1) {
@@ -514,22 +513,16 @@ exports.prepareCache = async ({ workPath, entrypoint }) => {
 };
 
 exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
-  // the scope of the Next project
   const entry = path.dirname(entrypoint);
-  const entryDirectory = entry !== '.' ? `${entry}/` : '';
-  const fileExists = has.bind(files);
+  const entryDirectory = entry === '.' ? '' : `${entry}/`;
 
-  // check if request is for a static file in scope
-  const isStatic = new RegExp(`^${entryDirectory}static/.+$`);
-  if (isStatic.test(requestPath)) return fileExists(requestPath);
+  if (new RegExp(`^${entryDirectory}static/.+$`).test(requestPath)) return true;
 
-  // files scoped to pages only
   const pages = includeOnlyEntryDirectory(
     files,
     path.join(entryDirectory, 'pages'),
   );
 
-  // check if request is for a static page in scope
   const isClientPage = new RegExp(
     `^${entryDirectory}_next/static/unoptimized-build/pages/(.+)\\.js$`,
   );
@@ -538,9 +531,7 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
     return pageExists(requestedPage, pages, entryDirectory);
   }
 
-  // check if request is for a static next asset
-  const isNextAsset = new RegExp(`^${entryDirectory}_next.+$`);
-  if (isNextAsset.test(requestPath)) return fileExists(requestPath);
+  if (new RegExp(`^${entryDirectory}_next.+$`).test(requestPath)) return true;
 
   if (
     pageExists(
@@ -552,8 +543,7 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
     return true;
   }
 
-  // check if request is in scope but not a page
-  if (new RegExp(`^${entryDirectory}/.*`).test(requestPath)) return fileExists(requestPath);
+  if (new RegExp(`^${entryDirectory}/.*`).test(requestPath)) return true;
 
   return false;
 };
