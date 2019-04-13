@@ -122,5 +122,5 @@ export interface ShouldServeOptions {
    * An arbitrary object passed by the user in the build definition defined
    * in `now.json`.
    */
-  config?: Config;
+  config: Config;
 }
