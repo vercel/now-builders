@@ -1,4 +1,4 @@
-import { join, dirname } from 'path';
+import { join, dirname, sep } from 'path';
 import { remove, readFile } from 'fs-extra';
 import {
   glob,
@@ -44,6 +44,7 @@ async function downloadInstallAndBundle({
 async function compile(entrypointPath: string, entrypoint: string, config: CompilerConfig): Promise<Files> {
   const input = entrypointPath;
   const inputDir = dirname(input);
+  const rootIncludeFiles = inputDir.split(sep).pop() || '';
   const ncc = require('@zeit/ncc');
   const { code, assets } = await ncc(input);
 
@@ -56,7 +57,7 @@ async function compile(entrypointPath: string, entrypoint: string, config: Compi
         const { mode } = files[assetName];
         const { data } = await FileBlob.fromStream({ stream });
 
-        assets[assetName] = {
+        assets[join(rootIncludeFiles, assetName)] = {
           'source': data,
           'permissions': mode
         };
