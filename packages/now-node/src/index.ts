@@ -45,7 +45,7 @@ async function compile(entrypointPath: string, entrypoint: string, config: Compi
   const input = entrypointPath;
   const inputDir = dirname(input);
   const ncc = require('@zeit/ncc');
-  const { code, assets } = await ncc(input);
+  const { code, assets } = await ncc(input, { sourceMap: true, sourceMapRegister: true});
 
   if (config && config.includeFiles) {
     for (const pattern of config.includeFiles) {
