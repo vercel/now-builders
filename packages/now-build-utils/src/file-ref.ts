@@ -31,6 +31,7 @@ export default class FileRef implements File {
   constructor({ mode = 0o100644, digest, mutable = false }: FileRefOptions) {
     assert(typeof mode === 'number');
     assert(typeof digest === 'string');
+    assert(typeof mutable === 'boolean');
     this.type = 'FileRef';
     this.mode = mode;
     this.digest = digest;
