@@ -5,6 +5,6 @@ module.exports = (req, res) => {
     }
     res.end('you should never see this message');
   } catch (error) {
-    res.end(error.toString());
+    res.end(error.stack);
   }
 };
