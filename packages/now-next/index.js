@@ -535,17 +535,9 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
 
   if (new RegExp(`^${entryDirectory}_next.+$`).test(requestPath)) return true;
 
-  if (
-    pageExists(
-      requestPath.endsWith('/') ? requestPath.slice(0, -1) : requestPath,
-      pages,
-      entryDirectory,
-    )
-  ) {
-    return true;
-  }
-
-  if (new RegExp(`^${entryDirectory}/.*`).test(requestPath)) return true;
-
-  return false;
+  return pageExists(
+    requestPath.endsWith('/') ? requestPath.slice(0, -1) : requestPath,
+    pages,
+    entryDirectory,
+  );
 };
