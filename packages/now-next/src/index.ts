@@ -1,25 +1,27 @@
-const { createLambda } = require('@now/build-utils/lambda'); // eslint-disable-line import/no-extraneous-dependencies
-const download = require('@now/build-utils/fs/download'); // eslint-disable-line import/no-extraneous-dependencies
-const FileFsRef = require('@now/build-utils/file-fs-ref'); // eslint-disable-line import/no-extraneous-dependencies
-const FileBlob = require('@now/build-utils/file-blob'); // eslint-disable-line import/no-extraneous-dependencies
-const resolveFrom = require('resolve-from');
-const path = require('path');
-const url = require('url');
-const {
+import { 
+  createLambda,
+  download,
+  FileFsRef,
+  FileBlob,
+  glob,
   runNpmInstall,
   runPackageJsonScript,
-} = require('@now/build-utils/fs/run-user-scripts'); // eslint-disable-line import/no-extraneous-dependencies
-const glob = require('@now/build-utils/fs/glob'); // eslint-disable-line import/no-extraneous-dependencies
-const {
+  Lambda,
+  Files,
+} from '@now/build-utils';
+import resolveFrom from 'resolve-from';
+import path from 'path';
+import url from 'url';
+import {
   readFile,
   writeFile,
-  unlink: unlinkFile,
-  remove: removePath,
+  unlink as unlinkFile,
+  remove as removePath,
   pathExists,
-} = require('fs-extra');
-const semver = require('semver');
-const nextLegacyVersions = require('./legacy-versions');
-const {
+} from 'fs-extra';
+import semver from 'semver';
+import nextLegacyVersions from './legacy-versions';
+import {
   excludeFiles,
   validateEntrypoint,
   includeOnlyEntryDirectory,
@@ -27,32 +29,27 @@ const {
   onlyStaticDirectory,
   getNextConfig,
   getWatchers,
-} = require('./utils');
+} from './utils';
+import { request } from 'http';
 
-/** @typedef { import('@now/build-utils/file-ref').Files } Files */
-/** @typedef { import('@now/build-utils/fs/download').DownloadedFiles } DownloadedFiles */
+interface BuildParamsMeta {
+  isDev: boolean | undefined,
+  requestPath: string | undefined,
+};
 
-/**
- * @typedef {Object} BuildParamsMeta
- * @property {boolean} [isDev] - Files object
- * @property {?string} [requestPath] - Entrypoint specified for the builder
- */
-
-/**
- * @typedef {Object} BuildParamsType
- * @property {Files} files - Files object
- * @property {string} entrypoint - Entrypoint specified for the builder
- * @property {string} workPath - Working directory for this build
- * @property {BuildParamsMeta} [meta] - Various meta settings
- */
+interface BuildParamsType {
+  files: Files,
+  entrypoint: string,
+  workPath: string,
+  meta: BuildParamsMeta,
+};
 
 exports.version = 2;
 
 /**
  * Read package.json from files
- * @param {string} entryPath
  */
-async function readPackageJson(entryPath) {
+async function readPackageJson(entryPath: string) {
   const packagePath = path.join(entryPath, 'package.json');
 
   try {
@@ -65,10 +62,8 @@ async function readPackageJson(entryPath) {
 
 /**
  * Write package.json
- * @param {string} workPath
- * @param {Object} packageJson
  */
-async function writePackageJson(workPath, packageJson) {
+async function writePackageJson(workPath: string, packageJson: Object) {
   await writeFile(
     path.join(workPath, 'package.json'),
     JSON.stringify(packageJson, null, 2),
@@ -77,17 +72,15 @@ async function writePackageJson(workPath, packageJson) {
 
 /**
  * Write .npmrc with npm auth token
- * @param {string} workPath
- * @param {string} token
  */
-async function writeNpmRc(workPath, token) {
+async function writeNpmRc(workPath: string, token: string) {
   await writeFile(
     path.join(workPath, '.npmrc'),
     `//registry.npmjs.org/:_authToken=${token}`,
   );
 }
 
-function getNextVersion(packageJson) {
+function getNextVersion(packageJson: {dependencies?: {[key: string]: string},devDependencies?: {[key:string]:string}}) {
   let nextVersion;
   if (packageJson.dependencies && packageJson.dependencies.next) {
     nextVersion = packageJson.dependencies.next;
@@ -97,7 +90,7 @@ function getNextVersion(packageJson) {
   return nextVersion;
 }
 
-function isLegacyNext(nextVersion) {
+function isLegacyNext(nextVersion: string) {
   // If version is using the dist-tag instead of a version range
   if (nextVersion === 'canary' || nextVersion === 'latest') {
     return false;
@@ -117,7 +110,7 @@ function isLegacyNext(nextVersion) {
   return true;
 }
 
-function setNextExperimentalPage(files, entry, meta) {
+function setNextExperimentalPage(files: Files, entry: string, meta: BuildParamsMeta) {
   const entryPath = entry !== '.' ? `${entry}/` : '';
   if (meta.requestPath || meta.requestPath === '') {
     if (
@@ -142,7 +135,7 @@ function setNextExperimentalPage(files, entry, meta) {
     const clientPageRegex = new RegExp(
       `^${entryPath}_next/static/unoptimized-build/pages/(.+)\\.js$`,
     );
-    const clientPage = pathname.match(clientPageRegex);
+    const clientPage = (pathname || '/').match(clientPageRegex);
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = clientPage
       ? clientPage[1]
@@ -157,9 +150,9 @@ function setNextExperimentalPage(files, entry, meta) {
   return null;
 }
 
-function pageExists(name, pages, entry) {
-  const pageWhere = key => Object.prototype.hasOwnProperty.call(pages, key);
-  const inPages = (...names) => {
+function pageExists(name: string, pages: Files, entry: string) {
+  const pageWhere = (key: string) => Object.prototype.hasOwnProperty.call(pages, key);
+  const inPages = (...names: string[]) => {
     let exists = false;
     while (names.length >= 1) {
       if (pageWhere(`${entry ? `${entry}/` : ''}pages/${names[0]}`)) {
@@ -205,8 +198,8 @@ exports.config = {
  * @returns {Promise<Files>}
  */
 exports.build = async ({
-  files, workPath, entrypoint, meta = {},
-}) => {
+  files, workPath, entrypoint, meta = {} as BuildParamsMeta,
+}: BuildParamsType) => {
   validateEntrypoint(entrypoint);
 
   const entryDirectory = path.dirname(entrypoint);
@@ -287,8 +280,9 @@ exports.build = async ({
   nextVersion = JSON.parse(
     await readFile(resolveFrom(entryPath, 'next/package.json'), 'utf8'),
   ).version;
+  if (!nextVersion) throw new Error('Could not parse Next.js version');
 
-  const isUpdated = (v) => {
+  const isUpdated = (v: string) => {
     if (v === 'canary') return true;
 
     try {
@@ -318,13 +312,13 @@ exports.build = async ({
     await unlinkFile(path.join(entryPath, '.npmrc'));
   }
 
-  const lambdas = {};
+  const lambdas: {[key: string]: Lambda} = {};
 
   if (isLegacy) {
     const filesAfterBuild = await glob('**', entryPath);
 
     console.log('preparing lambda files...');
-    let buildId;
+    let buildId: string;
     try {
       buildId = await readFile(
         path.join(entryPath, '.next', 'BUILD_ID'),
@@ -345,7 +339,7 @@ exports.build = async ({
     const launcherFiles = {
       'now__bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
     };
-    const nextFiles = {
+    const nextFiles: {[key: string]: FileFsRef} = {
       ...nodeModules,
       ...dotNextRootFiles,
       ...dotNextServerRootFiles,
@@ -490,13 +484,14 @@ exports.build = async ({
   };
 };
 
-exports.prepareCache = async ({ workPath, entrypoint }) => {
+exports.prepareCache = async ({ workPath, entrypoint }: {workPath: string, entrypoint: string}) => {
   console.log('preparing cache ...');
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
 
   const pkg = await readPackageJson(entryPath);
   const nextVersion = getNextVersion(pkg);
+  if (!nextVersion) throw new Error('Could not parse Next.js version')
   const isLegacy = isLegacyNext(nextVersion);
 
   if (isLegacy) {
@@ -514,7 +509,7 @@ exports.prepareCache = async ({ workPath, entrypoint }) => {
   };
 };
 
-exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
+exports.shouldServe = async ({ entrypoint, files, requestPath }: {entrypoint: string, files: Files, requestPath: string}) => {
   const entry = path.dirname(entrypoint);
   const entryDirectory = entry === '.' ? '' : `${entry}/`;
 
@@ -529,8 +524,9 @@ exports.shouldServe = async ({ entrypoint, files, requestPath }) => {
     `^${entryDirectory}_next/static/unoptimized-build/pages/(.+)\\.js$`,
   );
   if (isClientPage.test(requestPath)) {
-    const requestedPage = requestPath.match(isClientPage)[1];
-    return pageExists(requestedPage, pages, entryDirectory);
+    const requestedPage = requestPath.match(isClientPage);
+    if (!requestedPage) return false;
+    return pageExists(requestedPage[1], pages, entryDirectory);
   }
 
   if (new RegExp(`^${entryDirectory}_next.+$`).test(requestPath)) return true;
