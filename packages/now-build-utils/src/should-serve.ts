@@ -21,6 +21,6 @@ export default function shouldServe({
   return false;
 }
 
-function hasProp (obj: Map<string, any>, key: string): boolean {
+function hasProp(obj: { [path: string]: FileFsRef }, key: string): boolean {
   return Object.hasOwnProperty.call(obj, key)
 }
