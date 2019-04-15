@@ -67,7 +67,7 @@ async function compile(entrypointPath: string, entrypoint: string, config: Compi
   const preparedFiles: Files = {};
   // move all user code to 'user' subdirectory
   preparedFiles[entrypoint] = new FileBlob({ data: code });
-  preparedFiles[`${entrypoint}.map`] = new FileBlob({ data: map });
+  preparedFiles[`${entrypoint.replace('.ts', '.js')}.map`] = new FileBlob({ data: map });
   // eslint-disable-next-line no-restricted-syntax
   for (const assetName of Object.keys(assets)) {
     const { source: data, permissions: mode } = assets[assetName];
