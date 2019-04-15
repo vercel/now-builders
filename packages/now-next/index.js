@@ -118,18 +118,13 @@ function isLegacyNext(nextVersion) {
 }
 
 function setNextExperimentalPage(files, entry, meta) {
+  const entryPath = entry !== '.' ? `${entry}/` : '';
   if (meta.requestPath || meta.requestPath === '') {
     if (
-      meta.requestPath.startsWith(
-        `${entry !== '.' ? `${entry}/` : ''}static`,
-      )
-      || (meta.requestPath.startsWith(
-        `${entry !== '.' ? `${entry}/` : ''}_next`,
-      )
+      meta.requestPath.startsWith(`${entryPath}static`)
+      || (meta.requestPath.startsWith(`${entryPath}_next`)
         && !meta.requestPath.startsWith(
-          `${
-            entry !== '.' ? `${entry}/` : ''
-          }_next/static/unoptimized-build/pages`,
+          `${entryPath}_next/static/unoptimized-build/pages`,
         ))
     ) {
       return files[meta.requestPath]
@@ -145,9 +140,7 @@ function setNextExperimentalPage(files, entry, meta) {
       ? url.parse(meta.requestPath)
       : { pathname: '/' };
     const clientPageRegex = new RegExp(
-      `^${
-        entry !== '.' ? `${entry}/` : ''
-      }_next/static/unoptimized-build/pages/(.+)\\.js$`,
+      `^${entryPath}_next/static/unoptimized-build/pages/(.+)\\.js$`,
     );
     const clientPage = pathname.match(clientPageRegex);
     // eslint-disable-next-line no-underscore-dangle
