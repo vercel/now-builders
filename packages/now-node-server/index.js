@@ -43,7 +43,7 @@ async function compile(workPath, downloadedFiles, entrypoint, config) {
   const input = downloadedFiles[entrypoint].fsPath;
   const inputDir = path.dirname(input);
   const ncc = require('@zeit/ncc');
-  const { code, assets } = await ncc(input, {
+  const { code, map, assets } = await ncc(input, {
     sourceMap: true,
     sourceMapRegister: true,
   });
@@ -70,9 +70,11 @@ async function compile(workPath, downloadedFiles, entrypoint, config) {
   }
 
   const preparedFiles = {};
-  const blob = new FileBlob({ data: code });
   // move all user code to 'user' subdirectory
-  preparedFiles[entrypoint] = blob;
+  preparedFiles[entrypoint] = new FileBlob({ data: code });
+  preparedFiles[`${entrypoint.replace('.ts', '.js')}.map`] = new FileBlob({
+    data: map,
+  });
   // eslint-disable-next-line no-restricted-syntax
   for (const assetName of Object.keys(assets)) {
     const { source: data, permissions: mode } = assets[assetName];
