@@ -9,7 +9,10 @@ function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOpt
     opts = { stdio: 'inherit', cwd, ...opts };
     const child = spawn(command, args, opts);
 
-    child.stderr.on('data', data => stderrLogs.push(data));
+    if (opts.stdio === 'pipe'){
+      child.stderr.on('data', data => stderrLogs.push(data));
+    }
+
     child.on('error', reject);
     child.on('close', (code, signal) => {
       if (code === 0) {
