@@ -36,14 +36,14 @@ interface BuildParamsMeta {
   requestPath: string | undefined,
 };
 
-interface BuildParamsType {
+interface BuildParamsType extends BuildOptions {
   files: Files,
   entrypoint: string,
   workPath: string,
   meta: BuildParamsMeta,
 };
 
-exports.version = 2;
+export const version = 2;
 
 /**
  * Read package.json from files
@@ -188,7 +188,7 @@ function pageExists(name: string, pages: Files, entry: string) {
   );
 }
 
-exports.config = {
+export const config = {
   maxLambdaSize: '5mb',
 };
 
@@ -196,7 +196,7 @@ exports.config = {
  * @param {BuildParamsType} buildParams
  * @returns {Promise<Files>}
  */
-exports.build = async ({
+export const build = async ({
   files, workPath, entrypoint, meta = {} as BuildParamsMeta,
 }: BuildParamsType) => {
   validateEntrypoint(entrypoint);
@@ -483,7 +483,7 @@ exports.build = async ({
   };
 };
 
-exports.prepareCache = async ({ workPath, entrypoint }: {workPath: string, entrypoint: string}) => {
+export const prepareCache = async ({ workPath, entrypoint }: PrepareCacheOptions) => {
   console.log('preparing cache ...');
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
@@ -508,7 +508,7 @@ exports.prepareCache = async ({ workPath, entrypoint }: {workPath: string, entry
   };
 };
 
-exports.shouldServe = async ({ entrypoint, files, requestPath }: {entrypoint: string, files: Files, requestPath: string}) => {
+export const shouldServe = async ({ entrypoint, files, requestPath }: {entrypoint: string, files: Files, requestPath: string}) => {
   const entry = path.dirname(entrypoint);
   const entryDirectory = entry === '.' ? '' : `${entry}/`;
 
