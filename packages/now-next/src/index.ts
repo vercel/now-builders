@@ -30,7 +30,6 @@ import {
   getNextConfig,
   getWatchers,
 } from './utils';
-import { request } from 'http';
 
 interface BuildParamsMeta {
   isDev: boolean | undefined,
