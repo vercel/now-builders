@@ -6,7 +6,8 @@ import { spawn, SpawnOptions } from 'child_process';
 function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOptions = {}) {
   return new Promise<void>((resolve, reject) => {
     const stderrLogs: Buffer[] = []
-    const child = spawn(command, args, { stdio: 'inherit', cwd, ...opts });
+    opts = { stdio: 'inherit', cwd, ...opts };
+    const child = spawn(command, args, opts);
 
     child.stderr.on('data', data => stderrLogs.push(data));
     child.on('error', reject);
