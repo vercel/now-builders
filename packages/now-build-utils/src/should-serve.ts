@@ -1,5 +1,6 @@
 import { parse } from 'path';
 import { ShouldServeOptions } from './types';
+import FileFsRef from './file-fs-ref';
 
 export default function shouldServe({
   entrypoint,
