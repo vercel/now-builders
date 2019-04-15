@@ -45,7 +45,7 @@ async function compile(entrypointPath: string, entrypoint: string, config: Compi
   const input = entrypointPath;
   const inputDir = dirname(input);
   const ncc = require('@zeit/ncc');
-  const { code, assets } = await ncc(input, { sourceMap: true, sourceMapRegister: true});
+  const { code, map, assets } = await ncc(input, { sourceMap: true, sourceMapRegister: true });
 
   if (config && config.includeFiles) {
     for (const pattern of config.includeFiles) {
@@ -65,9 +65,9 @@ async function compile(entrypointPath: string, entrypoint: string, config: Compi
   }
 
   const preparedFiles: Files = {};
-  const blob = new FileBlob({ data: code });
   // move all user code to 'user' subdirectory
-  preparedFiles[entrypoint] = blob;
+  preparedFiles[entrypoint] = new FileBlob({ data: code });
+  preparedFiles[`${entrypoint}.map`] = new FileBlob({ data: map });
   // eslint-disable-next-line no-restricted-syntax
   for (const assetName of Object.keys(assets)) {
     const { source: data, permissions: mode } = assets[assetName];
