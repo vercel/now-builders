@@ -8,5 +8,5 @@ if [ ! -e "$bridge_defs" ]; then
   yarn install --cwd "$bridge_entrypoint"
 fi
 
-cp -v "$bridge_defs" src/now_bridge.d.ts
+cp -v "$bridge_defs" src/now__bridge.d.ts
 tsc

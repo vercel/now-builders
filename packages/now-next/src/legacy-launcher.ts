@@ -1,7 +1,7 @@
 import { Server } from 'http';
 import next from 'next-server';
 import url from 'url';
-import { Bridge } from './now_bridge';
+import { Bridge } from './now__bridge';
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = process.env.NOW_REGION === 'dev1' ? 'development' : 'production';

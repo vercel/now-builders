@@ -3,7 +3,7 @@ if (!process.env.NODE_ENV) {
 }
 
 const { Server } = require('http');
-const { Bridge } = require('./now_bridge');
+const { Bridge } = require('./now__bridge');
 const page = require('./page');
 
 const server = new Server(page.render);
