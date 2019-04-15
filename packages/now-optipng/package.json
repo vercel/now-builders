@@ -8,7 +8,10 @@
     "directory": "packages/now-optipng"
   },
   "dependencies": {
-    "multipipe": "2.0.3",
-    "optipng": "1.1.0"
+    "multipipe": "^3.0.1",
+    "optipng": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^3.4.3"
   }
 }
