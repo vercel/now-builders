@@ -5,7 +5,7 @@
   "main": "./dist/index",
   "scripts": {
     "build": "./build.sh",
-    "prepublish": "npm run build"
+    "prepublish": "yarn run build"
   },
   "repository": {
     "type": "git",
@@ -23,9 +23,6 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/next-server": "^8.0.0",
-    "@types/node": "^11.13.4",
-    "@types/resolve-from": "^4.0.0",
     "@types/semver": "^6.0.0"
   }
 }
