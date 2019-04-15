@@ -123,13 +123,22 @@ function setNextExperimentalPage(files, entry, meta) {
       meta.requestPath.startsWith(
         `${entry !== '.' ? `${entry}/` : ''}static`,
       )
-      || meta.requestPath.startsWith(`${entry !== '.' ? `${entry}/` : ''}_next`)
+      || (meta.requestPath.startsWith(
+        `${entry !== '.' ? `${entry}/` : ''}_next`,
+      )
+        && !meta.requestPath.startsWith(
+          `${
+            entry !== '.' ? `${entry}/` : ''
+          }_next/static/unoptimized-build/pages`,
+        ))
     ) {
-      return {
-        output: {
-          [meta.requestPath]: files[meta.requestPath],
-        },
-      };
+      return files[meta.requestPath]
+        ? {
+          output: {
+            [meta.requestPath]: files[meta.requestPath],
+          },
+        }
+        : undefined;
     }
 
     const { pathname } = meta.requestPath
