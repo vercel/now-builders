@@ -17,7 +17,7 @@ function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOpt
 
       const errorLogs = stderrLogs.map(line => line.toString()).join('');
       if (opts.stdio !== 'inherit') {
-        reject(new Error(errorLogs));
+        reject(new Error(`Exited with ${code || signal}\n${errorLogs}`));
       } else {
         reject(new Error(`Exited with ${code || signal}`));
       }
