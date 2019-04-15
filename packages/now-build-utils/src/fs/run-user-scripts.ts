@@ -6,7 +6,7 @@ import { spawn, SpawnOptions } from 'child_process';
 function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOptions = {}) {
   return new Promise<void>((resolve, reject) => {
     const stderrLogs: Buffer[] = []
-    const child = spawn(command, args, { cwd, ...opts });
+    const child = spawn(command, args, { stdio: 'inherit', cwd, ...opts });
 
     child.stderr.on('data', data => stderrLogs.push(data));
     child.on('error', reject);
@@ -16,7 +16,11 @@ function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOpt
       }
 
       const errorLogs = stderrLogs.map(line => line.toString()).join('');
-      reject(new Error(`Exited with ${code || signal}\n\n${errorLogs}`));
+      if (opts.stdio !== 'inherit') {
+        reject(new Error(errorLogs));
+      } else {
+        reject(new Error(`Exited with ${code || signal}`));
+      }
     });
   });
 }
@@ -83,17 +87,23 @@ export async function installDependencies(destPath: string, args: string[] = [])
       // Node.js version that `@now/node` and `@now/node-server` use
       npm_config_target: '8.10.0',
     },
+    stdio: 'pipe'
   };
 
   if (hasPackageLockJson) {
     commandArgs = args.filter(a => a !== '--prefer-offline');
-    await spawnAsync('npm', ['install'].concat(commandArgs), destPath, opts);
+    await spawnAsync(
+      'npm',
+      ['install'].concat(commandArgs),
+      destPath,
+      opts as SpawnOptions
+    );
   } else {
     await spawnAsync(
       'yarn',
       ['--cwd', destPath].concat(commandArgs),
       destPath,
-      opts,
+      opts as SpawnOptions,
     );
   }
 }
