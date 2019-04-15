@@ -117,7 +117,9 @@ export interface ShouldServeOptions {
   /**
    * All source files of the project
    */
-  files: Map<string, FileFsRef>;
+  files: {
+    [path: string]: FileFsRef
+  };
   /**
    * An arbitrary object passed by the user in the build definition defined
    * in `now.json`.
