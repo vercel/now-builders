@@ -8,6 +8,8 @@ import {
   runPackageJsonScript,
   Lambda,
   Files,
+  BuildOptions,
+  PrepareCacheOptions,
 } from '@now/build-utils';
 import resolveFrom from 'resolve-from';
 import path from 'path';
