@@ -1,5 +1,5 @@
 import { join, dirname, sep } from 'path';
-import { remove, readFile } from 'fs-extra';
+import { readFile } from 'fs-extra';
 import {
   glob,
   download,
