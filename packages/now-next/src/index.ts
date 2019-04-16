@@ -498,12 +498,14 @@ export const prepareCache = async ({ workPath, entrypoint }: PrepareCacheOptions
 
   console.log('producing cache file manifest ...');
   const cacheEntrypoint = path.relative(workPath, entryPath);
-  return {
+  const cache = {
     ...(await glob(path.join(cacheEntrypoint, 'node_modules/**'), workPath)),
     ...(await glob(path.join(cacheEntrypoint, '.next/cache/**'), workPath)),
     ...(await glob(path.join(cacheEntrypoint, 'package-lock.json'), workPath)),
     ...(await glob(path.join(cacheEntrypoint, 'yarn.lock'), workPath)),
   };
+  console.log('cache file manifest produced');
+  return cache;
 };
 
 export const shouldServe = async ({ entrypoint, files, requestPath }: {entrypoint: string, files: Files, requestPath: string}) => {
