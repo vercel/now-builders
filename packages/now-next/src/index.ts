@@ -525,6 +525,7 @@ export const shouldServe = async ({ entrypoint, files, requestPath }: {entrypoin
   if (isClientPage.test(requestPath)) {
     const requestedPage = requestPath.match(isClientPage);
     if (!requestedPage) return false;
+    if (requestedPage[1] === '_error' || requestedPage[1] === '_document' || requestedPage[1] === '_app') return true;
     return pageExists(requestedPage[1], pages, entryDirectory);
   }
 
