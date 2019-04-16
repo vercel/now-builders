@@ -1,6 +1,6 @@
 /* global it, expect */
 const path = require('path');
-const runBuildLambda = require('../../lib/run-build-lambda');
+const runBuildLambda = require('../../../../test/lib/run-build-lambda');
 
 const FOUR_MINUTES = 240000;
 

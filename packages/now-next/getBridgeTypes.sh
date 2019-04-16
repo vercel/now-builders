@@ -9,4 +9,3 @@ if [ ! -e "$bridge_defs" ]; then
 fi
 
 cp -v "$bridge_defs" src/now__bridge.d.ts
-tsc
