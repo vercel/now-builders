@@ -56,8 +56,15 @@ async function compile(entrypointPath: string, entrypoint: string, config: Compi
         const stream = files[assetName].toStream();
         const { mode } = files[assetName];
         const { data } = await FileBlob.fromStream({ stream });
+        let fullPath = join(rootIncludeFiles, assetName);
 
-        assets[join(rootIncludeFiles, assetName)] = {
+        // if asset contain directory
+        // no need to use `rootIncludeFiles`
+        if (assetName.includes(sep)) {
+          fullPath = assetName
+        }
+
+        assets[fullPath] = {
           'source': data,
           'permissions': mode
         };
