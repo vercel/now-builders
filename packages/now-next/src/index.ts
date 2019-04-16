@@ -194,13 +194,9 @@ export const config = {
   maxLambdaSize: '5mb',
 };
 
-/**
- * @param {BuildParamsType} buildParams
- * @returns {Promise<Files>}
- */
 export const build = async ({
   files, workPath, entrypoint, meta = {} as BuildParamsMeta,
-}: BuildParamsType) => {
+}: BuildParamsType): Promise<{output: Files, watch?: string[]}> => {
   validateEntrypoint(entrypoint);
 
   const entryDirectory = path.dirname(entrypoint);
