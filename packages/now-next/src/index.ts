@@ -198,8 +198,6 @@ export const build = async ({
   validateEntrypoint(entrypoint);
 
   const entryDirectory = path.dirname(entrypoint);
-  const entryPath = path.join(workPath, entryDirectory);
-  const dotNext = path.join(entryPath, '.next');
   const routes = [];
 
   if (meta.isDev) {
@@ -208,13 +206,14 @@ export const build = async ({
 
     const openPort = await getPort();
     const url = `http://localhost:${openPort}`;
+    const outputDir = path.join(entryDirectory, '.next');
 
     execa('next', [ 'dev', entryDirectory, '--port', `${openPort}` ], {
       cwd: entryDirectory
     });
 
-    if (await pathExists(dotNext)) {
-      const files = await walkDirectory(dotNext);
+    if (await pathExists(outputDir)) {
+      const files = await walkDirectory(outputDir);
 
       // TODO: Do proper filtering here
       for (const file of files) {
@@ -232,7 +231,10 @@ export const build = async ({
     };
   }
 
+  const entryPath = path.join(workPath, entryDirectory);
+  const dotNext = path.join(entryPath, '.next');
   const maybeStaticFiles = setNextExperimentalPage(files, entryDirectory, meta);
+
   if (maybeStaticFiles) return maybeStaticFiles; // return early if requestPath is static file
 
   console.log('downloading user files...');
