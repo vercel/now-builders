@@ -16,6 +16,7 @@ import {
 } from '@now/build-utils';
 import { BuildAssets } from './types';
 import { watcherBuild } from './watcher';
+const ncc = require('@zeit/ncc');
 
 interface CompilerConfig {
   includeFiles?: string[];
@@ -49,21 +50,32 @@ async function compile(
   entrypointPath: string,
   entrypoint: string,
   config: CompilerConfig,
-  { isDev, filesChanged, filesRemoved }: Meta
+  workPath: string,
+  { isDev, filesChanged = [], filesRemoved = [] }: Meta
 ): Promise<{ preparedFiles: Files, watch: string[] }> {
   const input = entrypointPath;
   const inputDir = dirname(input);
   const rootIncludeFiles = inputDir.split(sep).pop() || '';
-  const ncc = require('@zeit/ncc');
+  const nccOptions = { sourceMap: true, sourceMapRegister: true };
 
   let code: string;
   let map: string | void;
   let assets: BuildAssets = {};
   let watch: string[] = [];
 
-  const nccOptions = { sourceMap: true, sourceMapRegister: true };
   if (isDev) {
-    ({ code, map, assets, watch } = await watcherBuild(input, nccOptions, filesChanged, filesRemoved));
+    const workPathFilesChanged = filesChanged.map(f => join(workPath, f));
+    const workPathFilesRemoved = filesRemoved.map(f => join(workPath, f));
+    console.error({
+      input,
+      nccOptions,
+      workPathFilesChanged,
+      workPathFilesRemoved});
+    ({ code, map, assets, watch } = await watcherBuild(
+      input,
+      nccOptions,
+      workPathFilesChanged,
+      workPathFilesRemoved));
   } else {
     ({ code, map, assets } = await ncc(input, nccOptions));
   }
@@ -85,8 +97,8 @@ async function compile(
         }
 
         assets[fullPath] = {
-          'source': data,
-          'permissions': mode
+          source: data,
+          permissions: mode
         };
       }
     }
@@ -127,7 +139,13 @@ export async function build({ files, entrypoint, workPath, config, meta = {} }: 
   await runPackageJsonScript(entrypointFsDirname, 'now-build');
 
   console.log('compiling entrypoint with ncc...');
-  const { preparedFiles, watch } = await compile(entrypointPath, entrypoint, config, meta);
+  const { preparedFiles, watch } = await compile(
+    entrypointPath,
+    entrypoint,
+    config,
+    workPath,
+    meta
+  );
   const launcherPath = join(__dirname, 'launcher.js');
   let launcherData = await readFile(launcherPath, 'utf8');
 

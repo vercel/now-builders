@@ -81,6 +81,7 @@ class CustomWatchFileSystem {
   constructor() {
     this.code = '';
     this.assets = {};
+    this.currentBuild = createDeferred<BuildOutput>();
 
     // Webpack requires us to track this stuff
     this.files = new Set();
@@ -91,17 +92,15 @@ class CustomWatchFileSystem {
     // This gets (re)set in the `watch()` callback function
     this.changeCallback = undefined;
 
-    // this will be populated for us by ncc
+    // This will be populated for us by ncc
     this.inputFileSystem = undefined;
-
-    this.currentBuild = createDeferred<BuildOutput>();
   }
 
   /**
    * Public API function to trigger a rebuild.
    */
   triggerChanges(changed: string[], removed: string[]): void {
-    console.error('triggerChanges()', changed, removed);
+    console.error('triggerChanges()', { changed, removed });
     if (!this.inputFileSystem) {
       throw new Error('`inputFileSystem` has not been set');
     }
@@ -134,7 +133,9 @@ class CustomWatchFileSystem {
     );
   }
 
-  // This is called on every rebuild by webpack
+  /**
+   * Invoked by webpack after every rebuild has completed.
+   */
   watch(
     files: string[],
     dirs: string[],
@@ -143,7 +144,7 @@ class CustomWatchFileSystem {
     options: object,
     changeCallback: ChangeCallback
   ) {
-    console.error('watch() callback invoked');
+    console.error('watch() callback invoked', { files, dirs, missing });
     this.files = new Set(files);
     this.dirs = new Set(dirs);
     this.missing = new Set(missing);
@@ -186,7 +187,10 @@ class CustomWatchFileSystem {
     };
   }
 
-  onBuild({ err, code, map, assets, permissions }: BuildCallback) {
+  /**
+   * Invoked by `ncc` after every build has completed.
+   */
+  onBuild({ err, code, map, assets, permissions }: BuildCallback): void {
     console.error('onBuild() callback invoked', { err, code, map, assets, permissions });
     if (err) {
       this.currentBuild.reject(err);
@@ -200,7 +204,10 @@ class CustomWatchFileSystem {
     }
   }
 
-  onRebuild() {
+  /**
+   * Invoked by `ncc` once a rebuild has started.
+   */
+  onRebuild(): void {
     console.error('onRebuild() callback invoked');
   }
 }
