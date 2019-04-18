@@ -197,7 +197,8 @@ export const build = async ({
 }: BuildParamsType): Promise<{output: Files, watch?: string[]}> => {
   validateEntrypoint(entrypoint);
 
-  const entryDirectory = path.dirname(entrypoint);
+  const entrypointFull = files[entrypoint].fsPath;
+  const entrypointDir = path.dirname(entrypointFull);
   const routes = [];
 
   if (meta.isDev) {
@@ -206,11 +207,14 @@ export const build = async ({
 
     const openPort = await getPort();
     const url = `http://localhost:${openPort}`;
-    const outputDir = path.join(entryDirectory, '.next');
+    const outputDir = path.join(entrypointDir, '.next');
 
-    execa('next', [ 'dev', entryDirectory, '--port', `${openPort}` ], {
-      cwd: entryDirectory
-    });
+    // If this is the initial build, we want to start the server
+    if (!meta.requestPath) {
+      execa('next', [ 'dev', entrypointDir, '--port', `${openPort}` ], {
+        cwd: entryDirectory
+      });
+    }
 
     if (await pathExists(outputDir)) {
       const files = await walkDirectory(outputDir);
@@ -231,6 +235,7 @@ export const build = async ({
     };
   }
 
+  const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
   const dotNext = path.join(entryPath, '.next');
   const maybeStaticFiles = setNextExperimentalPage(files, entryDirectory, meta);
