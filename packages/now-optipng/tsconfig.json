@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
-      "baseUrl": ".",
-      "paths": { "*": ["types/*"] },
+        "baseUrl": ".",
+        "paths": { "*": ["types/*"] },
         "strict": true,
         "esModuleInterop": true,
         "lib": ["esnext"],

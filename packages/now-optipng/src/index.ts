@@ -1,6 +1,6 @@
 // eslint-disable-line import/no-extraneous-dependencies
 import { 
-  FileBlob, 
+  FileBlob,
   BuildOptions,
   AnalyzeOptions
 } from '@now/build-utils'
@@ -8,7 +8,7 @@ import OptiPng from 'optipng'
 import pipe from 'multipipe'
 
 export function analyze({ files, entrypoint }: AnalyzeOptions) {
-  return files[entrypoint].digest
+  return files[entrypoint].digest;
 }
 
 export async function build({ files, entrypoint }: BuildOptions) {

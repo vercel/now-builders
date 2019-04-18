@@ -3,7 +3,12 @@
   "version": "0.4.9-canary.0",
   "license": "MIT",
   "main": "./dist/index",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
@@ -14,9 +19,7 @@
     "optipng": "^2.0.0"
   },
   "devDependencies": {
-    "typescript": "^3.4.3"
-  },
-  "scripts": {
-    "build": "tsc"
+    "@types/node": "11.9.4",
+    "typescript": "3.3.3"
   }
 }

@@ -4,4 +4,4 @@
 
 export = pipe;
 
-declare function pipe(...streams: any[]): void;
+declare function pipe(...streams: any[]): NodeJS.ReadableStream;
