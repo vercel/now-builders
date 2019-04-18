@@ -200,6 +200,7 @@ export const build = async ({
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
   const dotNext = path.join(entryPath, '.next');
+  const routes = [];
 
   if (meta.isDev) {
     // eslint-disable-next-line no-underscore-dangle
@@ -213,7 +214,6 @@ export const build = async ({
     });
 
     if (await pathExists(dotNext)) {
-      const routes = [];
       const files = await walkDirectory(dotNext);
 
       // TODO: Do proper filtering here
@@ -223,16 +223,10 @@ export const build = async ({
           dest: `{url}/${file}`
         });
       }
-
-      return {
-        routes,
-        output: {},
-        watch: []
-      };
     }
 
     return {
-      routes: [],
+      routes,
       output: {},
       watch: []
     };
