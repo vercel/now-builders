@@ -1,4 +1,4 @@
-import { join, dirname, sep } from 'path';
+import { join, dirname, relative, sep } from 'path';
 import { readFile } from 'fs-extra';
 import {
   glob,
@@ -10,11 +10,15 @@ import {
   runNpmInstall,
   runPackageJsonScript,
   PrepareCacheOptions,
+  Meta,
   BuildOptions,
+  shouldServe
 } from '@now/build-utils';
+import { BuildAssets } from './types';
+import { watcherBuild } from './watcher';
 
 interface CompilerConfig {
-  includeFiles?: string[]
+  includeFiles?: string[];
 }
 
 interface DownloadOptions {
@@ -41,12 +45,28 @@ async function downloadInstallAndBundle({
   return { entrypointPath, entrypointFsDirname };
 }
 
-async function compile(entrypointPath: string, entrypoint: string, config: CompilerConfig): Promise<Files> {
+async function compile(
+  entrypointPath: string,
+  entrypoint: string,
+  config: CompilerConfig,
+  { isDev, filesChanged, filesRemoved }: Meta
+): Promise<{ preparedFiles: Files, watch: string[] }> {
   const input = entrypointPath;
   const inputDir = dirname(input);
   const rootIncludeFiles = inputDir.split(sep).pop() || '';
   const ncc = require('@zeit/ncc');
-  const { code, map, assets } = await ncc(input, { sourceMap: true, sourceMapRegister: true });
+
+  let code: string;
+  let map: string | void;
+  let assets: BuildAssets = {};
+  let watch: string[] = [];
+
+  const nccOptions = { sourceMap: true, sourceMapRegister: true };
+  if (isDev) {
+    ({ code, map, assets, watch } = await watcherBuild(input, nccOptions, filesChanged, filesRemoved));
+  } else {
+    ({ code, map, assets } = await ncc(input, nccOptions));
+  }
 
   if (config && config.includeFiles) {
     for (const pattern of config.includeFiles) {
@@ -75,7 +95,9 @@ async function compile(entrypointPath: string, entrypoint: string, config: Compi
   const preparedFiles: Files = {};
   // move all user code to 'user' subdirectory
   preparedFiles[entrypoint] = new FileBlob({ data: code });
-  preparedFiles[`${entrypoint.replace('.ts', '.js')}.map`] = new FileBlob({ data: map });
+  if (map) {
+    preparedFiles[`${entrypoint.replace('.ts', '.js')}.map`] = new FileBlob({ data: map });
+  }
   // eslint-disable-next-line no-restricted-syntax
   for (const assetName of Object.keys(assets)) {
     const { source: data, permissions: mode } = assets[assetName];
@@ -83,14 +105,17 @@ async function compile(entrypointPath: string, entrypoint: string, config: Compi
     preparedFiles[join(dirname(entrypoint), assetName)] = blob2;
   }
 
-  return preparedFiles;
+  return { preparedFiles, watch };
 }
+
+// Declare that `@now/node` implements the Builder v2 API
+export const version = 2;
 
 export const config = {
   maxLambdaSize: '5mb'
 };
 
-export async function build({ files, entrypoint, workPath, config }: BuildOptions) {
+export async function build({ files, entrypoint, workPath, config, meta = {} }: BuildOptions) {
   const {
     entrypointPath,
     entrypointFsDirname
@@ -102,7 +127,7 @@ export async function build({ files, entrypoint, workPath, config }: BuildOption
   await runPackageJsonScript(entrypointFsDirname, 'now-build');
 
   console.log('compiling entrypoint with ncc...');
-  const preparedFiles = await compile(entrypointPath, entrypoint, config);
+  const { preparedFiles, watch } = await compile(entrypointPath, entrypoint, config, meta);
   const launcherPath = join(__dirname, 'launcher.js');
   let launcherData = await readFile(launcherPath, 'utf8');
 
@@ -125,7 +150,8 @@ export async function build({ files, entrypoint, workPath, config }: BuildOption
     runtime: 'nodejs8.10'
   });
 
-  return { [entrypoint]: lambda };
+  const output = { [entrypoint]: lambda };
+  return { output, watch: watch.map(f => relative(workPath, f)) };
 }
 
 export async function prepareCache({ workPath }: PrepareCacheOptions) {
@@ -135,3 +161,5 @@ export async function prepareCache({ workPath }: PrepareCacheOptions) {
     ...(await glob('yarn.lock', workPath))
   };
 }
+
+export { shouldServe };
