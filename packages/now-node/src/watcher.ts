@@ -102,24 +102,31 @@ class CustomWatchFileSystem {
    */
   triggerChanges(changed: string[], removed: string[]): void {
     console.error('triggerChanges()', changed, removed);
-    const newTime = +Date.now();
+    if (!this.inputFileSystem) {
+      throw new Error('`inputFileSystem` has not been set');
+    }
+    if (!this.changeCallback) {
+      throw new Error('`changeCallback` has not been set');
+    }
+
+    const newTime = Date.now();
     for (const file of changed) {
       this.timestamps.set(file, {
         safeTime: newTime + 10,
         accuracy: 10,
         timestamp: newTime
       });
-      this.inputFileSystem!.purge(file);
+      this.inputFileSystem.purge(file);
     }
 
     for (const file of removed) {
       this.timestamps.set(file, null);
-      this.inputFileSystem!.purge(file);
+      this.inputFileSystem.purge(file);
     }
 
     this.currentBuild = createDeferred<BuildOutput>();
 
-    this.changeCallback!(
+    this.changeCallback(
       null,
       this.timestamps,
       this.timestamps,
@@ -212,7 +219,7 @@ function createWatcher(
   return watch;
 }
 
-export async function watcherBuild(
+export function watcherBuild(
   input: string,
   options: NccOptions,
   filesChanged: string[] = [],
