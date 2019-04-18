@@ -17,6 +17,8 @@
     "@now/node-bridge": "^1.0.2-canary.2",
     "execa": "^1.0.0",
     "fs-extra": "^7.0.0",
+    "get-port": "^5.0.0",
+    "klaw": "^3.0.0",
     "resolve-from": "^4.0.0",
     "semver": "^5.6.0"
   },

@@ -1,4 +1,4 @@
-import { 
+import {
   createLambda,
   download,
   FileFsRef,
@@ -14,6 +14,7 @@ import {
 import resolveFrom from 'resolve-from';
 import path from 'path';
 import url from 'url';
+import execa from 'execa';
 import {
   readFile,
   writeFile,
@@ -22,11 +23,13 @@ import {
   pathExists,
 } from 'fs-extra';
 import semver from 'semver';
+import getPort from 'get-port';
 import nextLegacyVersions from './legacy-versions';
 import {
   excludeFiles,
   validateEntrypoint,
   includeOnlyEntryDirectory,
+  walkDirectory,
   normalizePackageJson,
   onlyStaticDirectory,
   getNextConfig,
@@ -143,11 +146,6 @@ function setNextExperimentalPage(files: Files, entry: string, meta: BuildParamsM
       : pathname;
   }
 
-  if (meta.isDev) {
-    // eslint-disable-next-line no-underscore-dangle
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
-  }
-
   return null;
 }
 
@@ -200,24 +198,56 @@ export const build = async ({
   validateEntrypoint(entrypoint);
 
   const entryDirectory = path.dirname(entrypoint);
+  const entryPath = path.join(workPath, entryDirectory);
+  const dotNext = path.join(entryPath, '.next');
+
+  if (meta.isDev) {
+    // eslint-disable-next-line no-underscore-dangle
+    process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
+
+    const openPort = await getPort();
+    const url = `http://localhost:${openPort}`;
+
+    execa('next', [ 'dev', entryDirectory, '--port', openPort ], {
+      cwd: entryDirectory
+    });
+
+    if (await pathExists(dotNext)) {
+      const routes = [];
+      const files = await walkDirectory(dotNext);
+
+      // TODO: Do proper filtering here
+      for (const file of files) {
+        routes.push({
+          src: file,
+          dest: `{url}/${file}`
+        });
+      }
+
+      return {
+        routes,
+        output: {},
+        watch: []
+      };
+    }
+
+    return {
+      routes: [],
+      output: {},
+      watch: []
+    };
+  }
+
   const maybeStaticFiles = setNextExperimentalPage(files, entryDirectory, meta);
   if (maybeStaticFiles) return maybeStaticFiles; // return early if requestPath is static file
 
   console.log('downloading user files...');
   await download(files, workPath);
-  const entryPath = path.join(workPath, entryDirectory);
-  const dotNext = path.join(entryPath, '.next');
 
   if (await pathExists(dotNext)) {
-    if (meta.isDev) {
-      await removePath(dotNext).catch((e) => {
-        if (e.code !== 'ENOENT') throw e;
-      });
-    } else {
-      console.warn(
-        'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
-      );
-    }
+    console.warn(
+      'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
+    );
   }
 
   const pkg = await readPackageJson(entryPath);
@@ -291,7 +321,7 @@ export const build = async ({
     }
   };
 
-  if ((meta.isDev || meta.requestPath) && !isUpdated(nextVersion)) {
+  if (meta.requestPath && !isUpdated(nextVersion)) {
     throw new Error(
       '`now dev` can only be used with Next.js >=8.0.5-canary.14!',
     );
