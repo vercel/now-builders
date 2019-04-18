@@ -209,7 +209,7 @@ export const build = async ({
     const openPort = await getPort();
     const url = `http://localhost:${openPort}`;
 
-    execa('next', [ 'dev', entryDirectory, '--port', openPort ], {
+    execa('next', [ 'dev', entryDirectory, '--port', `${openPort}` ], {
       cwd: entryDirectory
     });
 

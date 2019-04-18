@@ -149,7 +149,7 @@ async function getWatchers(nextPath: string) {
   return watch;
 }
 
-function walkDirectory(target: string) {
+function walkDirectory(target: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
     const paths = [];
 
