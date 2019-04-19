@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { Files } from '@now/build-utils';
-import klaw from 'klaw';
 
 type stringMap = {[key: string]: string};
 
@@ -149,25 +148,10 @@ async function getWatchers(nextPath: string) {
   return watch;
 }
 
-function walkDirectory(target: string): Promise<string[]> {
-  return new Promise((resolve, reject) => {
-    const paths: string[] = [];
-
-    klaw(target).on('data', item => {
-      paths.push(item.path);
-    }).on('end', () => {
-      resolve(paths);
-    }).on('error', err => {
-      reject(err);
-    });
-  });
-}
-
 export {
   excludeFiles,
   validateEntrypoint,
   includeOnlyEntryDirectory,
-  walkDirectory,
   excludeLockFiles,
   normalizePackageJson,
   onlyStaticDirectory,

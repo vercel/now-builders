@@ -29,7 +29,6 @@ import {
   excludeFiles,
   validateEntrypoint,
   includeOnlyEntryDirectory,
-  walkDirectory,
   normalizePackageJson,
   onlyStaticDirectory,
   getNextConfig,
