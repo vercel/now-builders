@@ -43,6 +43,8 @@ function normalizeNowProxyEvent(event: NowProxyEvent): NowProxyRequest {
   let bodyBuffer: Buffer | null;
   const { method, path, headers, encoding, body } = JSON.parse(event.body);
 
+  const encodedPath = encodeURI(path);
+
   if (body) {
     if (encoding === 'base64') {
       bodyBuffer = Buffer.from(body, encoding);
@@ -55,7 +57,7 @@ function normalizeNowProxyEvent(event: NowProxyEvent): NowProxyRequest {
     bodyBuffer = Buffer.alloc(0);
   }
 
-  return { isApiGateway: false, method, path, headers, body: bodyBuffer };
+  return { isApiGateway: false, method, headers, path: encodedPath, body: bodyBuffer };
 }
 
 function normalizeAPIGatewayProxyEvent(
@@ -63,6 +65,8 @@ function normalizeAPIGatewayProxyEvent(
 ): NowProxyRequest {
   let bodyBuffer: Buffer | null;
   const { httpMethod: method, path, headers, body } = event;
+
+  const encodedPath = encodeURI(path);
 
   if (body) {
     if (event.isBase64Encoded) {
@@ -74,7 +78,7 @@ function normalizeAPIGatewayProxyEvent(
     bodyBuffer = Buffer.alloc(0);
   }
 
-  return { isApiGateway: true, method, path, headers, body: bodyBuffer };
+  return { isApiGateway: true, method, headers, path: encodedPath, body: bodyBuffer };
 }
 
 function normalizeEvent(
