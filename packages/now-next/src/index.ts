@@ -167,7 +167,7 @@ export const build = async ({
   validateEntrypoint(entrypoint);
 
   const entrypointFull = files[entrypoint].fsPath;
-  const routes = [];
+  const routes: any[] = [];
 
   if (meta.isDev && entrypointFull) {
     // eslint-disable-next-line no-underscore-dangle
