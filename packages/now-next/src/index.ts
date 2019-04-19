@@ -193,6 +193,8 @@ export const config = {
   maxLambdaSize: '5mb',
 };
 
+const name = '[@now/next]';
+
 export const build = async ({
   files, workPath, entrypoint, meta = {} as BuildParamsMeta,
 }: BuildParamsType): Promise<{routes?: any[], output: Files, watch?: string[]}> => {
@@ -205,15 +207,31 @@ export const build = async ({
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
 
+    const openPort = await getPort({
+      port: [ 3000, 4000, 5000 ]
+    });
+
     const entrypointDir = path.dirname(entrypointFull);
-    const openPort = await getPort();
     const url = `http://localhost:${openPort}`;
     const outputDir = path.join(entrypointDir, '.next');
 
+    console.log(`${name} Requested ${meta.requestPath}`);
+
     // If this is the initial build, we want to start the server
     if (!meta.requestPath) {
-      execa('next', [ 'dev', entrypointDir, '--port', `${openPort}` ], {
+      const command = [ 'next', 'dev', entrypointDir, '--port', `${openPort}` ];
+      console.log(`${name} Running \`${command.join(' ')}\``);
+
+      const { stdout, stderr } = execa('npx', command, {
         cwd: entrypointDir
+      });
+
+      stdout.on('data', chunk => {
+        process.stdout.write(`${name} ${chunk}`);
+      });
+
+      stderr.on('data', chunk => {
+        process.stderr.write(`${name} ${chunk}`);
       });
     }
 
