@@ -34,6 +34,7 @@ import {
   onlyStaticDirectory,
   getNextConfig,
   getWatchers,
+  stringMap,
 } from './utils';
 
 interface BuildParamsMeta {
@@ -159,6 +160,7 @@ export const config = {
 };
 
 const name = '[@now/next]';
+const urls: stringMap = {};
 
 export const build = async ({
   files, workPath, entrypoint, meta = {} as BuildParamsMeta,
@@ -172,18 +174,19 @@ export const build = async ({
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
 
-    const openPort = await getPort({
-      port: [ 3000, 4000, 5000 ]
-    });
-
     const entrypointDir = path.dirname(entrypointFull);
-    const url = `http://localhost:${openPort}`;
     const outputDir = path.join(entrypointDir, '.next');
 
     console.log(`${name} Requested ${meta.requestPath}`);
 
     // If this is the initial build, we want to start the server
-    if (!meta.requestPath) {
+    if (!urls[entrypoint]) {
+      const openPort = await getPort({
+        port: [ 5000, 4000 ]
+      });
+
+      urls[entrypoint] = `http://localhost:${openPort}`;
+
       const command = [ 'next', 'dev', entrypointDir, '--port', `${openPort}` ];
       console.log(`${name} Running \`${command.join(' ')}\``);
 
@@ -196,20 +199,19 @@ export const build = async ({
       });
 
       stderr.on('data', chunk => {
-        process.stderr.write(`${name} ${chunk}`);
+        // This also needs to go to `stdout` because
+        // that is hidden with `--debug`
+        process.stdout.write(`${name} ${chunk}`);
       });
     }
 
-    if (await pathExists(outputDir)) {
-      const files = await walkDirectory(outputDir);
+    if (typeof meta.requestPath === 'string') {
+      const src = `/${meta.requestPath}`;
 
-      // TODO: Do proper filtering here
-      for (const file of files) {
-        routes.push({
-          src: file,
-          dest: `{url}/${file}`
-        });
-      }
+      routes.push({
+        src,
+        dest: `${urls[entrypoint]}${src}`
+      });
     }
 
     return {

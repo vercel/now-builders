@@ -173,4 +173,5 @@ export {
   onlyStaticDirectory,
   getNextConfig,
   getWatchers,
+  stringMap,
 };
