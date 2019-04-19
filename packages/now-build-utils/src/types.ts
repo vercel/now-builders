@@ -1,9 +1,11 @@
+import FileRef from "./file-ref";
 import FileFsRef from './file-fs-ref';
 
 export interface File {
   type: string;
   mode: number;
   toStream: () => NodeJS.ReadableStream;
+  fsPath?: string;
 }
 
 export interface Files {
@@ -25,7 +27,9 @@ export interface AnalyzeOptions {
   /**
    * All source files of the project
    */
-  files: Files;
+  files: {
+    [filePath: string]: FileRef;
+  }
 
   /**
    * Name of entrypoint file for this particular build job. Value
