@@ -4,7 +4,7 @@ export interface File {
   type: string;
   mode: number;
   toStream: () => NodeJS.ReadableStream;
-  fsPath: string;
+  fsPath?: string;
 }
 
 export interface Files {
