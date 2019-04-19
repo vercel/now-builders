@@ -987,6 +987,13 @@
   resolved "https://registry.yarnpkg.com/@types/istanbul-lib-coverage/-/istanbul-lib-coverage-2.0.0.tgz#1eb8c033e98cf4e1a4cedcaf8bcafe8cb7591e85"
   integrity sha512-eAtOAFZefEnfJiRFQBGw1eYqa5GTLCZ1y86N0XSI/D6EB+E8z6VPV/UL7Gi5UEclFqoQk+6NRqEDsfmDLXn8sg==
 
+"@types/klaw@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@types/klaw/-/klaw-3.0.0.tgz#97f70ba844c0c70b8e280eeeebb83caf054fc726"
+  integrity sha512-vbHQ88nyYtf+lUQEXh/4nH/qXcXU5twAdJyYHKX/uiSivu8XqR8rgWYHY07hQ1iaPdx8+sz3vDL70ZQw7gepIg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/minimatch@*":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"

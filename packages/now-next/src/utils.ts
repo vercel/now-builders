@@ -151,7 +151,7 @@ async function getWatchers(nextPath: string) {
 
 function walkDirectory(target: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
-    const paths = [];
+    const paths: string[] = [];
 
     klaw(target).on('data', item => {
       paths.push(item.path);

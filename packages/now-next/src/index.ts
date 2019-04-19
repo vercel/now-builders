@@ -194,7 +194,7 @@ export const config = {
 
 export const build = async ({
   files, workPath, entrypoint, meta = {} as BuildParamsMeta,
-}: BuildParamsType): Promise<{output: Files, watch?: string[]}> => {
+}: BuildParamsType): Promise<{routes?: any[], output: Files, watch?: string[]}> => {
   validateEntrypoint(entrypoint);
 
   const entrypointFull = files[entrypoint].fsPath;
@@ -212,7 +212,7 @@ export const build = async ({
     // If this is the initial build, we want to start the server
     if (!meta.requestPath) {
       execa('next', [ 'dev', entrypointDir, '--port', `${openPort}` ], {
-        cwd: entryDirectory
+        cwd: entrypointDir
       });
     }
 
@@ -507,6 +507,7 @@ export const build = async ({
   );
 
   return {
+    routes: [],
     output: { ...lambdas, ...staticFiles, ...staticDirectoryFiles },
     watch: await getWatchers(dotNext),
   };
