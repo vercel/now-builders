@@ -194,13 +194,13 @@ export const build = async ({
       });
 
       stdout.on('data', chunk => {
-        process.stdout.write(`${name} ${chunk}`);
+        console.log(`${name} ${chunk}`.trim());
       });
 
       stderr.on('data', chunk => {
         // This also needs to go to `stdout` because
         // that is hidden with `--debug`
-        process.stdout.write(`${name} ${chunk}`);
+        console.log(`${name} ${chunk}`.trim());
       });
     }
 
