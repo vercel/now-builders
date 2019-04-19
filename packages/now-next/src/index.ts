@@ -193,15 +193,7 @@ export const build = async ({
         cwd: entrypointDir
       });
 
-      stdout.on('data', chunk => {
-        console.log(`${name} ${chunk}`.trim());
-      });
-
-      stderr.on('data', chunk => {
-        // This also needs to go to `stdout` because
-        // that is hidden with `--debug`
-        console.log(`${name} ${chunk}`.trim());
-      });
+      stderr.pipe(process.stderr);
     }
 
     if (typeof meta.requestPath === 'string') {
