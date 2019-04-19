@@ -115,41 +115,6 @@ function isLegacyNext(nextVersion: string) {
   return true;
 }
 
-function setNextExperimentalPage(files: Files, entry: string, meta: BuildParamsMeta) {
-  const entryPath = entry !== '.' ? `${entry}/` : '';
-  if (meta.requestPath || meta.requestPath === '') {
-    if (
-      meta.requestPath.startsWith(`${entryPath}static`)
-      || (meta.requestPath.startsWith(`${entryPath}_next`)
-        && !meta.requestPath.startsWith(
-          `${entryPath}_next/static/unoptimized-build/pages`,
-        ))
-    ) {
-      return files[meta.requestPath]
-        ? {
-          output: {
-            [meta.requestPath]: files[meta.requestPath],
-          },
-        }
-        : undefined;
-    }
-
-    const { pathname } = meta.requestPath
-      ? url.parse(meta.requestPath)
-      : { pathname: '/' };
-    const clientPageRegex = new RegExp(
-      `^${entryPath}_next/static/unoptimized-build/pages/(.+)\\.js$`,
-    );
-    const clientPage = (pathname || '/').match(clientPageRegex);
-    // eslint-disable-next-line no-underscore-dangle
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_PAGE = clientPage
-      ? clientPage[1]
-      : pathname;
-  }
-
-  return null;
-}
-
 function pageExists(name: string, pages: Files, entry: string) {
   const pageWhere = (key: string) => Object.prototype.hasOwnProperty.call(pages, key);
   const inPages = (...names: string[]) => {
@@ -257,9 +222,6 @@ export const build = async ({
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
   const dotNext = path.join(entryPath, '.next');
-  const maybeStaticFiles = setNextExperimentalPage(files, entryDirectory, meta);
-
-  if (maybeStaticFiles) return maybeStaticFiles; // return early if requestPath is static file
 
   console.log('downloading user files...');
   await download(files, workPath);
@@ -340,12 +302,6 @@ export const build = async ({
       return false;
     }
   };
-
-  if (meta.requestPath && !isUpdated(nextVersion)) {
-    throw new Error(
-      '`now dev` can only be used with Next.js >=8.0.5-canary.14!',
-    );
-  }
 
   console.log('running user script...');
   await runPackageJsonScript(entryPath, 'now-build');

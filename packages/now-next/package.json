@@ -1,12 +1,12 @@
 {
   "name": "@now/next",
-  "version": "0.2.0-canary.13",
+  "version": "0.2.0-canary.15",
   "license": "MIT",
   "main": "./dist/index",
   "scripts": {
     "build": "./getBridgeTypes.sh && tsc",
     "test": "npm run build && jest",
-    "prepublish": "yarn run build"
+    "prepublish": "yarn run build && sleep 2"
   },
   "repository": {
     "type": "git",
