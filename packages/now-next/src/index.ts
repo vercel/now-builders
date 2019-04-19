@@ -198,13 +198,13 @@ export const build = async ({
   validateEntrypoint(entrypoint);
 
   const entrypointFull = files[entrypoint].fsPath;
-  const entrypointDir = path.dirname(entrypointFull);
   const routes = [];
 
-  if (meta.isDev) {
+  if (meta.isDev && entrypointFull) {
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
 
+    const entrypointDir = path.dirname(entrypointFull);
     const openPort = await getPort();
     const url = `http://localhost:${openPort}`;
     const outputDir = path.join(entrypointDir, '.next');
