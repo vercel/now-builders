@@ -16,20 +16,22 @@ test('port binding', async () => {
 });
 
 test('`APIGatewayProxyEvent` normalizing', async () => {
-  const server = new Server((req, res) => res.end(
-    JSON.stringify({
-      method: req.method,
-      path: req.url,
-      headers: req.headers,
-    }),
-  ));
+  const server = new Server((req, res) =>
+    res.end(
+      JSON.stringify({
+        method: req.method,
+        path: req.url,
+        headers: req.headers
+      })
+    )
+  );
   const bridge = new Bridge(server);
   bridge.listen();
   const result = await bridge.launcher({
     httpMethod: 'GET',
     headers: { foo: 'bar' },
     path: '/apigateway',
-    body: null,
+    body: null
   });
   assert.equal(result.encoding, 'base64');
   assert.equal(result.statusCode, 200);
@@ -41,14 +43,46 @@ test('`APIGatewayProxyEvent` normalizing', async () => {
   server.close();
 });
 
+test('encoded URL', async () => {
+  const server = new Server((req, res) =>
+    res.end(
+      JSON.stringify({
+        method: req.method,
+        path: req.url,
+        headers: req.headers
+      })
+    )
+  );
+  const bridge = new Bridge(server);
+  bridge.listen();
+  const path = '/ hey!';
+  const result = await bridge.launcher({
+    Action: 'Invoke',
+    body: JSON.stringify({
+      method: 'GET',
+      path
+    })
+  });
+  assert.equal(result.encoding, 'base64');
+  assert.equal(result.statusCode, 200);
+  const body = JSON.parse(Buffer.from(result.body, 'base64').toString());
+  assert.equal(body.method, 'GET');
+  const encodedPath = encodeURI(path);
+  assert.equal(body.path, encodedPath);
+
+  server.close();
+});
+
 test('`NowProxyEvent` normalizing', async () => {
-  const server = new Server((req, res) => res.end(
-    JSON.stringify({
-      method: req.method,
-      path: req.url,
-      headers: req.headers,
-    }),
-  ));
+  const server = new Server((req, res) =>
+    res.end(
+      JSON.stringify({
+        method: req.method,
+        path: req.url,
+        headers: req.headers
+      })
+    )
+  );
   const bridge = new Bridge(server);
   bridge.listen();
   const result = await bridge.launcher({
@@ -57,8 +91,8 @@ test('`NowProxyEvent` normalizing', async () => {
       method: 'POST',
       headers: { foo: 'baz' },
       path: '/nowproxy',
-      body: 'body=1',
-    }),
+      body: 'body=1'
+    })
   });
   assert.equal(result.encoding, 'base64');
   assert.equal(result.statusCode, 200);
