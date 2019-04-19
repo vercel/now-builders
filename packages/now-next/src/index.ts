@@ -475,7 +475,7 @@ export const build = async ({
   );
 
   return {
-    routes: [],
+    routes,
     output: { ...lambdas, ...staticFiles, ...staticDirectoryFiles },
     watch: await getWatchers(dotNext),
   };
