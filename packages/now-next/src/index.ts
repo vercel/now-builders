@@ -197,7 +197,7 @@ export const build = async ({
     }
 
     if (typeof meta.requestPath === 'string') {
-      const src = `/${meta.requestPath}`;
+      const src = url.parse(`/${meta.requestPath}`).pathname;
 
       routes.push({
         src,
