@@ -49,7 +49,7 @@ interface BuildParamsType extends BuildOptions {
 };
 
 export const version = 2;
-export const continuous = true;
+export const requiresInitialBuild = true;
 
 /**
  * Read package.json from files
