@@ -13,8 +13,9 @@ import {
 } from '@now/build-utils';
 import resolveFrom from 'resolve-from';
 import path from 'path';
+import { createServer } from 'http';
+import { parse } from 'url';
 import url from 'url';
-import execa from 'execa';
 import {
   readFile,
   writeFile,
@@ -157,37 +158,32 @@ function pageExists(name: string, pages: Files, entry: string) {
 const name = '[@now/next]';
 const urls: stringMap = {};
 
-async function startDevServer(entrypoint: string, entrypointDir: string): Promise<string> {
+async function startDevServer(entrypoint: string, entryPath: string): Promise<string> {
+  const next = require(resolveFrom(entryPath, 'next'));
+  const app = next({ dev: true, dir: entryPath });
+  const handler = app.getRequestHandler();
+
   const openPort = await getPort({
     port: [ 5000, 4000 ]
   });
 
   const url = `http://localhost:${openPort}`;
 
-  const command = [
-    'next',
-    'dev',
-    entrypointDir,
-    '--port',
-    `${openPort}`
-  ];
+  // Prepare for incoming requests
+  await app.prepare();
 
   return new Promise((resolve, reject) => {
-    console.log(`${name} Running \`${command.join(' ')}\``);
-
-    const { stdout, stderr } = execa('npx', command, {
-      cwd: entrypointDir
-    });
-
-    stdout.on('data', chunk => {
-      if (!chunk.includes(url) || urls[entrypoint]) {
+    createServer((req, res) => {
+      const parsedUrl = parse(req.url || '', true);
+      handler(req, res, parsedUrl);
+    }).listen(openPort, (error: NodeJS.ErrnoException) => {
+      if (error) {
+        reject(error);
         return;
       }
 
       resolve(url);
     });
-
-    stderr.pipe(process.stderr);
   });
 }
 
@@ -200,25 +196,48 @@ export const build = async ({
 }: BuildParamsType): Promise<{routes?: any[], output: Files, watch?: string[]}> => {
   validateEntrypoint(entrypoint);
 
-  const entrypointFull = files[entrypoint].fsPath;
   const routes: any[] = [];
+  const entryDirectory = path.dirname(entrypoint);
+  const entryPath = path.join(workPath, entryDirectory);
+  const dotNext = path.join(entryPath, '.next');
+  const uponRequest = typeof meta.requestPath === 'string';
 
-  if (meta.isDev && entrypointFull) {
+  if ((meta.isDev && !uponRequest) || !meta.isDev) {
+    console.log(`${name} Downloading user files...`);
+    await download(files, workPath);
+  }
+
+  if (await pathExists(dotNext) && !meta.isDev) {
+    console.warn(
+      'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
+    );
+  }
+
+  const pkg = await readPackageJson(entryPath);
+  const nextVersion = getNextVersion(pkg);
+
+  if (!nextVersion) {
+    throw new Error(
+      'No Next.js version could be detected in "package.json". Make sure `"next"` is installed in "dependencies" or "devDependencies"',
+    );
+  }
+
+  if (meta.isDev) {
     // eslint-disable-next-line no-underscore-dangle
     process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
 
-    const entrypointDir = path.dirname(entrypointFull);
-    const outputDir = path.join(entrypointDir, '.next');
-
-    console.log(`${name} Requested ${meta.requestPath}`);
+    console.log(`${name} Requested ${meta.requestPath || '/'}`);
 
     // If this is the initial build, we want to start the server
     if (!urls[entrypoint]) {
-      urls[entrypoint] = await startDevServer(entrypoint, entrypointDir);
-      console.log(`${name} Development server for ${entrypointDir} running at ${urls[entrypoint]}`);
+      console.log(`${name} Installing dependencies...`);
+      await runNpmInstall(entryPath, ['--prefer-offline']);
+
+      urls[entrypoint] = await startDevServer(entrypoint, entryPath);
+      console.log(`${name} Development server for ${entrypoint} running at ${urls[entrypoint]}`);
     }
 
-    if (typeof meta.requestPath === 'string') {
+    if (uponRequest) {
       routes.push({
         // This property is not allowed to contain GET parameters, as they
         // contain a ?, which is a regex operator.
@@ -232,28 +251,6 @@ export const build = async ({
       output: {},
       watch: []
     };
-  }
-
-  const entryDirectory = path.dirname(entrypoint);
-  const entryPath = path.join(workPath, entryDirectory);
-  const dotNext = path.join(entryPath, '.next');
-
-  console.log('downloading user files...');
-  await download(files, workPath);
-
-  if (await pathExists(dotNext)) {
-    console.warn(
-      'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
-    );
-  }
-
-  const pkg = await readPackageJson(entryPath);
-
-  let nextVersion = getNextVersion(pkg);
-  if (!nextVersion) {
-    throw new Error(
-      'No Next.js version could be detected in "package.json". Make sure `"next"` is installed in "dependencies" or "devDependencies"',
-    );
   }
 
   const isLegacy = isLegacyNext(nextVersion);
