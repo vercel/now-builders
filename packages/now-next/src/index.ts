@@ -301,23 +301,6 @@ export const build = async ({
   console.log('installing dependencies...');
   await runNpmInstall(entryPath, ['--prefer-offline']);
 
-  nextVersion = JSON.parse(
-    await readFile(resolveFrom(entryPath, 'next/package.json'), 'utf8'),
-  ).version;
-  if (!nextVersion) throw new Error('Could not parse Next.js version');
-
-  const isUpdated = (v: string) => {
-    if (v === 'canary') return true;
-
-    try {
-      return semver.satisfies(v, '>=8.0.5-canary.14', {
-        includePrerelease: true,
-      });
-    } catch (e) {
-      return false;
-    }
-  };
-
   console.log('running user script...');
   await runPackageJsonScript(entryPath, 'now-build');
 
