@@ -131,13 +131,17 @@ async function getNextConfig(workPath: string, entryPath: string) {
   return null;
 }
 
-async function getWatchers(entryDirectory: string, files: Files) {
+function pathIsInside(firstPath: string, secondPath: string) {
+  return !path.relative(firstPath, secondPath).startsWith('..');
+}
+
+function getPathsInside(entryDirectory: string, files: Files) {
   const watch: string[] = [];
 
   for (const file of Object.keys(files)) {
     // If the file is outside of the entrypoint directory, we do
     // not want to monitor it for changes.
-    if (path.relative(entryDirectory, file).startsWith('..')) {
+    if (!pathIsInside(entryDirectory, file)) {
       continue;
     }
 
@@ -145,6 +149,54 @@ async function getWatchers(entryDirectory: string, files: Files) {
   }
 
   return watch;
+}
+
+function getRoutes(entryDirectory: string, pathsInside: string[], files: Files, url: string): any[] {
+  const filesInside: Files = {};
+  const prefix = entryDirectory === `.` ? `/` : `${entryDirectory}/`;
+
+  for (const file of Object.keys(files)) {
+    if (!pathsInside.includes(file)) {
+      continue;
+    }
+
+    filesInside[file] = files[file];
+  }
+
+  const routes: any[] = [
+    {
+      src: `${prefix}_next/(.*)`,
+      dest: `${url}/_next/$1`
+    },
+    {
+      src: `${prefix}static/(.*)`,
+      dest: `${url}/static/$1`
+    }
+  ];
+
+  for (const file of Object.keys(filesInside)) {
+    const relativePath = path.relative(entryDirectory, file);
+    const isPage = pathIsInside('pages', relativePath);
+
+    if (!isPage) {
+      continue;
+    }
+
+    const relativeToPages = path.relative('pages', relativePath);
+    const extension = path.extname(relativeToPages);
+    const pageName = relativeToPages.replace(extension, '');
+
+    if (pageName.startsWith('_')) {
+      continue;
+    }
+
+    routes.push({
+      src: `${prefix}${pageName}`,
+      dest: `${url}/${pageName}`
+    });
+  }
+
+  return routes;
 }
 
 export {
@@ -155,6 +207,7 @@ export {
   normalizePackageJson,
   onlyStaticDirectory,
   getNextConfig,
-  getWatchers,
+  getPathsInside,
+  getRoutes,
   stringMap,
 };

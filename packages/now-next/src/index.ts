@@ -33,7 +33,8 @@ import {
   normalizePackageJson,
   onlyStaticDirectory,
   getNextConfig,
-  getWatchers,
+  getPathsInside,
+  getRoutes,
   stringMap,
 } from './utils';
 
@@ -231,19 +232,12 @@ export const build = async ({
       console.log(`${name} Development server for ${entrypoint} running at ${urls[entrypoint]}`);
     }
 
-    if (uponRequest) {
-      routes.push({
-        // This property is not allowed to contain GET parameters, as they
-        // contain a ?, which is a regex operator.
-        src: url.parse(`/${meta.requestPath}`).pathname,
-        dest: `${urls[entrypoint]}/${meta.requestPath}`
-      });
-    }
+    const pathsInside = getPathsInside(entryDirectory, files)
 
     return {
-      routes,
       output: {},
-      watch: await getWatchers(entryDirectory, files)
+      routes: getRoutes(entryDirectory, pathsInside, files, urls[entrypoint]),
+      watch: pathsInside
     };
   }
 
@@ -477,8 +471,8 @@ export const build = async ({
   );
 
   return {
-    routes,
     output: { ...lambdas, ...staticFiles, ...staticDirectoryFiles },
+    routes: [],
     watch: []
   };
 };
