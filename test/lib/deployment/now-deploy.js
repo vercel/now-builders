@@ -96,6 +96,8 @@ async function deploymentPost (payload) {
     method: 'POST',
     body: JSON.stringify(payload)
   });
+
+  console.log(`fetch status: ${resp.status} ${resp.statusText}`);
   const json = await resp.json();
 
   if (json.error) {
@@ -125,8 +127,7 @@ async function fetchWithAuth (url, opts = {}) {
       if (NOW_TOKEN) {
         token = NOW_TOKEN;
       } else if (NOW_TOKEN_FACTORY_URL) {
-        const resp = await fetch(NOW_TOKEN_FACTORY_URL);
-        token = (await resp.json()).token;
+        token = await fetchTokenWithRetry(NOW_TOKEN_FACTORY_URL);
       } else {
         const authJsonPath = path.join(homedir(), '.now/auth.json');
         token = require(authJsonPath).token;
@@ -137,6 +138,27 @@ async function fetchWithAuth (url, opts = {}) {
   }
 
   return await fetchApi(url, opts);
+}
+
+function fetchTokenWithRetry (url, retries = 3) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      resolve(data.token);
+    } catch (error) {
+      console.log(`Failed to fetch token. Retries remaining: ${retries}`);
+      if (retries === 0) {
+        reject(error);
+        return;
+      }
+      setTimeout(() => {
+        fetchTokenWithRetry(url, retries - 1)
+          .then(resolve)
+          .catch(reject);
+      }, 500);
+    }
+  });
 }
 
 async function fetchApi (url, opts = {}) {
