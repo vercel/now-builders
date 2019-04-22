@@ -15,6 +15,9 @@ jobs:
           name: Installing the latest version of Go
           command: sudo apt-get install golang-go
       - run:
+          name: Installing @now/build-utils global with npm
+          command: sudo npm install -g @now/build-utils@canary
+      - run:
           name: Installing dependencies
           command: yarn install
       - run:
