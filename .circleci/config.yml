@@ -16,7 +16,7 @@ jobs:
           command: sudo apt-get install golang-go
       - run:
           name: Add global @now/build-utils with yarn
-          command: sudo yarn add global @now/build-utils@canary
+          command: sudo yarn add global @now/build-utils@canary -W
       - run:
           name: Installing dependencies
           command: yarn install
