@@ -2,12 +2,8 @@ import { join, sep, dirname } from 'path';
 import {
   readFile, writeFile, pathExists, move,
 } from 'fs-extra';
-
-import { addAlias } from 'module-alias';
-addAlias('@now/build-utils', join(__dirname, '../now-build-utils/dist'));
-
 import {
-  glob, download, createLambda, getWriteableDirectory, BuildOptions
+  glob, download, createLambda, getWriteableDirectory, BuildOptions,
 } from '@now/build-utils';
 
 import { createGo, getExportedFunctionName } from './go-helpers';
