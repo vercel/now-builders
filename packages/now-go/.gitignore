@@ -1,6 +1,6 @@
 node_modules
 *.log
-/?.js
 /go
 /get-exported-function-name
 *.js
+!util/install.js
