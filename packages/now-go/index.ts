@@ -4,9 +4,7 @@ import {
 } from 'fs-extra';
 
 import { addAlias } from 'module-alias';
-if (process.env.NODE_ENV === 'development') {
-  addAlias('@now/build-utils', join(__dirname, '../now-build-utils'));
-}
+addAlias('@now/build-utils', join(__dirname, '../now-build-utils/dist'));
 
 import {
   glob, download, createLambda, getWriteableDirectory, BuildOptions
