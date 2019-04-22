@@ -153,7 +153,7 @@ function getPathsInside(entryDirectory: string, files: Files) {
 
 function getRoutes(entryDirectory: string, pathsInside: string[], files: Files, url: string): any[] {
   const filesInside: Files = {};
-  const prefix = entryDirectory === `.` ? `/` : `${entryDirectory}/`;
+  const prefix = entryDirectory === `.` ? `/` : `/${entryDirectory}/`;
 
   for (const file of Object.keys(files)) {
     if (!pathsInside.includes(file)) {
@@ -196,10 +196,10 @@ function getRoutes(entryDirectory: string, pathsInside: string[], files: Files, 
     });
 
     if (pageName.endsWith('index')) {
-      const resolvedIndex = pageName.replace('/index', '');
+      const resolvedIndex = pageName.replace('/index', '').replace('index', '');
 
       routes.push({
-        src: `${prefix}${resolvedIndex || '/'}`,
+        src: `${prefix}${resolvedIndex}`,
         dest: `${url}/${resolvedIndex}`
       });
     }
