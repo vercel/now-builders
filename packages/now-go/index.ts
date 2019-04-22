@@ -3,6 +3,11 @@ import {
   readFile, writeFile, pathExists, move,
 } from 'fs-extra';
 
+import { addAlias } from 'module-alias';
+if (process.env.NODE_ENV === 'development') {
+  addAlias('@now/build-utils', join(__dirname, '../now-build-utils'));
+}
+
 import {
   glob, download, createLambda, getWriteableDirectory, BuildOptions
 } from '@now/build-utils';
