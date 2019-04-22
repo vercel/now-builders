@@ -194,6 +194,15 @@ function getRoutes(entryDirectory: string, pathsInside: string[], files: Files, 
       src: `${prefix}${pageName}`,
       dest: `${url}/${pageName}`
     });
+
+    if (pageName.endsWith('index')) {
+      const resolvedIndex = pageName.replace('index', '');
+
+      routes.push({
+        src: `${prefix}${resolvedIndex}`,
+        dest: `${url}/${resolvedIndex}`
+      });
+    }
   }
 
   return routes;
