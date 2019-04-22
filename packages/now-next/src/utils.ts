@@ -131,18 +131,17 @@ async function getNextConfig(workPath: string, entryPath: string) {
   return null;
 }
 
-async function getWatchers(nextPath: string) {
+async function getWatchers(entryDirectory: string, files: Files) {
   const watch: string[] = [];
-  const manifest = path.join(nextPath, 'compilation-modules.json');
 
-  try {
-    const { pages } = JSON.parse(await fs.readFile(manifest, 'utf8'));
+  for (const file of Object.keys(files)) {
+    // If the file is outside of the entrypoint directory, we do
+    // not want to monitor it for changes.
+    if (path.relative(entryDirectory, file).startsWith('..')) {
+      continue;
+    }
 
-    Object.keys(pages).forEach(page => pages[page].forEach((dep: string) => {
-      watch.push(dep);
-    }));
-  } catch (e) {
-    if (e.code !== 'ENOENT') throw e;
+    watch.push(file);
   }
 
   return watch;

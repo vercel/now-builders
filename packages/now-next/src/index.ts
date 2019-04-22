@@ -158,7 +158,7 @@ function pageExists(name: string, pages: Files, entry: string) {
 const name = '[@now/next]';
 const urls: stringMap = {};
 
-async function startDevServer(entrypoint: string, entryPath: string): Promise<string> {
+async function startDevServer(entryPath: string): Promise<string> {
   const next = require(resolveFrom(entryPath, 'next'));
   const app = next({ dev: true, dir: entryPath });
   const handler = app.getRequestHandler();
@@ -207,12 +207,6 @@ export const build = async ({
     await download(files, workPath);
   }
 
-  if (await pathExists(dotNext) && !meta.isDev) {
-    console.warn(
-      'WARNING: You should probably not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more information.',
-    );
-  }
-
   const pkg = await readPackageJson(entryPath);
   const nextVersion = getNextVersion(pkg);
 
@@ -233,7 +227,7 @@ export const build = async ({
       console.log(`${name} Installing dependencies...`);
       await runNpmInstall(entryPath, ['--prefer-offline']);
 
-      urls[entrypoint] = await startDevServer(entrypoint, entryPath);
+      urls[entrypoint] = await startDevServer(entryPath);
       console.log(`${name} Development server for ${entrypoint} running at ${urls[entrypoint]}`);
     }
 
@@ -249,8 +243,14 @@ export const build = async ({
     return {
       routes,
       output: {},
-      watch: []
+      watch: await getWatchers(entryDirectory, files)
     };
+  }
+
+  if (await pathExists(dotNext)) {
+    console.warn(
+      'WARNING: You should not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more details.',
+    );
   }
 
   const isLegacy = isLegacyNext(nextVersion);
@@ -479,7 +479,7 @@ export const build = async ({
   return {
     routes,
     output: { ...lambdas, ...staticFiles, ...staticDirectoryFiles },
-    watch: await getWatchers(dotNext),
+    watch: []
   };
 };
 
