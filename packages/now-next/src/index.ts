@@ -11,7 +11,6 @@ import {
   BuildOptions,
   PrepareCacheOptions,
 } from '@now/build-utils';
-import resolveFrom from 'resolve-from';
 import path from 'path';
 import { fork } from 'child_process';
 import {
@@ -122,7 +121,6 @@ async function startDevServer(entryPath: string): Promise<string> {
       cwd: entryPath,
       execArgv: [],
       env: {
-        ENTRY_PATH: entryPath,
         NOW_REGION: 'dev1'
       }
     });
