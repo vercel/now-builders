@@ -112,10 +112,10 @@ async function main() {
   // First download the `go` binary for this platform/arch.
   const go = await downloadGo();
 
-  // Build the `analyse` helper program.
+  // Build the `analyze` helper program.
   // `go get` is not necessary because the program has no external deps.
-  const src = join(__dirname, 'analyse.go');
-  const dest = join(__dirname, '../analyse');
+  const src = join(__dirname, 'analyze.go');
+  const dest = join(__dirname, '../analyze');
   await go.build({ src, dest });
 }
 

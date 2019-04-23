@@ -26,9 +26,9 @@ export async function getAnalyzedEntrypoint(filePath: string) {
   debug('Analysing entrypoint %o', filePath);
   const bin = join(__dirname, 'analyze');
   const args = [filePath];
-  const analysed = await execa.stdout(bin, args);
-  debug('Analysed entrypoint %o', analysed);
-  return analysed;
+  const analyzed = await execa.stdout(bin, args);
+  debug('Analyzed entrypoint %o', analyzed);
+  return analyzed;
 }
 
 // Creates a `$GOPATH` directory tree, as per `go help gopath` instructions.

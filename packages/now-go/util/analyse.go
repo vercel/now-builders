@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-type analyse struct {
+type analyze struct {
 	PackageName string   `json:"packageName"`
 	FuncName    string   `json:"functionName"`
 	Watch       []string `json:"watch"`
@@ -52,7 +52,7 @@ func main() {
 	if len(os.Args) != 2 {
 		// Args should have the program name on `0`
 		// and the file name on `1`
-		fmt.Println("Wrong number of args; Usage is:\n  ./go-analyse file_name.go")
+		fmt.Println("Wrong number of args; Usage is:\n  ./go-analyze file_name.go")
 		os.Exit(1)
 	}
 	fileName := os.Args[1]
@@ -118,12 +118,12 @@ func main() {
 		if fn.Name.IsExported() == true {
 			// we found the first exported function
 			// we're done!
-			analysed := analyse{
+			analyzed := analyze{
 				PackageName: parsed.Name.Name,
 				FuncName:    fn.Name.Name,
 				Watch:       relatedFiles,
 			}
-			json, _ := json.Marshal(analysed)
+			json, _ := json.Marshal(analyzed)
 			fmt.Print(string(json))
 			os.Exit(0)
 		}
