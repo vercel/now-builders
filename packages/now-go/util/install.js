@@ -3,14 +3,14 @@ const execa = require('execa');
 const fetch = require('node-fetch');
 const { mkdirp } = require('fs-extra');
 const { dirname, join } = require('path');
-const debug = require('debug')('@now/go:go-helpers');
+const debug = require('debug')('@now/go:install');
 
 const archMap = new Map([['x64', 'amd64'], ['x86', '386']]);
 const platformMap = new Map([['win32', 'windows']]);
 
 // Location where the `go` binary will be installed after `postinstall`
 const GO_DIR = join(__dirname, '../go');
-const GO_BIN = join(GO_DIR, '../bin/go');
+const GO_BIN = join(GO_DIR, 'bin/go');
 
 const getPlatform = p => platformMap.get(p) || p;
 const getArch = a => archMap.get(a) || a;
@@ -28,7 +28,7 @@ function createGoPathTree(goPath, platform, arch) {
   debug('Creating GOPATH directory structure for %o (%s)', goPath, tuple);
   return Promise.all([
     mkdirp(join(goPath, 'bin')),
-    mkdirp(join(goPath, 'pkg', tuple)),
+    mkdirp(join(goPath, 'pkg', tuple))
   ]);
 }
 
@@ -58,13 +58,13 @@ async function createGo(
   goPath,
   platform = process.platform,
   arch = process.arch,
-  opts = {},
+  opts = {}
 ) {
   const env = {
     ...process.env,
     PATH: `${dirname(GO_BIN)}:${process.env.PATH}`,
     GOPATH: goPath,
-    ...opts.env,
+    ...opts.env
   };
 
   function go(...args) {
@@ -83,7 +83,7 @@ async function downloadGo(
   dir = GO_DIR,
   version = '1.12',
   platform = process.platform,
-  arch = process.arch,
+  arch = process.arch
 ) {
   debug('Installing `go` v%s to %o for %s %s', version, dir, platform, arch);
 
@@ -119,7 +119,7 @@ async function main() {
   await go.build({ src, dest });
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error(err);
   process.exit(1);
 });
