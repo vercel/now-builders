@@ -23,7 +23,6 @@
     "debug": "^4.1.1",
     "execa": "^1.0.0",
     "fs-extra": "^7.0.0",
-    "mkdirp-promise": "5.0.1",
     "node-fetch": "^2.2.1",
     "tar": "4.4.6"
   },
