@@ -31,12 +31,12 @@ async function downloadFile(file: File, fsPath: string): Promise<FileFsRef> {
 
 async function removeFile(basePath: string, fileMatched: string) {
   const file = path.join(basePath, fileMatched);
-  await fs.remove(file);
+  await remove(file);
 }
 
 export default async function download(files: Files, basePath: string, meta?: Meta): Promise<DownloadedFiles> {
   const files2: DownloadedFiles = {};
-  const { filesChanged, filesRemoved } = meta || {};
+  const { filesChanged = null, filesRemoved = null } = meta || {};
 
   await Promise.all(
     Object.keys(files).map(async (name) => {
