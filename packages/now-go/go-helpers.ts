@@ -22,13 +22,13 @@ const getGoUrl = (version: string, platform: string, arch: string) => {
   return `https://dl.google.com/go/go${version}.${goPlatform}-${goArch}.${ext}`;
 };
 
-export async function getAnalysedEntrypoint(filePath: string) {
+export async function getAnalyzedEntrypoint(filePath: string) {
   debug('Analysing entrypoint %o', filePath);
-  const bin = join(__dirname, 'analyse');
+  const bin = join(__dirname, 'analyze');
   const args = [filePath];
-  const analysed = await execa.stdout(bin, args);
-  debug('Analysed entrypoint %o', analysed);
-  return analysed;
+  const analyzed = await execa.stdout(bin, args);
+  debug('Analyzed entrypoint %o', analyzed);
+  return analyzed;
 }
 
 // Creates a `$GOPATH` directory tree, as per `go help gopath` instructions.
