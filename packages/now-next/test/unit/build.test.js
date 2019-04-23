@@ -65,7 +65,9 @@ describe('build meta dev', () => {
 
   it('should have builder v2 response isDev=true', async () => {
     const meta = { isDev: true, requestPath: null };
-    const { output, routes, watch } = await build({
+    const {
+      output, routes, watch, childProcesses,
+    } = await build({
       files,
       workPath,
       entrypoint,
@@ -81,5 +83,6 @@ describe('build meta dev', () => {
       { src: '/', dest: 'http://localhost:5000/' },
     ]);
     expect(watch).toEqual(['next.config.js', 'pages/index.js', 'package.json']);
+    childProcesses.forEach(cp => cp.kill());
   });
 });
