@@ -8,7 +8,7 @@ export interface ProcessEnv {
 }
 
 async function main(env: ProcessEnv, cwd: string) {
-  const next = require(resolveFrom(process.cwd(), 'next'));
+  const next = require(resolveFrom(cwd, 'next'));
   const app = next({ dev: true, dir: cwd });
   const handler = app.getRequestHandler();
 
