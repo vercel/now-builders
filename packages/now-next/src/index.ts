@@ -51,7 +51,6 @@ interface BuildParamsType extends BuildOptions {
 };
 
 export const version = 2;
-export const requiresInitialBuild = true;
 
 /**
  * Read package.json from files
@@ -115,45 +114,6 @@ function isLegacyNext(nextVersion: string) {
   }
 
   return true;
-}
-
-function pageExists(name: string, pages: Files, entry: string) {
-  const pageWhere = (key: string) => Object.prototype.hasOwnProperty.call(pages, key);
-  const inPages = (...names: string[]) => {
-    let exists = false;
-    while (names.length >= 1) {
-      if (pageWhere(`${entry ? `${entry}/` : ''}pages/${names[0]}`)) {
-        exists = true;
-        break;
-      }
-      names.shift();
-    }
-
-    return exists;
-  };
-
-  if (name === '' || name === '/') {
-    return inPages(
-      'index.js',
-      'index.ts',
-      'index.jsx',
-      'index.tsx',
-      'index.mdx',
-    );
-  }
-
-  return inPages(
-    `${name}.js`,
-    `${name}.ts`,
-    `${name}.jsx`,
-    `${name}.tsx`,
-    `${name}.mdx`,
-    `${name}/index.js`,
-    `${name}/index.ts`,
-    `${name}/index.jsx`,
-    `${name}/index.tsx`,
-    `${name}/index.mdx`,
-  );
 }
 
 const name = '[@now/next]';
@@ -502,34 +462,4 @@ export const prepareCache = async ({ workPath, entrypoint }: PrepareCacheOptions
   };
   console.log('cache file manifest produced');
   return cache;
-};
-
-export const shouldServe = async ({ entrypoint, files, requestPath }: {entrypoint: string, files: Files, requestPath: string}) => {
-  const entry = path.dirname(entrypoint);
-  const entryDirectory = entry === '.' ? '' : `${entry}/`;
-
-  if (new RegExp(`^${entryDirectory}static/.+$`).test(requestPath)) return true;
-
-  const pages = includeOnlyEntryDirectory(
-    files,
-    path.join(entryDirectory, 'pages'),
-  );
-
-  const isClientPage = new RegExp(
-    `^${entryDirectory}_next/static/unoptimized-build/pages/(.+)\\.js$`,
-  );
-  if (isClientPage.test(requestPath)) {
-    const requestedPage = requestPath.match(isClientPage);
-    if (!requestedPage) return false;
-    if (requestedPage[1] === '_error' || requestedPage[1] === '_document' || requestedPage[1] === '_app') return true;
-    return pageExists(requestedPage[1], pages, entryDirectory);
-  }
-
-  if (new RegExp(`^${entryDirectory}_next.+$`).test(requestPath)) return true;
-
-  return pageExists(
-    requestPath.endsWith('/') ? requestPath.slice(0, -1) : requestPath,
-    pages,
-    entryDirectory,
-  );
 };
