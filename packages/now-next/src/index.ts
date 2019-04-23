@@ -117,17 +117,18 @@ const name = '[@now/next]';
 const urls: stringMap = {};
 
 async function startDevServer(entryPath: string): Promise<string> {
-  const forked = fork(path.join(__dirname, 'dev-server.js'), [], {
-    cwd: entryPath,
-    env: {
-      ENTRY_PATH: entryPath,
-      NOW_REGION: 'dev1'
-    },
-    silent: true
-  });
+  return new Promise(async (resolve, reject) => {
+    const forked = fork(path.join(__dirname, 'dev-server.js'), [], {
+      cwd: entryPath,
+      execArgv: [],
+      env: {
+        ENTRY_PATH: entryPath,
+        NOW_REGION: 'dev1'
+      }
+    });
 
-  return new Promise(resolve => {
     forked.on('message', resolve);
+    forked.on('error', reject);
   });
 }
 
