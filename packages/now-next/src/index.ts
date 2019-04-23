@@ -414,7 +414,8 @@ export const build = async ({
   return {
     output: { ...lambdas, ...staticFiles, ...staticDirectoryFiles },
     routes: [],
-    watch: []
+    watch: [],
+    childProcesses: []
   };
 };
 

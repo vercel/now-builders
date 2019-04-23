@@ -73,8 +73,10 @@ describe('build meta dev', () => {
       entrypoint,
       meta,
     });
-    // console.log('routes: ', routes);
-    // console.log('watch: ', watch);
+    routes.forEach((route) => {
+      // eslint-disable-next-line no-param-reassign
+      route.dest = route.dest.replace(':4000', ':5000');
+    });
     expect(output).toEqual({});
     expect(routes).toEqual([
       { src: '/_next/(.*)', dest: 'http://localhost:5000/_next/$1' },
