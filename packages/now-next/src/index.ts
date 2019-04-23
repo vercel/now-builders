@@ -13,9 +13,7 @@ import {
 } from '@now/build-utils';
 import resolveFrom from 'resolve-from';
 import path from 'path';
-import { createServer } from 'http';
-import { parse } from 'url';
-import url from 'url';
+import { fork } from 'child_process';
 import {
   readFile,
   writeFile,
@@ -24,7 +22,6 @@ import {
   pathExists,
 } from 'fs-extra';
 import semver from 'semver';
-import getPort from 'get-port';
 import nextLegacyVersions from './legacy-versions';
 import {
   excludeFiles,
@@ -120,31 +117,17 @@ const name = '[@now/next]';
 const urls: stringMap = {};
 
 async function startDevServer(entryPath: string): Promise<string> {
-  const next = require(resolveFrom(entryPath, 'next'));
-  const app = next({ dev: true, dir: entryPath });
-  const handler = app.getRequestHandler();
-
-  const openPort = await getPort({
-    port: [ 5000, 4000 ]
+  const forked = fork(path.join(__dirname, 'dev-server.js'), [], {
+    cwd: entryPath,
+    env: {
+      ENTRY_PATH: entryPath,
+      NOW_REGION: 'dev1'
+    },
+    silent: true
   });
 
-  const url = `http://localhost:${openPort}`;
-
-  // Prepare for incoming requests
-  await app.prepare();
-
-  return new Promise((resolve, reject) => {
-    createServer((req, res) => {
-      const parsedUrl = parse(req.url || '', true);
-      handler(req, res, parsedUrl);
-    }).listen(openPort, (error: NodeJS.ErrnoException) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve(url);
-    });
+  return new Promise(resolve => {
+    forked.on('message', resolve);
   });
 }
 
