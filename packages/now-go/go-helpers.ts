@@ -22,7 +22,7 @@ const getGoUrl = (version: string, platform: string, arch: string) => {
   return `https://dl.google.com/go/go${version}.${goPlatform}-${goArch}.${ext}`;
 };
 
-export async function getAnalysedEntrypoint(filePath: string) {
+export async function getAnalyzedEntrypoint(filePath: string) {
   debug('Analysing entrypoint %o', filePath);
   const bin = join(__dirname, 'analyse');
   const args = [filePath];
