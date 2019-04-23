@@ -24,7 +24,7 @@ const getGoUrl = (version: string, platform: string, arch: string) => {
 
 export async function getAnalyzedEntrypoint(filePath: string) {
   debug('Analysing entrypoint %o', filePath);
-  const bin = join(__dirname, 'analyse');
+  const bin = join(__dirname, 'analyze');
   const args = [filePath];
   const analysed = await execa.stdout(bin, args);
   debug('Analysed entrypoint %o', analysed);
