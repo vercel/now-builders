@@ -1,7 +1,7 @@
 import path from 'path';
 import FileFsRef from '../file-fs-ref';
 import { File, Files, Meta } from '../types';
-import { mkdirp, readlink, symlink } from 'fs-extra';
+import { remove, mkdirp, readlink, symlink } from 'fs-extra';
 
 export interface DownloadedFiles {
   [filePath: string]: FileFsRef
@@ -29,14 +29,25 @@ async function downloadFile(file: File, fsPath: string): Promise<FileFsRef> {
   }
 }
 
+async function removeFile(basePath: string, fileMatched: string) {
+  const file = path.join(basePath, fileMatched);
+  await fs.remove(file);
+}
+
 export default async function download(files: Files, basePath: string, meta?: Meta): Promise<DownloadedFiles> {
   const files2: DownloadedFiles = {};
-  const { filesChanged = [], filesRemoved = [] } = meta || {};
+  const { filesChanged, filesRemoved } = meta || {};
 
   await Promise.all(
     Object.keys(files).map(async (name) => {
+      // If the file does not exist anymore, remove it.
+      if (Array.isArray(filesRemoved) && filesRemoved.includes(name)) {
+        await removeFile(basePath, name);
+        return;
+      }
+
       // If a file didn't change, do not re-download it.
-      if (!filesChanged.includes(name)) {
+      if (Array.isArray(filesChanged) && !filesChanged.includes(name)) {
         return;
       }
 
