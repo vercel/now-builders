@@ -1,7 +1,7 @@
 const path = require('path');
 const getPort = require('get-port');
 const { promisify } = require('util');
-const timeout = require('promise-timeout');
+const { timeout } = require('promise-timeout');
 const { existsSync, readFileSync } = require('fs');
 const waitForPort = promisify(require('wait-for-port'));
 const {
