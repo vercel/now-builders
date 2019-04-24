@@ -98,9 +98,9 @@ exports.build = async ({
           `An error running "now-build" script in "${entrypoint}"`,
         );
       }
+      validateDistDir(distPath);
       output = await glob('**', distPath, mountpoint);
     }
-    validateDistDir(distPath);
     const watch = [path.join(entrypointFsDirname, '**/*')];
     return { routes, watch, output };
   }
