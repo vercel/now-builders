@@ -65,6 +65,7 @@ export async function build({ files, entrypoint }: BuildOptions) {
   // check if package name other than main
   const packageName = parsedAnalyzed.packageName;
   const isGoModExist = await pathExists(join(entrypointDirname, 'go.mod'));
+  const entrypointArr = entrypoint.split(sep);
   if (packageName !== 'main') {
     const go = await createGo(
       goPath,
@@ -118,7 +119,6 @@ export async function build({ files, entrypoint }: BuildOptions) {
     try {
       // default path
       let finalDestination = join(entrypointDirname, packageName, entrypoint);
-      const entrypointArr = entrypoint.split(sep);
 
       // if `entrypoint` include folder, only use filename
       if (entrypointArr.length > 1) {
@@ -209,12 +209,20 @@ export async function build({ files, entrypoint }: BuildOptions) {
     runtime: 'go1.x',
     environment: {},
   });
+  const output = {
+    [entrypoint]: lambda,
+  }
+
+  let watch = parsedAnalyzed.watch
+  // if `entrypoint` located in subdirectory
+  // we will need to concat it with return watch array
+  if (entrypointArr.length > 1) {
+    entrypointArr.pop();
+    watch = parsedAnalyzed.watch.map(file => join(entrypointArr.join(sep), file));
+  }
 
   return {
-    output: {
-      [entrypoint]: lambda,
-    },
-    watch: parsedAnalyzed.watch
+    output, watch
   };
 }
 
