@@ -135,7 +135,7 @@ export async function build({ files, entrypoint }: BuildOptions) {
       throw err;
     }
 
-    console.log('tidy go.mod file');
+    console.log('Tidy `go.mod` file...');
     try {
       // ensure go.mod up-to-date
       await go.mod();
@@ -182,6 +182,7 @@ export async function build({ files, entrypoint }: BuildOptions) {
 
     // `go get` will look at `*.go` (note we set `cwd`), parse the `import`s
     // and download any packages that aren't part of the stdlib
+    console.log('Running `go get`...');
     try {
       await go.get();
     } catch (err) {
