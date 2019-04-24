@@ -1,37 +1,39 @@
+import { ChildProcess, fork, SpawnOptions } from 'child_process';
 import {
+  pathExists,
+  readFile,
+  unlink as unlinkFile,
+  writeFile,
+} from 'fs-extra';
+import os from 'os';
+import path from 'path';
+import semver from 'semver';
+
+import {
+  BuildOptions,
   createLambda,
   download,
-  FileFsRef,
   FileBlob,
+  FileFsRef,
+  Files,
   glob,
+  Lambda,
+  PrepareCacheOptions,
   runNpmInstall,
   runPackageJsonScript,
-  Lambda,
-  Files,
-  BuildOptions,
-  PrepareCacheOptions,
 } from '@now/build-utils';
-import path from 'path';
-import { fork, ChildProcess, SpawnOptions } from 'child_process';
-import {
-  readFile,
-  writeFile,
-  unlink as unlinkFile,
-  remove as removePath,
-  pathExists,
-} from 'fs-extra';
-import semver from 'semver';
+
 import nextLegacyVersions from './legacy-versions';
 import {
   excludeFiles,
-  validateEntrypoint,
-  includeOnlyEntryDirectory,
-  normalizePackageJson,
-  onlyStaticDirectory,
   getNextConfig,
   getPathsInside,
   getRoutes,
+  includeOnlyEntryDirectory,
+  normalizePackageJson,
+  onlyStaticDirectory,
   stringMap,
+  validateEntrypoint,
 } from './utils';
 
 interface BuildParamsMeta {
@@ -250,8 +252,12 @@ export const build = async ({
   await runNpmInstall(entryPath, ['--prefer-offline']);
 
   console.log('running user script...');
+  const memoryToConsume = Math.floor(os.totalmem() / 1024 ** 2) - 128;
   await runPackageJsonScript(entryPath, 'now-build', {
-    env: { ...process.env, NODE_OPTIONS: '--max_old_space_size=8192' },
+    env: {
+      ...process.env,
+      NODE_OPTIONS: `--max_old_space_size=${memoryToConsume}`,
+    },
   } as SpawnOptions);
 
   if (isLegacy) {
