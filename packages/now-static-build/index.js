@@ -57,6 +57,7 @@ exports.build = async ({
         // Run the `now-dev` script out-of-bounds, since it is assumed that
         // it will launch a dev server that never "completes"
         devPort = await getPort();
+        nowDevScriptPorts.set(entrypoint, devPort);
         const opts = {
           env: { ...process.env, PORT: String(devPort) },
         };
@@ -87,7 +88,6 @@ exports.build = async ({
         }
 
         console.log('Detected dev server for %j', entrypoint);
-        nowDevScriptPorts.set(entrypoint, devPort);
       }
 
       let srcBase = mountpoint.replace(/^\.\/?/, '');
