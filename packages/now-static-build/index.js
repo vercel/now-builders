@@ -47,6 +47,8 @@ exports.build = async ({
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
     console.log({ pkg });
 
+    let output = {};
+    const routes = [];
     if (meta.isDev && pkg.scripts && pkg.scripts['now-dev']) {
       if (nowDevScriptPromises.has(entrypoint)) {
         console.log('`now-dev` server already running for %j', entrypoint);
@@ -74,10 +76,18 @@ exports.build = async ({
         );
         nowDevScriptPromises.set(entrypoint, promise);
 
-        // Now wait for the server to have listened on `$PORT`. This assumes that
-        // the dev server builds the static assets before binding to the port.
+        // Now wait for the server to have listened on `$PORT`, after which we
+        // will ProxyPass any requests to that development server that come in
+        // for this builder.
         await timeout(waitForPort('localhost', devPort), 60 * 1000);
         console.log('Detected dev server for $j', entrypoint);
+
+        const srcBase = `/${mountpoint.replace(/^\.\//, '')}`;
+        routes.push({
+          src: `/${srcBase}/(.*)`,
+          dest: `http://localhost:${devPort}/${srcBase}/$1`,
+        });
+        console.error({ routes });
       }
     } else {
       // Run the `now-build` script and wait for completion to collect the build
@@ -88,11 +98,10 @@ exports.build = async ({
           `An error running "now-build" script in "${entrypoint}"`,
         );
       }
+      output = await glob('**', distPath, mountpoint);
     }
     validateDistDir(distPath);
-    const routes = [];
     const watch = path.join(entrypointFsDirname, '**/*');
-    const output = await glob('**', distPath, mountpoint);
     return { routes, watch, output };
   }
 
