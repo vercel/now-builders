@@ -29,7 +29,7 @@ exports.build = async ({
   files, entrypoint, workPath, config, meta = {},
 }) => {
   console.log('downloading user files...');
-  await download(files, workPath);
+  await download(files, workPath, meta);
 
   const mountpoint = path.dirname(entrypoint);
   const entrypointFsDirname = path.join(workPath, mountpoint);
