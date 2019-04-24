@@ -45,7 +45,6 @@ exports.build = async ({
 
     const pkgPath = path.join(workPath, entrypoint);
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-    console.log({ pkg });
 
     let output = {};
     const routes = [];
@@ -56,7 +55,6 @@ exports.build = async ({
         // Run the `now-dev` script out-of-bounds, since it is assumed that
         // it will launch a dev server that never "completes"
         const devPort = await getPort();
-        console.log({ devPort });
         const opts = {
           env: { ...process.env, PORT: String(devPort) },
         };
@@ -79,7 +77,13 @@ exports.build = async ({
         // Now wait for the server to have listened on `$PORT`, after which we
         // will ProxyPass any requests to that development server that come in
         // for this builder.
-        await timeout(waitForPort('localhost', devPort), 60 * 1000);
+        try {
+          await timeout(waitForPort('localhost', devPort), 60 * 1000);
+        } catch (err) {
+          throw new Error(
+            `Failed to detect a server running on port ${devPort}`,
+          );
+        }
         console.log('Detected dev server for %j', entrypoint);
 
         let srcBase = mountpoint.replace(/^\.\/?/, '');
