@@ -19,6 +19,7 @@ type analyze struct {
 	Watch       []string `json:"watch"`
 }
 
+// parse go file
 func parse(fileName string) *ast.File {
 	fset := token.NewFileSet()
 	parsed, err := parser.ParseFile(fset, fileName, nil, parser.ParseComments)
@@ -30,6 +31,7 @@ func parse(fileName string) *ast.File {
 	return parsed
 }
 
+// ensure we only working with interest go file(s)
 func visit(files *[]string) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		itf, err := filepath.Match("*test.go", path)
@@ -46,6 +48,20 @@ func visit(files *[]string) filepath.WalkFunc {
 		*files = append(*files, path)
 		return nil
 	}
+}
+
+// return unique file
+func unique(files []string) []string {
+	encountered := map[string]bool{}
+	for v := range files {
+		encountered[files[v]] = true
+	}
+
+	result := []string{}
+	for key := range encountered {
+		result = append(result, key)
+	}
+	return result
 }
 
 func main() {
@@ -82,26 +98,38 @@ func main() {
 	for _, file := range files {
 		// if it isn't entrypoint
 		if filepath.Base(fileName) != filepath.Base(file) {
-			// find exported func
+			// find all export structs and functions
 			pf := parse(file)
-			for _, decl := range pf.Decls {
-				fn, ok := decl.(*ast.FuncDecl)
-				if !ok {
-					// this declaraction is not a function
-					// so we're not interested
-					continue
-				}
-				if fn.Name.IsExported() {
+			var exportedDecl []string
 
-					if strings.Contains(se, fn.Name.Name) {
-
-						// find relative path of related file
-						rel, err := filepath.Rel(filepath.Dir(fileName), file)
-						if err != nil {
-							log.Fatal(err)
-						}
-						relatedFiles = append(relatedFiles, rel)
+			ast.Inspect(pf, func(n ast.Node) bool {
+				switch t := n.(type) {
+				case *ast.FuncDecl:
+					if t.Name.IsExported() {
+						exportedDecl = append(exportedDecl, t.Name.Name)
 					}
+				// find variable declarations
+				case *ast.TypeSpec:
+					// which are public
+					if t.Name.IsExported() {
+						switch t.Type.(type) {
+						// and are interfaces
+						case *ast.StructType:
+							exportedDecl = append(exportedDecl, t.Name.Name)
+						}
+					}
+				}
+				return true
+			})
+
+			for _, ed := range exportedDecl {
+				if strings.Contains(se, ed) {
+					// find relative path of related file
+					rel, err := filepath.Rel(filepath.Dir(fileName), file)
+					if err != nil {
+						log.Fatal(err)
+					}
+					relatedFiles = append(relatedFiles, rel)
 				}
 			}
 		}
@@ -121,7 +149,7 @@ func main() {
 			analyzed := analyze{
 				PackageName: parsed.Name.Name,
 				FuncName:    fn.Name.Name,
-				Watch:       relatedFiles,
+				Watch:       unique(relatedFiles),
 			}
 			json, _ := json.Marshal(analyzed)
 			fmt.Print(string(json))
