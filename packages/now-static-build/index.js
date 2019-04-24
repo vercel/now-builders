@@ -80,14 +80,16 @@ exports.build = async ({
         // will ProxyPass any requests to that development server that come in
         // for this builder.
         await timeout(waitForPort('localhost', devPort), 60 * 1000);
-        console.log('Detected dev server for $j', entrypoint);
+        console.log('Detected dev server for %j', entrypoint);
 
-        const srcBase = `/${mountpoint.replace(/^\.\//, '')}`;
+        let srcBase = mountpoint.replace(/^\.\/?/, '');
+        if (srcBase.length > 0) {
+          srcBase = `/${srcBase}`;
+        }
         routes.push({
-          src: `/${srcBase}/(.*)`,
-          dest: `http://localhost:${devPort}/${srcBase}/$1`,
+          src: `${srcBase}/(.*)`,
+          dest: `http://localhost:${devPort}${srcBase}/$1`,
         });
-        console.error({ routes });
       }
     } else {
       // Run the `now-build` script and wait for completion to collect the build
@@ -101,7 +103,7 @@ exports.build = async ({
       validateDistDir(distPath);
       output = await glob('**', distPath, mountpoint);
     }
-    const watch = [path.join(entrypointFsDirname, '**/*')];
+    const watch = [path.join(mountpoint.replace(/^\.\/?/, ''), '**/*')];
     return { routes, watch, output };
   }
 
