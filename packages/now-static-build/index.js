@@ -23,7 +23,7 @@ function validateDistDir(distDir) {
 
 exports.version = 2;
 
-const nowDevScriptPromises = new Map();
+const nowDevScriptPorts = new Map();
 
 exports.build = async ({
   files, entrypoint, workPath, config, meta = {},
@@ -48,13 +48,15 @@ exports.build = async ({
 
     let output = {};
     const routes = [];
+
     if (meta.isDev && pkg.scripts && pkg.scripts['now-dev']) {
-      if (nowDevScriptPromises.has(entrypoint)) {
+      let devPort = nowDevScriptPorts.get(entrypoint);
+      if (typeof devPort === 'number') {
         console.log('`now-dev` server already running for %j', entrypoint);
       } else {
         // Run the `now-dev` script out-of-bounds, since it is assumed that
         // it will launch a dev server that never "completes"
-        const devPort = await getPort();
+        devPort = await getPort();
         const opts = {
           env: { ...process.env, PORT: String(devPort) },
         };
@@ -65,14 +67,13 @@ exports.build = async ({
         );
         promise.then(
           () => {
-            nowDevScriptPromises.delete(entrypoint);
+            nowDevScriptPorts.delete(entrypoint);
           },
           (err) => {
             console.log('`now-dev` script error:', err);
-            nowDevScriptPromises.delete(entrypoint);
+            nowDevScriptPorts.delete(entrypoint);
           },
         );
-        nowDevScriptPromises.set(entrypoint, promise);
 
         // Now wait for the server to have listened on `$PORT`, after which we
         // will ProxyPass any requests to that development server that come in
@@ -84,17 +85,19 @@ exports.build = async ({
             `Failed to detect a server running on port ${devPort}`,
           );
         }
-        console.log('Detected dev server for %j', entrypoint);
 
-        let srcBase = mountpoint.replace(/^\.\/?/, '');
-        if (srcBase.length > 0) {
-          srcBase = `/${srcBase}`;
-        }
-        routes.push({
-          src: `${srcBase}/(.*)`,
-          dest: `http://localhost:${devPort}${srcBase}/$1`,
-        });
+        console.log('Detected dev server for %j', entrypoint);
+        nowDevScriptPorts.set(entrypoint, devPort);
       }
+
+      let srcBase = mountpoint.replace(/^\.\/?/, '');
+      if (srcBase.length > 0) {
+        srcBase = `/${srcBase}`;
+      }
+      routes.push({
+        src: `${srcBase}/(.*)`,
+        dest: `http://localhost:${devPort}${srcBase}/$1`,
+      });
     } else {
       // Run the `now-build` script and wait for completion to collect the build
       // outputs
