@@ -101,7 +101,7 @@ exports.build = async ({
       output = await glob('**', distPath, mountpoint);
     }
     validateDistDir(distPath);
-    const watch = path.join(entrypointFsDirname, '**/*');
+    const watch = [ path.join(entrypointFsDirname, '**/*') ];
     return { routes, watch, output };
   }
 
