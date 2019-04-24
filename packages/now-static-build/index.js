@@ -58,7 +58,7 @@ exports.build = async ({
         const devPort = await getPort();
         console.log({ devPort });
         const opts = {
-          env: { PORT: String(devPort) },
+          env: { ...process.env, PORT: String(devPort) },
         };
         const promise = runPackageJsonScript(
           entrypointFsDirname,
@@ -101,7 +101,7 @@ exports.build = async ({
       output = await glob('**', distPath, mountpoint);
     }
     validateDistDir(distPath);
-    const watch = [ path.join(entrypointFsDirname, '**/*') ];
+    const watch = [path.join(entrypointFsDirname, '**/*')];
     return { routes, watch, output };
   }
 
