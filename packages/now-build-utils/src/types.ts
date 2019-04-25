@@ -1,19 +1,22 @@
-import FileRef from "./file-ref";
+import FileRef from './file-ref';
 import FileFsRef from './file-fs-ref';
 
 export interface File {
   type: string;
   mode: number;
   toStream: () => NodeJS.ReadableStream;
+  /**
+   * The absolute path to the file in the filesystem
+   */
   fsPath?: string;
 }
 
 export interface Files {
-  [filePath: string]: File
+  [filePath: string]: File;
 }
 
 export interface Config {
-  [key: string]: string
+  [key: string]: string;
 }
 
 export interface Meta {
@@ -29,7 +32,7 @@ export interface AnalyzeOptions {
    */
   files: {
     [filePath: string]: FileRef;
-  }
+  };
 
   /**
    * Name of entrypoint file for this particular build job. Value
@@ -51,7 +54,6 @@ export interface AnalyzeOptions {
    */
   config: Config;
 }
-
 
 export interface BuildOptions {
   /**
@@ -138,8 +140,14 @@ export interface ShouldServeOptions {
    * All source files of the project
    */
   files: {
-    [path: string]: FileFsRef
+    [path: string]: FileFsRef;
   };
+
+  /**
+   * A writable temporary directory where you are encouraged to perform your
+   * build process. This directory will be populated with the restored cache.
+   */
+  workPath: string;
 
   /**
    * An arbitrary object passed by the user in the build definition defined
