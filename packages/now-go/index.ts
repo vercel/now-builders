@@ -219,7 +219,7 @@ export async function build({ files, entrypoint }: BuildOptions) {
   // we will need to concat it with return watch array
   if (entrypointArr.length > 1) {
     entrypointArr.pop();
-    watch = parsedAnalyzed.watch.map(file => join(entrypointArr.join(sep), file));
+    watch = parsedAnalyzed.watch.map(file => join(...entrypointArr, file));
   }
 
   return {
