@@ -33,7 +33,7 @@ export async function build({ files, entrypoint }: BuildOptions) {
   const downloadedFiles = await download(files, srcPath);
 
   console.log(`Parsing AST for "${entrypoint}"`);
-  let analyzed;
+  let analyzed: string;
   try {
     analyzed = await getAnalyzedEntrypoint(
       downloadedFiles[entrypoint].fsPath,
