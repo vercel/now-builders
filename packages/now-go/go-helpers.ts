@@ -75,10 +75,10 @@ class GoWrapper {
     return this.execute(...args);
   }
 
-  build(src: string | string[], dest: string) {
+  build(src: string | string[], dest: string, ldsflags = '-s -w') {
     debug('Building optimized `go` binary %o -> %o', src, dest);
     const sources = Array.isArray(src) ? src : [src];
-    return this.execute('build', '-ldflags', '-s -w', '-o', dest, ...sources);
+    return this.execute('build', '-ldflags', ldsflags, '-o', dest, ...sources);
   }
 }
 
