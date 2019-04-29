@@ -3,20 +3,30 @@ import fs from 'fs-extra';
 import path from 'path';
 import { spawn, SpawnOptions } from 'child_process';
 
-function spawnAsync(command: string, args: string[], cwd: string, opts: SpawnOptions = {}) {
+let g = {
+  npmBin: 'npm',
+  yarnBin: 'yarn',
+};
+
+function spawnAsync(
+  command: string,
+  args: string[],
+  cwd: string,
+  opts: SpawnOptions = {}
+) {
   return new Promise<void>((resolve, reject) => {
-    const stderrLogs: Buffer[] = []
+    const stderrLogs: Buffer[] = [];
     opts = { stdio: 'inherit', cwd, ...opts };
     const child = spawn(command, args, opts);
 
-    if (opts.stdio === 'pipe'){
+    if (opts.stdio === 'pipe') {
       child.stderr.on('data', data => stderrLogs.push(data));
     }
 
     child.on('error', reject);
     child.on('close', (code, signal) => {
       if (code === 0) {
-        return resolve()
+        return resolve();
       }
 
       const errorLogs = stderrLogs.map(line => line.toString()).join('');
@@ -35,6 +45,17 @@ async function chmodPlusX(fsPath: string) {
   if (s.mode === newMode) return;
   const base8 = newMode.toString(8).slice(-3);
   await fs.chmod(fsPath, base8);
+}
+
+/**
+ * Undocumented API for now-cli. Not for public usage at this time.
+ */
+export function setScriptGlobals(opts: Partial<typeof g>) {
+  const input = opts as { [key: string]: string };
+  const output = g as { [key: string]: string };
+  Object.keys(input).forEach(key => {
+    output[key] = input[key];
+  });
 }
 
 export async function runShellScript(fsPath: string) {
@@ -58,13 +79,15 @@ async function scanParentDirs(destPath: string, scriptName?: string) {
     // eslint-disable-next-line no-await-in-loop
     if (await fs.pathExists(packageJsonPath)) {
       // eslint-disable-next-line no-await-in-loop
-      const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
+      const packageJson = JSON.parse(
+        await fs.readFile(packageJsonPath, 'utf8')
+      );
       hasScript = Boolean(
-        packageJson.scripts && scriptName && packageJson.scripts[scriptName],
+        packageJson.scripts && scriptName && packageJson.scripts[scriptName]
       );
       // eslint-disable-next-line no-await-in-loop
       hasPackageLockJson = await fs.pathExists(
-        path.join(currentDestPath, 'package-lock.json'),
+        path.join(currentDestPath, 'package-lock.json')
       );
       break;
     }
@@ -77,7 +100,10 @@ async function scanParentDirs(destPath: string, scriptName?: string) {
   return { hasScript, hasPackageLockJson };
 }
 
-export async function installDependencies(destPath: string, args: string[] = []) {
+export async function installDependencies(
+  destPath: string,
+  args: string[] = []
+) {
   assert(path.isAbsolute(destPath));
 
   let commandArgs = args;
@@ -91,23 +117,23 @@ export async function installDependencies(destPath: string, args: string[] = [])
       // Node.js version that `@now/node` and `@now/node-server` use
       npm_config_target: '8.10.0',
     },
-    stdio: 'pipe'
+    stdio: 'pipe',
   };
 
   if (hasPackageLockJson) {
     commandArgs = args.filter(a => a !== '--prefer-offline');
     await spawnAsync(
-      'npm',
+      g.npmBin,
       ['install'].concat(commandArgs),
       destPath,
       opts as SpawnOptions
     );
   } else {
     await spawnAsync(
-      'yarn',
+      g.yarnBin,
       ['--cwd', destPath].concat(commandArgs),
       destPath,
-      opts as SpawnOptions,
+      opts as SpawnOptions
     );
   }
 }
@@ -120,16 +146,21 @@ export async function runPackageJsonScript(
   assert(path.isAbsolute(destPath));
   const { hasScript, hasPackageLockJson } = await scanParentDirs(
     destPath,
-    scriptName,
+    scriptName
   );
   if (!hasScript) return false;
 
   if (hasPackageLockJson) {
     console.log(`running "npm run ${scriptName}"`);
-    await spawnAsync('npm', ['run', scriptName], destPath, opts);
+    await spawnAsync(g.npmBin, ['run', scriptName], destPath, opts);
   } else {
     console.log(`running "yarn run ${scriptName}"`);
-    await spawnAsync('yarn', ['--cwd', destPath, 'run', scriptName], destPath, opts);
+    await spawnAsync(
+      g.yarnBin,
+      ['--cwd', destPath, 'run', scriptName],
+      destPath,
+      opts
+    );
   }
 
   return true;
