@@ -122,7 +122,6 @@ export async function createGo(
   if (!isDev) {
     await createGoPathTree(goPath, platform, arch);
   }
-  await createGoPathTree(goPath, platform, arch);
   return new GoWrapper(env, opts);
 }
 
