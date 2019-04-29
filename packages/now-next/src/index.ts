@@ -123,6 +123,8 @@ function startDevServer(entryPath: string) {
   const forked = fork(path.join(__dirname, 'dev-server.js'), [], {
     cwd: entryPath,
     execArgv: [],
+    // This property name is weird, but it pipes stdio
+    silent: true,
     env: {
       NOW_REGION: 'dev1',
     },
