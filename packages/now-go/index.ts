@@ -8,6 +8,7 @@ import {
   getWriteableDirectory,
   BuildOptions,
   shouldServe,
+  Files
 } from '@now/build-utils';
 
 import { createGo, getAnalyzedEntrypoint } from './go-helpers';
@@ -17,6 +18,15 @@ interface Analyzed {
   functionName: string;
   watch: string[];
 }
+interface BuildParamsMeta {
+  isDev: boolean | undefined;
+}
+interface BuildParamsType extends BuildOptions {
+  files: Files;
+  entrypoint: string;
+  workPath: string;
+  meta: BuildParamsMeta;
+}
 
 export const version = 2;
 
@@ -24,13 +34,26 @@ export const config = {
   maxLambdaSize: '10mb',
 };
 
-export async function build({ files, entrypoint, config }: BuildOptions) {
+export async function build({
+  files,
+  entrypoint,
+  config,
+  meta = {} as BuildParamsMeta,
+}: BuildParamsType) {
   console.log('Downloading user files...');
+  const entrypointArr = entrypoint.split(sep);
 
-  const [goPath, outDir] = await Promise.all([
+  let [goPath, outDir] = await Promise.all([
     getWriteableDirectory(),
     getWriteableDirectory(),
   ]);
+  if (meta.isDev) {
+    const devGoPath = `dev${entrypointArr[entrypointArr.length - 1]}`;
+    const goPathArr = goPath.split(sep);
+    goPathArr.pop();
+    goPathArr.push(devGoPath);
+    goPath = goPathArr.join(sep);
+  }
 
   const srcPath = join(goPath, 'src', 'lambda');
   const downloadedFiles = await download(files, srcPath);
@@ -66,7 +89,6 @@ export async function build({ files, entrypoint, config }: BuildOptions) {
   // check if package name other than main
   const packageName = parsedAnalyzed.packageName;
   const isGoModExist = await pathExists(join(entrypointDirname, 'go.mod'));
-  const entrypointArr = entrypoint.split(sep);
   if (packageName !== 'main') {
     const go = await createGo(
       goPath,
@@ -120,6 +142,11 @@ export async function build({ files, entrypoint, config }: BuildOptions) {
     try {
       // default path
       let finalDestination = join(entrypointDirname, packageName, entrypoint);
+      let forceMove = false;
+
+      if (meta.isDev) {
+        forceMove = true;
+      }
 
       // if `entrypoint` include folder, only use filename
       if (entrypointArr.length > 1) {
@@ -130,10 +157,28 @@ export async function build({ files, entrypoint, config }: BuildOptions) {
         );
       }
 
-      await move(downloadedFiles[entrypoint].fsPath, finalDestination);
+      await move(downloadedFiles[entrypoint].fsPath, finalDestination, {
+        overwrite: forceMove,
+      });
     } catch (err) {
       console.log('failed to move entry to package folder');
       throw err;
+    }
+
+    if (meta.isDev) {
+      const isGoModBk = await pathExists(join(entrypointDirname, 'go.mod.bk'));
+      if (isGoModBk) {
+        await move(
+          join(entrypointDirname, 'go.mod.bk'),
+          join(entrypointDirname, 'go.mod'),
+          { overwrite: true }
+        );
+        await move(
+          join(entrypointDirname, 'go.sum.bk'),
+          join(entrypointDirname, 'go.sum'),
+          { overwrite: true }
+        );
+      }
     }
 
     console.log('Tidy `go.mod` file...');
@@ -153,6 +198,19 @@ export async function build({ files, entrypoint, config }: BuildOptions) {
     } catch (err) {
       console.log('failed to `go build`');
       throw err;
+    }
+    if (meta.isDev) {
+      // caching for `now dev`
+      await move(
+        join(entrypointDirname, 'go.mod'),
+        join(entrypointDirname, 'go.mod.bk'),
+        { overwrite: true }
+      );
+      await move(
+        join(entrypointDirname, 'go.sum'),
+        join(entrypointDirname, 'go.sum.bk'),
+        { overwrite: true }
+      );
     }
   } else {
     const go = await createGo(
