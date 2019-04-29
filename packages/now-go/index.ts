@@ -61,11 +61,7 @@ export async function build({
   console.log(`Parsing AST for "${entrypoint}"`);
   let analyzed: string;
   try {
-    analyzed = await getAnalyzedEntrypoint(
-      downloadedFiles[entrypoint].fsPath,
-      goPath,
-      meta.isDev
-    );
+    analyzed = await getAnalyzedEntrypoint(downloadedFiles[entrypoint].fsPath);
   } catch (err) {
     console.log(`Failed to parse AST for "${entrypoint}"`);
     throw err;
@@ -101,8 +97,7 @@ export async function build({
       {
         cwd: entrypointDirname,
       },
-      true,
-      meta.isDev
+      true
     );
     if (!isGoModExist) {
       try {
@@ -225,8 +220,7 @@ export async function build({
       {
         cwd: entrypointDirname,
       },
-      false,
-      meta.isDev
+      false
     );
     const origianlMainGoContents = await readFile(
       join(__dirname, 'main.go'),

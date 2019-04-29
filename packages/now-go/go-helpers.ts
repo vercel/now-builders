@@ -22,11 +22,7 @@ const getGoUrl = (version: string, platform: string, arch: string) => {
   return `https://dl.google.com/go/go${version}.${goPlatform}-${goArch}.${ext}`;
 };
 
-export async function getAnalyzedEntrypoint(
-  filePath: string,
-  goPath: string,
-  isDev = false
-) {
+export async function getAnalyzedEntrypoint(filePath: string) {
   debug('Analyzing entrypoint %o', filePath);
   const bin = join(__dirname, 'analyze');
 
@@ -34,14 +30,8 @@ export async function getAnalyzedEntrypoint(
   if (!isAnalyzeExist) {
     const src = join(__dirname, 'util', 'analyze.go');
     const dest = join(__dirname, 'analyze');
-
-    if (isDev && process.env.GOPATH !== undefined) {
-      console.log('process.env.GOPATH !== undefined | true');
-      await execa('go', ['build', '-o', dest, src], { cwd: goPath });
-    } else {
-      const go = await downloadGo();
-      await go.build(src, dest);
-    }
+    const go = await downloadGo();
+    await go.build(src, dest);
   }
 
   const args = [filePath];
@@ -106,8 +96,7 @@ export async function createGo(
   platform = process.platform,
   arch = process.arch,
   opts: execa.Options = {},
-  goMod = false,
-  isDev = false
+  goMod = false
 ) {
   const path = `${dirname(GO_BIN)}:${process.env.PATH}`;
   const env: { [key: string]: string } = {
@@ -119,9 +108,7 @@ export async function createGo(
   if (goMod) {
     env.GO111MODULE = 'on';
   }
-  if (!isDev) {
-    await createGoPathTree(goPath, platform, arch);
-  }
+  await createGoPathTree(goPath, platform, arch);
   return new GoWrapper(env, opts);
 }
 
@@ -136,7 +123,7 @@ export async function downloadGo(
   const url = getGoUrl(version, platform, arch);
   const isGoExist = await pathExists(join(dir, 'bin', 'go'));
 
-  if (!isGoExist) {
+  if (process.env.GOPATH === undefined && !isGoExist) {
     debug('Downloading `go` URL: %o', url);
     const res = await fetch(url);
 
