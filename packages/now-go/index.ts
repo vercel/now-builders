@@ -8,7 +8,7 @@ import {
   getWriteableDirectory,
   BuildOptions,
   shouldServe,
-  Files
+  Files,
 } from '@now/build-utils';
 
 import { createGo, getAnalyzedEntrypoint } from './go-helpers';
@@ -61,7 +61,11 @@ export async function build({
   console.log(`Parsing AST for "${entrypoint}"`);
   let analyzed: string;
   try {
-    analyzed = await getAnalyzedEntrypoint(downloadedFiles[entrypoint].fsPath);
+    analyzed = await getAnalyzedEntrypoint(
+      downloadedFiles[entrypoint].fsPath,
+      goPath,
+      meta.isDev
+    );
   } catch (err) {
     console.log(`Failed to parse AST for "${entrypoint}"`);
     throw err;
@@ -97,7 +101,8 @@ export async function build({
       {
         cwd: entrypointDirname,
       },
-      true
+      true,
+      meta.isDev
     );
     if (!isGoModExist) {
       try {
@@ -220,7 +225,8 @@ export async function build({
       {
         cwd: entrypointDirname,
       },
-      false
+      false,
+      meta.isDev
     );
     const origianlMainGoContents = await readFile(
       join(__dirname, 'main.go'),
