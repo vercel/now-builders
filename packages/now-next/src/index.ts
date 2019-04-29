@@ -124,6 +124,7 @@ function startDevServer(entryPath: string) {
     cwd: entryPath,
     execArgv: [],
     // This property name is weird, but it pipes stdio
+    // https://nodejs.org/api/child_process.html#child_process_child_process_fork_modulepath_args_options
     silent: true,
     env: {
       NOW_REGION: 'dev1',
