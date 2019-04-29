@@ -125,6 +125,7 @@ export async function downloadGo(
 
   if (process.env.GOPATH === undefined && !isGoExist) {
     debug('Downloading `go` URL: %o', url);
+    console.log('Downloading Go ...');
     const res = await fetch(url);
 
     if (!res.ok) {
