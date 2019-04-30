@@ -106,7 +106,7 @@ exports.build = async ({
       if (meta.isDev) {
         console.log('WARN: "now-dev" script is missing from package.json');
         console.log(
-          'See local development docs http://zeit.co/docs/v2/deployments/official-builders/static-now-static#local-development',
+          'See the local development docs: http://zeit.co/docs/v2/deployments/official-builders/static-now-static#local-development',
         );
       }
       // Run the `now-build` script and wait for completion to collect the build
