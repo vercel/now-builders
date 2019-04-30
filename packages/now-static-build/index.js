@@ -103,6 +103,9 @@ exports.build = async ({
         dest: `http://localhost:${devPort}${srcBase}/$1`,
       });
     } else {
+      if (meta.isDev) {
+        console.log('WARN: "now-dev" script is missing from package.json');
+      }
       // Run the `now-build` script and wait for completion to collect the build
       // outputs
       console.log('running user "now-build" script from `package.json`...');
