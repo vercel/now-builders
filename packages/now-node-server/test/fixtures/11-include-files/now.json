@@ -14,9 +14,12 @@
       "src": "accepts-string.js",
       "use": "@now/node-server",
       "config": {
-        "includeFiles": "templates/accepts-string.html"
+        "includeFiles": "templates/**"
       }
     }
+  ],
+  "routes": [
+    { "src": "/accepts-string", "dest": "accepts-string.js" }
   ],
   "probes": [
     {
