@@ -11,7 +11,7 @@
       }
     },
     {
-      "src": "accepts-string.js",
+      "src": "accepts-string/index.js",
       "use": "@now/node-server",
       "config": {
         "includeFiles": "templates/**"
@@ -24,7 +24,7 @@
       "mustContain": "Hello Now!"
     },
     {
-      "path": "/accepts-string.js",
+      "path": "/accepts-string",
       "mustContain": "Hello Now!"
     }
   ]
