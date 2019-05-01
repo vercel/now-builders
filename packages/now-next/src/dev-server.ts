@@ -3,11 +3,7 @@ import { parse } from 'url';
 import getPort from 'get-port';
 import { createServer } from 'http';
 
-export interface ProcessEnv {
-  [key: string]: string;
-}
-
-async function main(env: ProcessEnv, cwd: string) {
+async function main(cwd: string) {
   const next = require(resolveFrom(cwd, 'next'));
   const app = next({ dev: true, dir: cwd });
   const handler = app.getRequestHandler();
@@ -31,4 +27,4 @@ async function main(env: ProcessEnv, cwd: string) {
   });
 }
 
-main(process.env as ProcessEnv, process.cwd());
+main(process.cwd());
