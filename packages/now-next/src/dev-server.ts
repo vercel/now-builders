@@ -13,7 +13,7 @@ async function main(env: ProcessEnv, cwd: string) {
   const handler = app.getRequestHandler();
 
   const openPort = await getPort({
-    port: [ 5000, 4000 ]
+    port: [5000, 4000],
   });
 
   const url = `http://localhost:${openPort}`;
@@ -24,14 +24,7 @@ async function main(env: ProcessEnv, cwd: string) {
   createServer((req, res) => {
     const parsedUrl = parse(req.url || '', true);
     handler(req, res, parsedUrl);
-  }).listen(openPort, (error: NodeJS.ErrnoException) => {
-    if (error) {
-      console.error(error);
-      process.exit(1);
-
-      return;
-    }
-
+  }).listen(openPort, () => {
     if (process.send) {
       process.send(url);
     }

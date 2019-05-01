@@ -123,9 +123,7 @@ function startDevServer(entryPath: string) {
   const forked = fork(path.join(__dirname, 'dev-server.js'), [], {
     cwd: entryPath,
     execArgv: [],
-    env: {
-      NOW_REGION: 'dev1',
-    },
+    env: process.env,
   });
 
   const getUrl = () =>
