@@ -10,7 +10,7 @@ import {
   readFile as readFile1,
   Stats,
 } from 'fs-extra';
-import Sema from 'async-sema';
+import { Sema } from 'async-sema';
 
 const sema = new Sema(20);
 

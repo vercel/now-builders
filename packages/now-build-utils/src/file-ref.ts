@@ -2,7 +2,7 @@ import assert from 'assert';
 import fetch from 'node-fetch';
 import multiStream from 'multistream';
 import retry from 'async-retry';
-import Sema from 'async-sema';
+import { Sema } from 'async-sema';
 import { File } from './types';
 
 interface FileRefOptions {
@@ -58,14 +58,14 @@ export default class FileRef implements File {
           const resp = await fetch(url);
           if (!resp.ok) {
             const error = new BailableError(
-              `download: ${resp.status} ${resp.statusText} for ${url}`,
+              `download: ${resp.status} ${resp.statusText} for ${url}`
             );
             if (resp.status === 403) error.bail = true;
             throw error;
           }
           return resp.body;
         },
-        { factor: 1, retries: 3 },
+        { factor: 1, retries: 3 }
       );
     } finally {
       // console.timeEnd(`downloading ${url}`);
@@ -77,15 +77,15 @@ export default class FileRef implements File {
     let flag = false;
 
     // eslint-disable-next-line consistent-return
-    return multiStream((cb) => {
+    return multiStream(cb => {
       if (flag) return cb(null, null);
       flag = true;
 
       this.toStreamAsync()
-        .then((stream) => {
+        .then(stream => {
           cb(null, stream);
         })
-        .catch((error) => {
+        .catch(error => {
           cb(error, null);
         });
     });

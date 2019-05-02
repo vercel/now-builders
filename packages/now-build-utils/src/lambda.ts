@@ -1,5 +1,5 @@
 import assert from 'assert';
-import Sema from 'async-sema';
+import { Sema } from 'async-sema';
 import { ZipFile } from 'yazl';
 import { readlink } from './fs/fs-sema';
 import { Files } from './types';
