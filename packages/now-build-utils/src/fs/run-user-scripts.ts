@@ -1,5 +1,5 @@
 import assert from 'assert';
-import fs from 'fs-extra';
+import { stat, chmod, pathExists, readFile } from './fs-sema';
 import path from 'path';
 import spawn from 'cross-spawn';
 import { SpawnOptions } from 'child_process';
@@ -36,11 +36,11 @@ function spawnAsync(
 }
 
 async function chmodPlusX(fsPath: string) {
-  const s = await fs.stat(fsPath);
+  const s = await stat(fsPath);
   const newMode = s.mode | 64 | 8 | 1; // eslint-disable-line no-bitwise
   if (s.mode === newMode) return;
   const base8 = newMode.toString(8).slice(-3);
-  await fs.chmod(fsPath, base8);
+  await chmod(fsPath, base8);
 }
 
 export async function runShellScript(fsPath: string) {
@@ -62,16 +62,14 @@ async function scanParentDirs(destPath: string, scriptName?: string) {
   while (true) {
     const packageJsonPath = path.join(currentDestPath, 'package.json');
     // eslint-disable-next-line no-await-in-loop
-    if (await fs.pathExists(packageJsonPath)) {
+    if (await pathExists(packageJsonPath)) {
       // eslint-disable-next-line no-await-in-loop
-      const packageJson = JSON.parse(
-        await fs.readFile(packageJsonPath, 'utf8')
-      );
+      const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
       hasScript = Boolean(
         packageJson.scripts && scriptName && packageJson.scripts[scriptName]
       );
       // eslint-disable-next-line no-await-in-loop
-      hasPackageLockJson = await fs.pathExists(
+      hasPackageLockJson = await pathExists(
         path.join(currentDestPath, 'package-lock.json')
       );
       break;

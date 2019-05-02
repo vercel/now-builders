@@ -2,7 +2,7 @@ import FileRef from './file-ref';
 import FileFsRef from './file-fs-ref';
 
 export interface File {
-  type: string;
+  type: 'FileFsRef' | 'FileRef' | 'FileBlob';
   mode: number;
   toStream: () => NodeJS.ReadableStream;
   /**
