@@ -31,7 +31,7 @@ import {
   getRoutes,
   includeOnlyEntryDirectory,
   normalizePackageJson,
-  onlyStaticDirectory,
+  filesFromDirectory,
   stringMap,
   validateEntrypoint,
 } from './utils';
@@ -433,13 +433,30 @@ export const build = async ({
     {}
   );
 
-  const staticDirectoryFiles = onlyStaticDirectory(
-    includeOnlyEntryDirectory(files, entryDirectory),
-    entryDirectory
+  const entryDirectoryFiles = includeOnlyEntryDirectory(files, entryDirectory);
+  const staticDirectoryFiles = filesFromDirectory(
+    entryDirectoryFiles,
+    path.join(entryDirectory, 'static')
+  );
+  const publicDirectoryFiles = filesFromDirectory(
+    entryDirectoryFiles,
+    path.join(entryDirectory, 'public')
+  );
+  const publicFiles = Object.keys(publicDirectoryFiles).reduce(
+    (mappedFiles, file) => ({
+      ...mappedFiles,
+      [file.replace('public/', '')]: publicDirectoryFiles[file],
+    }),
+    {}
   );
 
   return {
-    output: { ...lambdas, ...staticFiles, ...staticDirectoryFiles },
+    output: {
+      ...publicFiles,
+      ...lambdas,
+      ...staticFiles,
+      ...staticDirectoryFiles,
+    },
     routes: [],
     watch: [],
     childProcesses: [],
