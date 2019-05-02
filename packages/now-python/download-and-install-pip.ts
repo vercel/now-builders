@@ -1,23 +1,17 @@
+import os from 'os';
 import execa from 'execa';
 
-// downloads and installs `pip` (respecting
-// process.env.PYTHONUSERBASE), and returns
-// the absolute path to it
 export async function downloadAndInstallPip() {
-  const { PYTHONUSERBASE } = process.env;
-  if (!PYTHONUSERBASE) {
-    // this is the directory in which `pip` will be
-    // installed to. `--user` will assume `~` if this
-    // is not set, and `~` is not writeable on AWS Lambda.
-    // let's refuse to proceed
-    throw new Error(
-      'Could not install "pip": "PYTHONUSERBASE" env var is not set'
-    );
+  const uname = os.release();
+  console.log(`current system uname: ${uname}`);
+
+  if (!uname.includes('amzn2.x86_64')) {
+    console.log('Not running in amazon, skipping');
+    return 'pip3';
   }
 
-  console.log('installing python...');
   try {
-    await execa('uname', ['-a'], { stdio: 'inherit' });
+    console.log('installing python...');
     await execa('yum-config-manager', ['--enable', 'epel'], {
       stdio: 'inherit',
     });

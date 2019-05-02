@@ -11,7 +11,6 @@ import {
   createLambda,
   BuildOptions,
 } from '@now/build-utils';
-import { downloadAndInstallPip } from './download-and-install-pip';
 
 async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
   const target = '.';
@@ -81,7 +80,7 @@ export const build = async ({
   // we need it to be under `/tmp`
   const pyUserBase = await getWriteableDirectory();
   process.env.PYTHONUSERBASE = pyUserBase;
-  const pipPath = meta.isDev ? 'pip3' : await downloadAndInstallPip();
+  const pipPath = meta.isDev ? 'pip3' : 'pip3.6';
 
   try {
     // See: https://stackoverflow.com/a/44728772/376773
