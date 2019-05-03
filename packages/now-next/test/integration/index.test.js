@@ -96,3 +96,14 @@ it(
   },
   FOUR_MINUTES,
 );
+
+it.only(
+  'Should build the public-files test',
+  async () => {
+    const {
+      buildResult: { output },
+    } = await runBuildLambda(path.join(__dirname, 'public-files'));
+    expect(output['robots.txt']).toBeDefined();
+  },
+  FOUR_MINUTES,
+);
