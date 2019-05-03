@@ -445,7 +445,7 @@ export const build = async ({
   const publicFiles = Object.keys(publicDirectoryFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [file.replace('public/', '')]: publicDirectoryFiles[file],
+      [file.replace(/public[/\\]+/, '')]: publicDirectoryFiles[file],
     }),
     {}
   );
