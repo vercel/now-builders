@@ -76,6 +76,7 @@ export const build = async ({
   const downloadedFiles = await download(originalFiles, workPath);
   const foundLockFile = 'Pipfile.lock' in downloadedFiles;
   const pyUserBase = await getWriteableDirectory();
+  process.env.PYTHONUSERBASE = pyUserBase;
   const pipPath = 'pip3';
 
   try {
