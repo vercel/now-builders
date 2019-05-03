@@ -9,6 +9,13 @@
           "templates/**"
         ]
       }
+    },
+    {
+      "src": "accepts-string/index.js",
+      "use": "@now/node-server",
+      "config": {
+        "includeFiles": "templates/**"
+      }
     }
   ],
   "probes": [
