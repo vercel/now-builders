@@ -9,6 +9,7 @@ const {
   runNpmInstall,
   runPackageJsonScript,
 } = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
+const { shouldServe } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 
 /** @typedef { import('@now/build-utils/file-ref') } FileRef */
 /** @typedef {{[filePath: string]: FileRef}} Files */
@@ -49,8 +50,12 @@ async function compile(workPath, downloadedFiles, entrypoint, config) {
   });
 
   if (config && config.includeFiles) {
+    const includeFiles = typeof config.includeFiles === 'string'
+      ? [config.includeFiles]
+      : config.includeFiles;
+
     // eslint-disable-next-line no-restricted-syntax
-    for (const pattern of config.includeFiles) {
+    for (const pattern of includeFiles) {
       // eslint-disable-next-line no-await-in-loop
       const files = await glob(pattern, inputDir);
 
@@ -145,3 +150,5 @@ exports.prepareCache = async ({ workPath }) => ({
   ...(await glob('package-lock.json', workPath)),
   ...(await glob('yarn.lock', workPath)),
 });
+
+exports.shouldServe = shouldServe;
