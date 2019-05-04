@@ -73,7 +73,7 @@ function excludeLockFiles(files: Files): Files {
  */
 function filesFromDirectory(files: Files, dir: string): Files {
   function matcher(filePath: string) {
-    return !filePath.startsWith(dir);
+    return !filePath.startsWith(dir.replace(/\\/g, '/'));
   }
 
   return excludeFiles(files, matcher);
@@ -197,6 +197,19 @@ function getRoutes(
     const isPage = pathIsInside('pages', relativePath);
 
     if (!isPage) {
+      const isPublic = pathIsInside('public', relativePath);
+
+      if (isPublic) {
+        const relativeToPublic = path.relative('public', relativePath);
+
+        console.log('INSIDE', filesInside);
+
+        routes.push({
+          src: `${prefix}${relativeToPublic}`,
+          dest: `${url}/${relativeToPublic}`,
+        });
+      }
+
       continue;
     }
 
