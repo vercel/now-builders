@@ -191,25 +191,13 @@ function getRoutes(
       dest: `${url}/static/$1`,
     },
   ];
+  const filePaths = Object.keys(filesInside);
 
-  for (const file of Object.keys(filesInside)) {
+  for (const file of filePaths) {
     const relativePath = path.relative(entryDirectory, file);
     const isPage = pathIsInside('pages', relativePath);
 
     if (!isPage) {
-      const isPublic = pathIsInside('public', relativePath);
-
-      if (isPublic) {
-        const relativeToPublic = path.relative('public', relativePath);
-
-        console.log('INSIDE', filesInside);
-
-        routes.push({
-          src: `${prefix}${relativeToPublic}`,
-          dest: `${url}/${relativeToPublic}`,
-        });
-      }
-
       continue;
     }
 
@@ -233,6 +221,25 @@ function getRoutes(
         src: `${prefix}${resolvedIndex}`,
         dest: `${url}/${resolvedIndex}`,
       });
+    }
+  }
+
+  // Add public folder routes
+  for (const file of filePaths) {
+    const relativePath = path.relative(entryDirectory, file);
+    const isPublic = pathIsInside('public', relativePath);
+
+    if (!isPublic) continue;
+
+    const fileName = path.relative('public', relativePath);
+    const route = {
+      src: `${prefix}${fileName}`,
+      dest: `${url}/${fileName}`,
+    };
+
+    // Only add the route if a page is not already using it
+    if (!routes.some(r => r.src === route.src)) {
+      routes.push(route);
     }
   }
 
