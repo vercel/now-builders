@@ -8,7 +8,6 @@ import { File } from './types';
 interface FileRefOptions {
   mode?: number;
   digest: string;
-  mutable?: boolean;
   ephemeral?: boolean;
 }
 
@@ -27,23 +26,15 @@ export default class FileRef implements File {
   public type: 'FileRef';
   public mode: number;
   public digest: string;
-  public mutable: boolean;
   public ephemeral: boolean;
 
-  constructor({
-    mode = 0o100644,
-    digest,
-    mutable = false,
-    ephemeral = false,
-  }: FileRefOptions) {
+  constructor({ mode = 0o100644, digest, ephemeral = false }: FileRefOptions) {
     assert(typeof mode === 'number');
     assert(typeof digest === 'string');
-    assert(typeof mutable === 'boolean');
     assert(typeof ephemeral === 'boolean');
     this.type = 'FileRef';
     this.mode = mode;
     this.digest = digest;
-    this.mutable = mutable;
     this.ephemeral = ephemeral;
   }
 
@@ -51,12 +42,10 @@ export default class FileRef implements File {
     let url = '';
     // sha:24be087eef9fac01d61b30a725c1a10d7b45a256
     const [digestType, digestHash] = this.digest.split(':');
-    if (digestParts[0] === 'sha') {
+    if (digestType === 'sha') {
       url = this.ephemeral
-        ? `https://now-ephemeral-files.s3.amazonaws.com/${digestParts[1]}`
-        : this.mutable
-        ? `https://now-files.s3.amazonaws.com/${digestParts[1]}`
-        : `https://dmmcy0pwk6bqi.cloudfront.net/${digestParts[1]}`;
+        ? `https://now-ephemeral-files.s3.amazonaws.com/${digestHash}`
+        : `https://dmmcy0pwk6bqi.cloudfront.net/${digestHash}`;
     } else {
       throw new Error('Expected digest to be sha');
     }
