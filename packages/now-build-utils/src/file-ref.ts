@@ -44,6 +44,9 @@ export default class FileRef implements File {
       // `https://now-files.s3.amazonaws.com/${digestHash}`
       url = `https://dmmcy0pwk6bqi.cloudfront.net/${digestHash}`;
     } else if (digestType === 'sha+ephemeral') {
+      // This URL is currently only used for cache files that constantly
+      // change. We shouldn't cache it on CloudFront because it'd always be a
+      // MISS.
       url = `https://now-ephemeral-files.s3.amazonaws.com/${digestHash}`;
     } else {
       throw new Error('Expected digest to be sha');
