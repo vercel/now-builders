@@ -42,7 +42,7 @@ export default class FileRef implements File {
       // now-files
       url = `https://dmmcy0pwk6bqi.cloudfront.net/${digestHash}`;
     } else if (digestType === 'sha+ephemeral') {
-      url = `http://now-ephemeral-files.s3.amazonaws.com/${digestHash}`;
+      url = `https://now-ephemeral-files.s3.amazonaws.com/${digestHash}`;
     } else {
       throw new Error('Expected digest to be sha');
     }
