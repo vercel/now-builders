@@ -198,7 +198,7 @@ export const build = async ({
       const runtimeEnv: EnvConfig = Object.assign({}, process.env);
       const runtimeEnvKeys = new Set(Object.keys(meta.env || {}));
       for (const name of Object.keys(meta.buildEnv || {})) {
-        if (!runtimeEnvKeys.includes(name)) {
+        if (!runtimeEnvKeys.has(name)) {
           delete runtimeEnv[name];
         }
       }
