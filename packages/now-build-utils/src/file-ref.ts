@@ -50,7 +50,7 @@ export default class FileRef implements File {
   async toStreamAsync(): Promise<NodeJS.ReadableStream> {
     let url = '';
     // sha:24be087eef9fac01d61b30a725c1a10d7b45a256
-    const digestParts = this.digest.split(':');
+    const [digestType, digestHash] = this.digest.split(':');
     if (digestParts[0] === 'sha') {
       url = this.ephemeral
         ? `https://now-ephemeral-files.s3.amazonaws.com/${digestParts[1]}`
