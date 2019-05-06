@@ -25,6 +25,7 @@ import {
 
 import nextLegacyVersions from './legacy-versions';
 import {
+  EnvConfig,
   excludeFiles,
   getNextConfig,
   getPathsInside,
@@ -33,17 +34,14 @@ import {
   normalizePackageJson,
   onlyStaticDirectory,
   stringMap,
+  syncEnvVars,
   validateEntrypoint,
 } from './utils';
 
-interface EnvConfig {
-  [name: string]: string | undefined;
-}
-
 interface BuildParamsMeta {
   isDev: boolean | undefined;
-  env: EnvConfig;
-  buildEnv: EnvConfig;
+  env?: EnvConfig;
+  buildEnv?: EnvConfig;
 }
 
 interface BuildParamsType extends BuildOptions {
@@ -196,13 +194,7 @@ export const build = async ({
       // The runtime env vars consist of the base `process.env` vars, but with the
       // build env vars removed, and the runtime env vars mixed in afterwards
       const runtimeEnv: EnvConfig = Object.assign({}, process.env);
-      const runtimeEnvKeys = Object.keys(meta.env || {});
-      for (const name of Object.keys(meta.buildEnv || {})) {
-        if (!runtimeEnvKeys.includes(name)) {
-          delete runtimeEnv[name];
-        }
-      }
-      Object.assign(runtimeEnv, meta.env);
+      syncEnvVars(runtimeEnv, meta.buildEnv || {}, meta.env || {});
 
       const { forked, getUrl } = startDevServer(entryPath, runtimeEnv);
       urls[entrypoint] = await getUrl();
