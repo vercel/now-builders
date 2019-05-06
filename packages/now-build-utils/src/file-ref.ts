@@ -9,6 +9,7 @@ interface FileRefOptions {
   mode?: number;
   digest: string;
   mutable?: boolean;
+  ephemeral?: boolean;
 }
 
 const semaToDownloadFromS3 = new Sema(5);
@@ -27,15 +28,23 @@ export default class FileRef implements File {
   public mode: number;
   public digest: string;
   public mutable: boolean;
+  public ephemeral: boolean;
 
-  constructor({ mode = 0o100644, digest, mutable = false }: FileRefOptions) {
+  constructor({
+    mode = 0o100644,
+    digest,
+    mutable = false,
+    ephemeral = false,
+  }: FileRefOptions) {
     assert(typeof mode === 'number');
     assert(typeof digest === 'string');
     assert(typeof mutable === 'boolean');
+    assert(typeof ephemeral === 'boolean');
     this.type = 'FileRef';
     this.mode = mode;
     this.digest = digest;
     this.mutable = mutable;
+    this.ephemeral = ephemeral;
   }
 
   async toStreamAsync(): Promise<NodeJS.ReadableStream> {
@@ -43,8 +52,10 @@ export default class FileRef implements File {
     // sha:24be087eef9fac01d61b30a725c1a10d7b45a256
     const digestParts = this.digest.split(':');
     if (digestParts[0] === 'sha') {
-      url = this.mutable
-        ? `https://s3.amazonaws.com/now-files/${digestParts[1]}`
+      url = this.ephemeral
+        ? `https://now-ephemeral-files.s3.amazonaws.com/${digestParts[1]}`
+        : this.mutable
+        ? `https://now-files.s3.amazonaws.com/${digestParts[1]}`
         : `https://dmmcy0pwk6bqi.cloudfront.net/${digestParts[1]}`;
     } else {
       throw new Error('Expected digest to be sha');
@@ -58,14 +69,14 @@ export default class FileRef implements File {
           const resp = await fetch(url);
           if (!resp.ok) {
             const error = new BailableError(
-              `download: ${resp.status} ${resp.statusText} for ${url}`,
+              `download: ${resp.status} ${resp.statusText} for ${url}`
             );
             if (resp.status === 403) error.bail = true;
             throw error;
           }
           return resp.body;
         },
-        { factor: 1, retries: 3 },
+        { factor: 1, retries: 3 }
       );
     } finally {
       // console.timeEnd(`downloading ${url}`);
@@ -77,15 +88,15 @@ export default class FileRef implements File {
     let flag = false;
 
     // eslint-disable-next-line consistent-return
-    return multiStream((cb) => {
+    return multiStream(cb => {
       if (flag) return cb(null, null);
       flag = true;
 
       this.toStreamAsync()
-        .then((stream) => {
+        .then(stream => {
           cb(null, stream);
         })
-        .catch((error) => {
+        .catch(error => {
           cb(error, null);
         });
     });
