@@ -196,7 +196,7 @@ export const build = async ({
       // The runtime env vars consist of the base `process.env` vars, but with the
       // build env vars removed, and the runtime env vars mixed in afterwards
       const runtimeEnv: EnvConfig = Object.assign({}, process.env);
-      const runtimeEnvKeys = Object.keys(meta.env || {});
+      const runtimeEnvKeys = new Set(Object.keys(meta.env || {}));
       for (const name of Object.keys(meta.buildEnv || {})) {
         if (!runtimeEnvKeys.includes(name)) {
           delete runtimeEnv[name];
