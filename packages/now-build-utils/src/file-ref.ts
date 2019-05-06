@@ -39,7 +39,8 @@ export default class FileRef implements File {
     // sha:24be087eef9fac01d61b30a725c1a10d7b45a256
     const [digestType, digestHash] = this.digest.split(':');
     if (digestType === 'sha') {
-      // This CloudFront URL edge caches now-files
+      // This CloudFront URL edge caches the `now-files` S3 bucket to prevent
+      // overloading it
       // `https://now-files.s3.amazonaws.com/${digestHash}`
       url = `https://dmmcy0pwk6bqi.cloudfront.net/${digestHash}`;
     } else if (digestType === 'sha+ephemeral') {
