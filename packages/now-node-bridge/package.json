@@ -14,8 +14,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && jest",
-    "prepublish": "npm run build"
+    "test": "tsc && jest",
+    "prepublishOnly": "tsc"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.19",

@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "test": "tsc && jest",
-    "prepublish": "tsc"
+    "prepublishOnly": "tsc"
   },
   "files": [
     "*.js",

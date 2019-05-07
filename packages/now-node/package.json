@@ -15,8 +15,8 @@
   },
   "scripts": {
     "build": "./build.sh",
-    "test": "npm run build && jest",
-    "prepublish": "npm run build"
+    "test": "./build.sh && jest",
+    "prepublishOnly": "./build.sh"
   },
   "files": [
     "dist"

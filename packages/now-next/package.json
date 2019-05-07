@@ -5,8 +5,8 @@
   "main": "./dist/index",
   "scripts": {
     "build": "./getBridgeTypes.sh && tsc",
-    "test": "npm run build && jest",
-    "prepublish": "yarn run build"
+    "test": "./getBridgeTypes.sh && tsc && jest",
+    "prepublishOnly": "./getBridgeTypes.sh && tsc"
   },
   "repository": {
     "type": "git",
