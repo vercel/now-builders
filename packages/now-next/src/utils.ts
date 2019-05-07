@@ -4,6 +4,10 @@ import { Files } from '@now/build-utils';
 
 type stringMap = { [key: string]: string };
 
+export interface EnvConfig {
+  [name: string]: string | undefined;
+}
+
 /**
  * Validate if the entrypoint is allowed to be used
  */
@@ -246,6 +250,20 @@ function getRoutes(
   return routes;
 }
 
+function syncEnvVars(base: EnvConfig, removeEnv: EnvConfig, addEnv: EnvConfig) {
+  // Remove any env vars from `removeEnv`
+  // that are not present in the `addEnv`
+  const addKeys = new Set(Object.keys(addEnv));
+  for (const name of Object.keys(removeEnv)) {
+    if (!addKeys.has(name)) {
+      delete base[name];
+    }
+  }
+
+  // Add in the keys from `addEnv`
+  Object.assign(base, addEnv);
+}
+
 export {
   excludeFiles,
   validateEntrypoint,
@@ -257,4 +275,5 @@ export {
   getPathsInside,
   getRoutes,
   stringMap,
+  syncEnvVars,
 };
