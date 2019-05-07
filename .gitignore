@@ -3,4 +3,4 @@ tmp
 target/
 .next
 coverage
-.tgz
+*.tgz
