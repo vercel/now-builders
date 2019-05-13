@@ -39,6 +39,7 @@ export async function build({
   files,
   entrypoint,
   config,
+  workPath,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType) {
   console.log('Downloading user files...');
@@ -49,16 +50,22 @@ export async function build({
     getWriteableDirectory(),
   ]);
 
+  const srcPath = join(goPath, 'src', 'lambda');
+  let downloadedFiles = await download(files, srcPath, meta);
+
   if (meta.isDev) {
-    const devGoPath = `dev${entrypointArr[entrypointArr.length - 1]}`;
-    const goPathArr = goPath.split(sep);
-    goPathArr.pop();
-    goPathArr.push(devGoPath);
-    goPath = goPathArr.join(sep);
+    const base = dirname(downloadedFiles['now.json'].fsPath);
+    const destNow = base.includes('.now') ? base : join(base, '.now');
+
+    let filterFiles = await glob('**', workPath);
+    for (const filtered of Object.keys(filterFiles)) {
+      if (filtered.includes('.now')) {
+        delete filterFiles[filtered];
+      }
+    }
+    downloadedFiles = await download(filterFiles, destNow);
   }
 
-  const srcPath = join(goPath, 'src', 'lambda');
-  const downloadedFiles = await download(files, srcPath);
   const input = dirname(downloadedFiles[entrypoint].fsPath);
   var includedFiles: Files = {};
 
