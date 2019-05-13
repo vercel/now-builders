@@ -1,4 +1,4 @@
-# `@now/static-build` Failed to detect a server running on port
+# `@now/static-build` Failed to detect a server running
 
 #### Why This Warning Occurred
 
