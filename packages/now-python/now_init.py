@@ -54,7 +54,7 @@ else:
     print('using Web Server Gateway Interface (WSGI)')
     import sys
     try:
-        from urllib.parse import urlparse
+        from urllib.parse import urlparse, unquote
     except ImportError:
         from urlparse import urlparse
     from werkzeug._compat import BytesIO
@@ -81,7 +81,7 @@ else:
             'CONTENT_LENGTH': str(len(body)),
             'CONTENT_TYPE': headers.get('content-type', ''),
             'PATH_INFO': payload['path'],
-            'QUERY_STRING': urlinfo.query,
+            'QUERY_STRING': unquote(urlinfo.query),
             'REMOTE_ADDR': headers.get(
                 'x-forwarded-for', headers.get(
                     'x-real-ip', payload.get(
@@ -102,7 +102,7 @@ else:
         }
 
         for key, value in environ.items():
-            if isinstance(value, string_types):
+            if isinstance(value, string_types) and key != 'QUERY_STRING':
                 environ[key] = wsgi_encoding_dance(value)
 
         for key, value in headers.items():
