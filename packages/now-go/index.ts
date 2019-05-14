@@ -1,5 +1,5 @@
-import { join, sep, dirname } from 'path';
-import { readFile, writeFile, pathExists, move } from 'fs-extra';
+import { join, sep, dirname, basename } from 'path';
+import { readFile, writeFile, pathExists, move, copy } from 'fs-extra';
 
 import {
   glob,
@@ -51,31 +51,11 @@ export async function build({
   ]);
 
   const srcPath = join(goPath, 'src', 'lambda');
-  let downloadedFiles = await download(files, srcPath, meta);
-
+  let downloadedFiles;
   if (meta.isDev) {
-    const base = dirname(downloadedFiles['now.json'].fsPath);
-    const destNow = base.includes('.now') ? base : join(base, '.now');
-
-    let filterFiles = await glob('**', workPath);
-    for (const filtered of Object.keys(filterFiles)) {
-      if (filtered.includes('.now')) {
-        delete filterFiles[filtered];
-      }
-    }
-    downloadedFiles = await download(filterFiles, destNow);
-  }
-
-  const input = dirname(downloadedFiles[entrypoint].fsPath);
-  var includedFiles: Files = {};
-
-  if (config && config.includeFiles) {
-    for (const pattern of config.includeFiles) {
-      const files = await glob(pattern, input);
-      for (const assetName of Object.keys(files)) {
-        includedFiles[assetName] = files[assetName];
-      }
-    }
+    downloadedFiles = await download(files, workPath, meta);
+  } else {
+    downloadedFiles = await download(files, srcPath);
   }
 
   console.log(`Parsing AST for "${entrypoint}"`);
@@ -98,6 +78,36 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
   }
 
   const parsedAnalyzed = JSON.parse(analyzed) as Analyzed;
+
+  if (meta.isDev) {
+    const base = dirname(downloadedFiles['now.json'].fsPath);
+    const destNow = join(base, '.now', 'cache', basename(entrypoint, '.go'));
+    for (const file of parsedAnalyzed.watch) {
+      if (!file.includes('.now')) {
+        if (entrypointArr.length > 0) {
+          await copy(
+            join(base, dirname(entrypoint), file),
+            join(destNow, dirname(entrypoint), file)
+          );
+        } else {
+          await copy(join(base, file), join(destNow, file));
+        }
+      }
+    }
+    downloadedFiles = await glob('**', destNow);
+  }
+
+  const input = dirname(downloadedFiles[entrypoint].fsPath);
+  var includedFiles: Files = {};
+
+  if (config && config.includeFiles) {
+    for (const pattern of config.includeFiles) {
+      const files = await glob(pattern, input);
+      for (const assetName of Object.keys(files)) {
+        includedFiles[assetName] = files[assetName];
+      }
+    }
+  }
 
   const handlerFunctionName = parsedAnalyzed.functionName;
   console.log(
