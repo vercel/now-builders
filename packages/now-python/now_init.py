@@ -53,10 +53,7 @@ if _now_is_legacy:
 else:
     print('using Web Server Gateway Interface (WSGI)')
     import sys
-    try:
-        from urllib.parse import urlparse, unquote
-    except ImportError:
-        from urlparse import urlparse
+    from urllib.parse import urlparse
     from werkzeug._compat import BytesIO
     from werkzeug._compat import string_types
     from werkzeug._compat import to_bytes
@@ -81,7 +78,7 @@ else:
             'CONTENT_LENGTH': str(len(body)),
             'CONTENT_TYPE': headers.get('content-type', ''),
             'PATH_INFO': payload['path'],
-            'QUERY_STRING': unquote(urlinfo.query),
+            'QUERY_STRING': urlinfo.query,
             'REMOTE_ADDR': headers.get(
                 'x-forwarded-for', headers.get(
                     'x-real-ip', payload.get(
