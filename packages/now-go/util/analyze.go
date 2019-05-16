@@ -17,7 +17,7 @@ import (
 var ignoredFoldersRegex []*regexp.Regexp
 
 func init() {
-	ignoredFolders := []string{"vendor", ".git", "testdata"}
+	ignoredFolders := []string{"vendor", "testdata"}
 
 	// Build the regex that matches if a path contains the respective ignored folder
 	// The pattern will look like: (.*/)?vendor/.*, which matches every path that contains a vendor folder
