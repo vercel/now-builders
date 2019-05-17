@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "settings.php", "use": "@now/drupal",
+      "config": { "releaseUrl": "https://ftp.drupal.org/files/projects/drupal-7.21.zip",
+                  "patchForPersistentConnections": true } }
+  ],
+  "routes": [
+    { "src": "/sites/default/?", "dest": "index.php" },
+    { "src": ".*\\.php$", "dest": "index.php" }
+  ],
+  "env": {
+    "DB_NAME": "@drupal_db_name",
+    "DB_USER": "@drupal_user",
+    "DB_PASSWORD": "@drupal_db_password",
+    "DB_HOST": "@drupal_db_host"
+  }
+}
