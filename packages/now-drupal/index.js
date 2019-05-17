@@ -95,7 +95,8 @@ exports.build = async ({ files, entrypoint, config }) => {
   const releaseFiles = await decompressBuffer(releaseBuffer, mountpoint);
   const mergedFiles = { ...releaseFiles, ...files };
 
- /* if (config.patchForPersistentConnections) {
+ /* 
+ if (config.patchForPersistentConnections) {
     const wpDbPhp = path.join(mountpoint, 'wp-includes/wp-db.php');
     const wpDbPhpBlob = mergedFiles[wpDbPhp];
     wpDbPhpBlob.data = wpDbPhpBlob.data
