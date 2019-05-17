@@ -60,3 +60,4 @@ $databases = array (
 );
 ```
 
+   4-finaly run ```now dev```.
