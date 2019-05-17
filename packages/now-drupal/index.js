@@ -94,19 +94,6 @@ exports.build = async ({ files, entrypoint, config }) => {
   const mountpoint = path.dirname(entrypoint);
   const releaseFiles = await decompressBuffer(releaseBuffer, mountpoint);
   const mergedFiles = { ...releaseFiles, ...files };
-
-// /* 
- //if (config.patchForPersistentConnections) {
-  //  const wpDbPhp = path.join(mountpoint, 'wp-includes/wp-db.php');
- //   const wpDbPhpBlob = mergedFiles[wpDbPhp];
-  //  wpDbPhpBlob.data = wpDbPhpBlob.data
-  //    .toString()
-  //    .replace(
-  //      /mysqli_real_connect\( \$this->dbh, \$host,/g,
-  //      "mysqli_real_connect( $this->dbh, 'p:' . $host,",
-  //    );
- // }
-//*/
   const staticFiles = {};
   // eslint-disable-next-line no-restricted-syntax
   for (const [k, v] of Object.entries(mergedFiles)) {
