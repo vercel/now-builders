@@ -4,13 +4,14 @@ This pakage help you install drupal sites in ZEIT Servers.
 
 More details here: https://zeit.co/docs/v2/deployments/builders/overview/
 
-You must do this steps:
+### For installing Your Drupal Site, must to do this steps:
 
 
-1-you need to use external mysql dabase via some sites like :https://remotemysql.com
+  1-you need to use external mysql dabase via some sites like :https://remotemysql.com
 
+![picture alt](http://i63.tinypic.com/1rztza.png "Title is optional")
 
-2-creat ```now.jason``` file in your local folder by this way (you could see one exaple via test folder):
+  2-creat ```now.jason``` file in your local folder by this way (you could see one exaple via test folder):
 
 ```
 {
@@ -32,11 +33,11 @@ You must do this steps:
   }
 }
 ```
-you could change ```@drupal_db_name and ...``` by the information get by remote mysql server or 
-leave the this kind And set the by ```now secret add.```  instruction to add ```DB_NAME and ... ``` Databse parameters 
+  you could change ```@drupal_db_name and ...``` by the information get by remote mysql server or 
+  leave the this kind And set the by ```now secret add.```  instruction to add ```DB_NAME and ... ``` Databse parameters 
 
 
-3-you must edite your settings.php file via "sites/default" folder by this way:
+  3-you must edite your settings.php file via "sites/default" folder by this way:
 
 ```
  // ** MySQL settings - You can get this info from your web host ** //
