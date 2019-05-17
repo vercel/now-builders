@@ -1,0 +1,21 @@
+{
+  "name": "@now/node-raw",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-node-raw"
+  },
+  "files": [
+    "index.js",
+    "launcher.js"
+  ],
+  "dependencies": {
+    "@now/node-bridge": "1.1.2",
+    "resolve-dependencies": "2.2.3"
+  },
+  "peerDependencies": {
+    "@now/build-utils": "*"
+  }
+}
