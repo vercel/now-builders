@@ -83,15 +83,13 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
     const base = dirname(downloadedFiles['now.json'].fsPath);
     const destNow = join(base, '.now', 'cache', basename(entrypoint, '.go'));
     for (const file of parsedAnalyzed.watch) {
-      if (!file.includes('.now')) {
-        if (entrypointArr.length > 0) {
-          await copy(
-            join(base, dirname(entrypoint), file),
-            join(destNow, dirname(entrypoint), file)
-          );
-        } else {
-          await copy(join(base, file), join(destNow, file));
-        }
+      if (entrypointArr.length > 0) {
+        await copy(
+          join(base, dirname(entrypoint), file),
+          join(destNow, dirname(entrypoint), file)
+        );
+      } else {
+        await copy(join(base, file), join(destNow, file));
       }
     }
     downloadedFiles = await glob('**', destNow);
