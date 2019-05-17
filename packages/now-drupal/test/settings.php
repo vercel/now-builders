@@ -215,8 +215,6 @@
  
  // ** MySQL settings - You can get this info from your web host ** //
 /** The name of the database for External MYSQL Server 
-you could change The $_ENV['****'] by your Databese external parameters or leave the this kind
-And set the by ```now secret add.```  instruction to add ```DB_NAME and ... ``` Databse parameters .
 */
 
 
