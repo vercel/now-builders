@@ -81,9 +81,9 @@ const staticRegexps = [
 ];
 
 exports.build = async ({ files, entrypoint, config }) => {
-  if (path.basename(entrypoint) !== 'wp-config.php') {
+  if (path.basename(entrypoint) !== 'settings.php') {
     throw new Error(
-      `Entrypoint file name must be "wp-config.php". Currently it is ${entrypoint}`,
+      `Entrypoint file name must be "settings.php". Currently it is ${entrypoint}`,
     );
   }
 
