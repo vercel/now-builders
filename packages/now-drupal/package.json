@@ -1,16 +1,13 @@
 {
   "name": "@now/drupal",
- "version": "0.2.3",
-  "description": "Now 2.0 builder for HTTP endpoints written in Bash",
-  "main": "index.js",
-  "author": "Nathan Rajlich <nate@zeit.co>",
+  "version": "1.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
     "directory": "packages/now-drupal"
   },
-  
+ 
   "files": [
     "builder.sh",
     "runtime.sh",
