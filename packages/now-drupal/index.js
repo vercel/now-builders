@@ -24,7 +24,7 @@ async function readReleaseUrl(releaseUrl) {
   return resp.buffer();
 }
 
-const prefixRegexp = /^wordpress\//;
+const prefixRegexp = /^drupal\//;
 
 function decompressBuffer(buffer, mountpoint) {
   return new Promise((resolve, reject) => {
