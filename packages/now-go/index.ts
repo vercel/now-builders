@@ -1,5 +1,6 @@
 import { join, sep, dirname } from 'path';
 import { readFile, writeFile, pathExists, move } from 'fs-extra';
+import execa from 'execa';
 
 import {
   glob,
@@ -29,6 +30,21 @@ interface BuildParamsType extends BuildOptions {
   meta: BuildParamsMeta;
 }
 
+// Initialize private git repo for Go Modules
+async function initPrivateGit(username: string, token: string, host: string) {
+  await execa('git', [
+    'config',
+    '--global',
+    'credential.helper',
+    `store --file ${process.env.HOME}/.git-credentials`,
+  ]);
+
+  await writeFile(
+    `${process.env.HOME}/.git-credentials`,
+    `https://${username}:${token}@${host}`
+  );
+}
+
 export const version = 2;
 
 export const config = {
@@ -41,6 +57,19 @@ export async function build({
   config,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType) {
+  if (
+    process.env.GIT_USERNAME &&
+    process.env.GIT_TOKEN &&
+    process.env.GIT_HOST
+  ) {
+    console.log('Initialize Git...');
+    await initPrivateGit(
+      process.env.GIT_USERNAME,
+      process.env.GIT_TOKEN,
+      process.env.GIT_HOST
+    );
+  }
+
   console.log('Downloading user files...');
   const entrypointArr = entrypoint.split(sep);
 
