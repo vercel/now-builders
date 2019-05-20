@@ -127,7 +127,7 @@ export async function downloadGo(
   if (isUserGo || process.env.GOPATH !== undefined) {
     const { stdout } = await execa('go', ['version']);
 
-    if (parseInt(stdout.split('.')[1]) > 11) {
+    if (parseInt(stdout.split('.')[1]) >= 11) {
       return createGo(dir, platform, arch);
     }
 
