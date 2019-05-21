@@ -36,7 +36,7 @@ async function initPrivateGit(username: string, token: string, host: string) {
     'config',
     '--global',
     'credential.helper',
-    `store --file ${process.env.HOME}/.git-credentials`,
+    `store --file ${path.join(os.homedir(), '.git-credentials')`,
   ]);
 
   await writeFile(
