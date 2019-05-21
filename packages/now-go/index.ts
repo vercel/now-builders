@@ -56,7 +56,7 @@ export async function build({
   workPath,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType) {
-  if (process.env.GIT_CREDENTIALS) {
+  if (process.env.GIT_CREDENTIALS && !meta.isDev) {
     console.log('Initialize Git credentials...');
     await initPrivateGit(process.env.GIT_CREDENTIALS);
   }
