@@ -32,7 +32,7 @@ interface BuildParamsType extends BuildOptions {
 }
 
 // Initialize private git repo for Go Modules
-async function initPrivateGit(username: string, token: string, host: string) {
+async function initPrivateGit(credentials: string) {
   await execa('git', [
     'config',
     '--global',
@@ -40,10 +40,7 @@ async function initPrivateGit(username: string, token: string, host: string) {
     `store --file ${join(homedir(), '.git-credentials')}`,
   ]);
 
-  await writeFile(
-    `${process.env.HOME}/.git-credentials`,
-    `https://${username}:${token}@${host}`
-  );
+  await writeFile(join(homedir(), '.git-credentials'), credentials);
 }
 
 export const version = 2;
@@ -59,17 +56,9 @@ export async function build({
   workPath,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType) {
-  if (
-    process.env.GIT_USERNAME &&
-    process.env.GIT_TOKEN &&
-    process.env.GIT_HOST
-  ) {
-    console.log('Initialize Git...');
-    await initPrivateGit(
-      process.env.GIT_USERNAME,
-      process.env.GIT_TOKEN,
-      process.env.GIT_HOST
-    );
+  if (process.env.GIT_CREDENTIALS) {
+    console.log('Initialize Git credentials...');
+    await initPrivateGit(process.env.GIT_CREDENTIALS);
   }
 
   console.log('Downloading user files...');
