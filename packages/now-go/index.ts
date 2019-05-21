@@ -1,5 +1,6 @@
 import { join, sep, dirname, basename } from 'path';
 import { readFile, writeFile, pathExists, move, copy } from 'fs-extra';
+import { homedir } from 'os';
 import execa from 'execa';
 
 import {
@@ -36,7 +37,7 @@ async function initPrivateGit(username: string, token: string, host: string) {
     'config',
     '--global',
     'credential.helper',
-    `store --file ${path.join(os.homedir(), '.git-credentials')`,
+    `store --file ${join(homedir(), '.git-credentials')}`,
   ]);
 
   await writeFile(
