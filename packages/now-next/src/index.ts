@@ -390,6 +390,7 @@ export const build = async ({
     Object.keys(staticPageFiles).forEach((page: string) => {
       const pathname = page.replace(/\.html$/, '');
       staticPages[path.join(entryDirectory, pathname)] = path.join(
+        entryDirectory,
         pagesDir,
         page
       );
