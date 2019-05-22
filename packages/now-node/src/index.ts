@@ -150,7 +150,7 @@ export async function build({
   const lambda = await createLambda({
     files: { ...preparedFiles, ...launcherFiles },
     handler: 'launcher.launcher',
-    runtime: 'nodejs8.10',
+    runtime: config && config.runtime ? config.runtime : 'nodejs10.x',
   });
 
   return { [entrypoint]: lambda };
