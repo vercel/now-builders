@@ -155,14 +155,13 @@ export const build = async ({
   entrypoint,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType): Promise<{
-  routes?: any[];
+  routes?: { src: string; dest: string }[];
   output: Files;
   watch?: string[];
   childProcesses: ChildProcess[];
 }> => {
   validateEntrypoint(entrypoint);
 
-  const routes: any[] = [];
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
   const dotNext = path.join(entryPath, '.next');
@@ -289,8 +288,9 @@ export const build = async ({
     await unlinkFile(path.join(entryPath, '.npmrc'));
   }
 
+  const routes: { src: string; dest: string }[] = [];
   const lambdas: { [key: string]: Lambda } = {};
-  let staticPages: { [key: string]: FileFsRef } = {};
+  const staticPages: { [key: string]: FileFsRef } = {};
 
   if (isLegacy) {
     const filesAfterBuild = await glob('**', entryPath);
@@ -385,13 +385,16 @@ export const build = async ({
     const pagesDir = path.join(entryPath, '.next', 'serverless', 'pages');
 
     const pages = await glob('**/*.js', pagesDir);
-    staticPages = await glob('**/*.html', pagesDir);
+    const staticPageFiles = await glob('**/*.html', pagesDir);
 
-    Object.keys(staticPages).forEach((page: string) => {
+    Object.keys(staticPageFiles).forEach((page: string) => {
+      const staticRoute = path.join(entryDirectory, page);
+      staticPages[staticRoute] = staticPageFiles[page];
+
       const pathname = page.replace(/\.html$/, '');
       routes.push({
         src: path.join(entryDirectory, pathname),
-        dest: page,
+        dest: staticRoute,
       });
     });
 
