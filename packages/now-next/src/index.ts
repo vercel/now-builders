@@ -290,7 +290,7 @@ export const build = async ({
   }
 
   const lambdas: { [key: string]: Lambda } = {};
-  const staticPages: { [key: string]: FileFsRef } = {};
+  let staticPages: { [key: string]: FileFsRef } = {};
 
   if (isLegacy) {
     const filesAfterBuild = await glob('**', entryPath);
@@ -385,11 +385,14 @@ export const build = async ({
     const pagesDir = path.join(entryPath, '.next', 'serverless', 'pages');
 
     const pages = await glob('**/*.js', pagesDir);
-    const staticPageFiles = await glob('**/*.html', pagesDir);
+    staticPages = await glob('**/*.html', pagesDir);
 
-    Object.keys(staticPageFiles).forEach((page: string) => {
+    Object.keys(staticPages).forEach((page: string) => {
       const pathname = page.replace(/\.html$/, '');
-      staticPages[path.join(entryDirectory, pathname)] = staticPageFiles[page];
+      routes.push({
+        src: pathname,
+        dest: page,
+      });
     });
 
     const pageKeys = Object.keys(pages);
@@ -483,7 +486,7 @@ export const build = async ({
       ...staticFiles,
       ...staticDirectoryFiles,
     },
-    routes: [],
+    routes,
     watch: [],
     childProcesses: [],
   };
