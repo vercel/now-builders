@@ -72,13 +72,14 @@ else:
         if isinstance(body, string_types):
             body = to_bytes(body, charset='utf-8')
 
-        urlinfo = urlparse(payload['path'])
+        path = unquote(payload['path'])
+        query = urlparse(path).query
 
         environ = {
             'CONTENT_LENGTH': str(len(body)),
             'CONTENT_TYPE': headers.get('content-type', ''),
-            'PATH_INFO': unquote(payload['path']),
-            'QUERY_STRING': unquote(urlinfo.query),
+            'PATH_INFO': path,
+            'QUERY_STRING': query,
             'REMOTE_ADDR': headers.get(
                 'x-forwarded-for', headers.get(
                     'x-real-ip', payload.get(
