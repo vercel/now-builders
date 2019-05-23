@@ -387,13 +387,17 @@ export const build = async ({
     const pages = await glob('**/*.js', pagesDir);
     const staticPageFiles = await glob('**/*.html', pagesDir);
 
+    const routePrefix =
+      entryDirectory === '.' || entryDirectory === ''
+        ? `/`
+        : `/${entryDirectory}/`;
     Object.keys(staticPageFiles).forEach((page: string) => {
       const staticRoute = path.join(entryDirectory, page);
       staticPages[staticRoute] = staticPageFiles[page];
 
       const pathname = page.replace(/\.html$/, '');
       routes.push({
-        src: path.join(entryDirectory, pathname),
+        src: path.join(routePrefix, pathname),
         dest: staticRoute,
       });
     });
