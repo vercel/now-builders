@@ -390,7 +390,7 @@ export const build = async ({
     Object.keys(staticPages).forEach((page: string) => {
       const pathname = page.replace(/\.html$/, '');
       routes.push({
-        src: pathname,
+        src: path.join(entryDirectory, pathname),
         dest: page,
       });
     });
