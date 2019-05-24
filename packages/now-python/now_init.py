@@ -22,6 +22,7 @@ _now_imported, _now_is_legacy = _now_get_import()
 if _now_is_legacy:
     print('using HTTP Handler')
     from http.server import HTTPServer
+    from urllib.parse import unquote
     import requests
     import _thread
     server = HTTPServer(('', 0), _now_imported)
@@ -30,7 +31,7 @@ if _now_is_legacy:
         _thread.start_new_thread(server.handle_request, ())
 
         payload = json.loads(event['body'])
-        path = payload['path']
+        path = unquote(payload['path'])
         headers = payload['headers']
         method = payload['method']
         encoding = payload.get('encoding')
@@ -53,10 +54,7 @@ if _now_is_legacy:
 else:
     print('using Web Server Gateway Interface (WSGI)')
     import sys
-    try:
-        from urllib.parse import urlparse
-    except ImportError:
-        from urlparse import urlparse
+    from urllib.parse import urlparse, unquote
     from werkzeug._compat import BytesIO
     from werkzeug._compat import string_types
     from werkzeug._compat import to_bytes
@@ -75,13 +73,14 @@ else:
         if isinstance(body, string_types):
             body = to_bytes(body, charset='utf-8')
 
-        urlinfo = urlparse(payload['path'])
+        path = unquote(payload['path'])
+        query = urlparse(path).query
 
         environ = {
             'CONTENT_LENGTH': str(len(body)),
             'CONTENT_TYPE': headers.get('content-type', ''),
-            'PATH_INFO': payload['path'],
-            'QUERY_STRING': urlinfo.query,
+            'PATH_INFO': path,
+            'QUERY_STRING': query,
             'REMOTE_ADDR': headers.get(
                 'x-forwarded-for', headers.get(
                     'x-real-ip', payload.get(
@@ -102,7 +101,7 @@ else:
         }
 
         for key, value in environ.items():
-            if isinstance(value, string_types):
+            if isinstance(value, string_types) and key != 'QUERY_STRING':
                 environ[key] = wsgi_encoding_dance(value)
 
         for key, value in headers.items():
