@@ -1,6 +1,6 @@
 # @now-drupal
 
-This pakage help you install drupal sites in ZEIT Servers.
+This package help you install Drupal sites in ZEIT Servers.
 
 More details here: https://zeit.co/docs/v2/deployments/builders/overview/
 
