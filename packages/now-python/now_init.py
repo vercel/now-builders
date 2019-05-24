@@ -22,7 +22,6 @@ _now_imported, _now_is_legacy = _now_get_import()
 if _now_is_legacy:
     print('using HTTP Handler')
     from http.server import HTTPServer
-    from urllib.parse import unquote
     import requests
     import _thread
     server = HTTPServer(('', 0), _now_imported)
@@ -31,7 +30,7 @@ if _now_is_legacy:
         _thread.start_new_thread(server.handle_request, ())
 
         payload = json.loads(event['body'])
-        path = unquote(payload['path'])
+        path = payload['path']
         headers = payload['headers']
         method = payload['method']
         encoding = payload.get('encoding')
