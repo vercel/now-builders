@@ -27,7 +27,7 @@ async function inferCargoBinaries(config) {
     const { stdout: manifestStr } = await execa(
       'cargo',
       ['read-manifest'],
-      config,
+      config
     );
 
     const { targets } = JSON.parse(manifestStr);
@@ -63,7 +63,7 @@ async function buildWholeProject({
         env: rustEnv,
         cwd: entrypointDirname,
         stdio: 'inherit',
-      },
+      }
     );
   } catch (err) {
     console.error('failed to `cargo build`');
@@ -73,7 +73,7 @@ async function buildWholeProject({
   const targetPath = path.join(
     entrypointDirname,
     'target',
-    debug ? 'debug' : 'release',
+    debug ? 'debug' : 'release'
   );
   const binaries = await inferCargoBinaries({
     env: rustEnv,
@@ -83,7 +83,7 @@ async function buildWholeProject({
   const lambdas = {};
   const lambdaPath = path.dirname(entrypoint);
   await Promise.all(
-    binaries.map(async (binary) => {
+    binaries.map(async binary => {
       const fsPath = path.join(targetPath, binary);
       const lambda = await createLambda({
         files: {
@@ -95,7 +95,7 @@ async function buildWholeProject({
       });
 
       lambdas[path.join(lambdaPath, binary)] = lambda;
-    }),
+    })
   );
 
   return lambdas;
@@ -110,7 +110,7 @@ async function gatherExtraFiles(globMatcher, entrypoint) {
 
   if (Array.isArray(globMatcher)) {
     const allMatches = await Promise.all(
-      globMatcher.map(pattern => glob(pattern, entryDir)),
+      globMatcher.map(pattern => glob(pattern, entryDir))
     );
 
     return allMatches.reduce((acc, matches) => ({ ...acc, ...matches }), {});
@@ -135,7 +135,7 @@ async function cargoLocateProject(config) {
     const { stdout: projectDescriptionStr } = await execa(
       'cargo',
       ['locate-project'],
-      config,
+      config
     );
     const projectDescription = JSON.parse(projectDescriptionStr);
     if (projectDescription != null && projectDescription.root != null) {
@@ -167,7 +167,7 @@ async function buildSingleFile({
   const entrypointDirname = path.dirname(entrypointPath);
   launcherData = launcherData.replace(
     '// PLACEHOLDER',
-    await fs.readFile(path.join(workPath, entrypoint)),
+    await fs.readFile(path.join(workPath, entrypoint))
   );
   // replace the entrypoint with one that includes the the imports + lambda.start
   await fs.remove(entrypointPath);
@@ -218,13 +218,13 @@ async function buildSingleFile({
     await execa(
       'cargo',
       ['build', '--bin', binName, '--verbose'].concat(
-        debug ? [] : ['--release'],
+        debug ? [] : ['--release']
       ),
       {
         env: rustEnv,
         cwd: entrypointDirname,
         stdio: 'inherit',
-      },
+      }
     );
   } catch (err) {
     console.error('failed to `cargo build`');
@@ -235,7 +235,7 @@ async function buildSingleFile({
     path.dirname(cargoTomlFile),
     'target',
     debug ? 'debug' : 'release',
-    binName,
+    binName
   );
 
   const lambda = await createLambda({
@@ -252,10 +252,8 @@ async function buildSingleFile({
   };
 }
 
-exports.build = async (m) => {
-  const {
-    files, entrypoint, workPath, config, meta,
-  } = m;
+exports.build = async m => {
+  const { files, entrypoint, workPath, config, meta } = m;
   const { isDev } = meta || {};
   console.log('downloading files');
   const downloadedFiles = await download(files, workPath, meta);
@@ -316,7 +314,7 @@ exports.prepareCache = async ({ cachePath, entrypoint, workPath }) => {
 
   const cacheEntrypointDirname = path.join(
     cachePath,
-    path.relative(workPath, targetFolderDir),
+    path.relative(workPath, targetFolderDir)
   );
 
   // Remove the target folder to avoid 'directory already exists' errors
@@ -325,19 +323,20 @@ exports.prepareCache = async ({ cachePath, entrypoint, workPath }) => {
   // Move the target folder to the cache location
   fs.renameSync(
     path.join(targetFolderDir, 'target'),
-    path.join(cacheEntrypointDirname, 'target'),
+    path.join(cacheEntrypointDirname, 'target')
   );
 
   const cacheFiles = await glob('**/**', cachePath);
 
   // eslint-disable-next-line no-restricted-syntax
   for (const f of Object.keys(cacheFiles)) {
-    const accept = /(?:^|\/)target\/release\/\.fingerprint\//.test(f)
-      || /(?:^|\/)target\/release\/build\//.test(f)
-      || /(?:^|\/)target\/release\/deps\//.test(f)
-      || /(?:^|\/)target\/debug\/\.fingerprint\//.test(f)
-      || /(?:^|\/)target\/debug\/build\//.test(f)
-      || /(?:^|\/)target\/debug\/deps\//.test(f);
+    const accept =
+      /(?:^|\/)target\/release\/\.fingerprint\//.test(f) ||
+      /(?:^|\/)target\/release\/build\//.test(f) ||
+      /(?:^|\/)target\/release\/deps\//.test(f) ||
+      /(?:^|\/)target\/debug\/\.fingerprint\//.test(f) ||
+      /(?:^|\/)target\/debug\/build\//.test(f) ||
+      /(?:^|\/)target\/debug\/deps\//.test(f);
     if (!accept) {
       delete cacheFiles[f];
     }
