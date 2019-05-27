@@ -7,6 +7,7 @@ import {
 } from 'fs-extra';
 import os from 'os';
 import path from 'path';
+import resolveFrom from 'resolve-from';
 import semver from 'semver';
 
 import {
@@ -27,12 +28,12 @@ import nextLegacyVersions from './legacy-versions';
 import {
   EnvConfig,
   excludeFiles,
+  filesFromDirectory,
   getNextConfig,
   getPathsInside,
   getRoutes,
   includeOnlyEntryDirectory,
   normalizePackageJson,
-  filesFromDirectory,
   stringMap,
   syncEnvVars,
   validateEntrypoint,
@@ -397,6 +398,53 @@ export const build = async ({
         dest: path.join('/', staticRoute),
       });
     });
+
+    const buildManifestPath = path.join(
+      entryPath,
+      '.next',
+      'build-manifest.json'
+    );
+    if (await pathExists(buildManifestPath)) {
+      let getRouteRegex:
+        | ((pageName: string) => { re: RegExp })
+        | undefined = undefined;
+      try {
+        ({ getRouteRegex } = require(resolveFrom(
+          entryPath,
+          'next-server/dist/lib/router/utils'
+        )));
+        if (typeof getRouteRegex !== 'function') {
+          getRouteRegex = undefined;
+        }
+      } catch (_) {}
+
+      const buildManifest = require(buildManifestPath);
+      if (buildManifest && buildManifest.pages) {
+        const pageNames = Object.keys(buildManifest.pages).filter(p =>
+          p.includes('/$')
+        );
+        if (pageNames.length && !getRouteRegex) {
+          throw new Error(
+            'Found usage of dynamic routes but not on a new enough version of Next.js.'
+          );
+        }
+
+        const pageMatchers = pageNames
+          .map(pageName => ({ pageName, matcher: getRouteRegex!(pageName).re }))
+          .sort((a, b) =>
+            Math.sign(
+              a.pageName.match(/\/\$/g)!.length -
+                b.pageName.match(/\/\$/g)!.length
+            )
+          );
+        pageMatchers.forEach(pageMatcher => {
+          routes.push({
+            src: pageMatcher.matcher.source,
+            dest: path.join('/', entryDirectory, pageMatcher.pageName),
+          });
+        });
+      }
+    }
 
     const pageKeys = Object.keys(pages);
 
