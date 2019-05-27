@@ -1,15 +1,30 @@
-const fs = require('fs-extra');
-const path = require('path');
-const execa = require('execa');
-const toml = require('@iarna/toml');
-const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
-const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
-const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
-const { runShellScript } = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
-const FileFsRef = require('@now/build-utils/file-fs-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
-const FileRef = require('@now/build-utils/file-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
-const { shouldServe } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
-const installRust = require('./install-rust.js');
+import fs from 'fs-extra';
+import path from 'path';
+import execa from 'execa';
+import toml from '@iarna/toml';
+import {
+  shouldServe,
+  glob,
+  createLambda,
+  download,
+  FileRef,
+  FileFsRef,
+  runShellScript,
+  BuildOptions,
+  Files,
+} from '@now/build-utils'; // eslint-disable-line import/no-extraneous-dependencies
+import installRust from './install-rust';
+
+interface BuildParamsMeta {
+  isDev: boolean | undefined;
+}
+
+interface BuildParamsType extends BuildOptions {
+  files: Files;
+  entrypoint: string;
+  workPath: string;
+  meta: BuildParamsMeta;
+}
 
 exports.config = {
   maxLambdaSize: '25mb',
@@ -22,7 +37,7 @@ const codegenFlags = [
   'target-feature=-aes,-avx,+fxsr,-popcnt,+sse,+sse2,-sse3,-sse4.1,-sse4.2,-ssse3,-xsave,-xsaveopt',
 ];
 
-async function inferCargoBinaries(config) {
+async function inferCargoBinaries(config: BuildParamsType['config']) {
   try {
     const { stdout: manifestStr } = await execa(
       'cargo',
@@ -51,7 +66,7 @@ async function buildWholeProject({
   extraFiles,
   rustEnv,
   config,
-}) {
+}: BuildParamsType) {
   const entrypointDirname = path.dirname(downloadedFiles[entrypoint].fsPath);
   const { debug } = config;
   console.log('running `cargo build`...');
@@ -101,7 +116,7 @@ async function buildWholeProject({
   return lambdas;
 }
 
-async function gatherExtraFiles(globMatcher, entrypoint) {
+async function gatherExtraFiles(globMatcher: string, entrypoint: string) {
   if (!globMatcher) return {};
 
   console.log('gathering extra files for the fs...');
@@ -119,7 +134,7 @@ async function gatherExtraFiles(globMatcher, entrypoint) {
   return glob(globMatcher, entryDir);
 }
 
-async function runUserScripts(entrypoint) {
+async function runUserScripts(entrypoint: string) {
   const entryDir = path.dirname(entrypoint);
   const buildScriptPath = path.join(entryDir, 'build.sh');
   const buildScriptExists = await fs.exists(buildScriptPath);
@@ -130,7 +145,7 @@ async function runUserScripts(entrypoint) {
   }
 }
 
-async function cargoLocateProject(config) {
+async function cargoLocateProject(config: BuildParamsType['config']) {
   try {
     const { stdout: projectDescriptionStr } = await execa(
       'cargo',
@@ -158,7 +173,7 @@ async function buildSingleFile({
   extraFiles,
   rustEnv,
   config,
-}) {
+}: BuildParamsType) {
   console.log('building single file');
   const launcherPath = path.join(__dirname, 'launcher.rs');
   let launcherData = await fs.readFile(launcherPath, 'utf8');
@@ -252,9 +267,13 @@ async function buildSingleFile({
   };
 }
 
-exports.build = async m => {
-  const { files, entrypoint, workPath, config, meta } = m;
-  const { isDev } = meta || {};
+exports.build = async ({
+  files,
+  entrypoint,
+  workPath,
+  config,
+  meta,
+}: BuildParamsType) => {
   console.log('downloading files');
   const downloadedFiles = await download(files, workPath, meta);
   const entryPath = downloadedFiles[entrypoint].fsPath;
@@ -266,7 +285,7 @@ exports.build = async m => {
   const { PATH, HOME } = process.env;
   const rustEnv = {
     ...process.env,
-    PATH: `${path.join(HOME, '.cargo/bin')}:${PATH}`,
+    PATH: `${path.join(HOME!, '.cargo/bin')}:${PATH}`,
     RUSTFLAGS: [process.env.RUSTFLAGS, ...codegenFlags]
       .filter(Boolean)
       .join(' '),
@@ -282,7 +301,11 @@ exports.build = async m => {
   return buildSingleFile(newM);
 };
 
-exports.prepareCache = async ({ cachePath, entrypoint, workPath }) => {
+exports.prepareCache = async ({
+  cachePath,
+  entrypoint,
+  workPath,
+}: BuildParamsType) => {
   console.log('preparing cache...');
 
   let targetFolderDir;
@@ -292,7 +315,7 @@ exports.prepareCache = async ({ cachePath, entrypoint, workPath }) => {
     const { PATH, HOME } = process.env;
     const rustEnv = {
       ...process.env,
-      PATH: `${path.join(HOME, '.cargo/bin')}:${PATH}`,
+      PATH: `${path.join(HOME!, '.cargo/bin')}:${PATH}`,
       RUSTFLAGS: [process.env.RUSTFLAGS, ...codegenFlags]
         .filter(Boolean)
         .join(' '),
@@ -345,7 +368,10 @@ exports.prepareCache = async ({ cachePath, entrypoint, workPath }) => {
   return cacheFiles;
 };
 
-function findCargoToml(files, entrypoint) {
+function findCargoToml(
+  files: BuildParamsType['files'],
+  entrypoint: BuildParamsType['entrypoint']
+) {
   let currentPath = path.dirname(entrypoint);
   let cargoTomlPath;
 
@@ -361,7 +387,7 @@ function findCargoToml(files, entrypoint) {
   return cargoTomlPath;
 }
 
-exports.getDefaultCache = ({ files, entrypoint }) => {
+exports.getDefaultCache = ({ files, entrypoint }: BuildParamsType) => {
   const cargoTomlPath = findCargoToml(files, entrypoint);
   if (!cargoTomlPath) return undefined;
   const targetFolderDir = path.dirname(cargoTomlPath);
