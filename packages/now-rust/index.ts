@@ -3,7 +3,6 @@ import path from 'path';
 import execa from 'execa';
 import toml from '@iarna/toml';
 import {
-  shouldServe,
   glob,
   createLambda,
   download,
@@ -11,17 +10,27 @@ import {
   FileFsRef,
   runShellScript,
   BuildOptions,
-  Files,
   PrepareCacheOptions,
+  DownloadedFiles,
+  Lambda,
 } from '@now/build-utils'; // eslint-disable-line import/no-extraneous-dependencies
 import installRust from './install-rust';
-import { DownloadedFiles } from '@now/build-utils/dist/fs/download';
 
 interface PackageManfest {
   targets: { kind: string; name: string }[];
 }
 
-exports.config = {
+interface CargoConfig {
+  env: Record<string, any>;
+  cwd: string;
+}
+
+interface CargoToml extends toml.JsonMap {
+  package: toml.JsonMap;
+  dependencies: toml.JsonMap;
+}
+
+export const config = {
   maxLambdaSize: '25mb',
 };
 
@@ -32,7 +41,7 @@ const codegenFlags = [
   'target-feature=-aes,-avx,+fxsr,-popcnt,+sse,+sse2,-sse3,-sse4.1,-sse4.2,-ssse3,-xsave,-xsaveopt',
 ];
 
-async function inferCargoBinaries(config: BuildOptions['config']) {
+async function inferCargoBinaries(config: CargoConfig) {
   try {
     const { stdout: manifestStr } = await execa(
       'cargo',
@@ -51,7 +60,7 @@ async function inferCargoBinaries(config: BuildOptions['config']) {
   }
 }
 
-async function parseTOMLStream(stream) {
+async function parseTOMLStream(stream: NodeJS.ReadableStream) {
   return toml.parse.stream(stream);
 }
 
@@ -90,7 +99,7 @@ async function buildWholeProject(
     cwd: entrypointDirname,
   });
 
-  const lambdas = {};
+  const lambdas: Record<string, Lambda> = {};
   const lambdaPath = path.dirname(entrypoint);
   await Promise.all(
     binaries.map(async binary => {
@@ -132,7 +141,7 @@ async function gatherExtraFiles(globMatcher: string, entrypoint: string) {
 async function runUserScripts(entrypoint: string) {
   const entryDir = path.dirname(entrypoint);
   const buildScriptPath = path.join(entryDir, 'build.sh');
-  const buildScriptExists = await fs.exists(buildScriptPath);
+  const buildScriptExists = await fs.pathExists(buildScriptPath);
 
   if (buildScriptExists) {
     console.log('running `build.sh`...');
@@ -140,7 +149,7 @@ async function runUserScripts(entrypoint: string) {
   }
 }
 
-async function cargoLocateProject(config: BuildOptions['config']) {
+async function cargoLocateProject(config: CargoConfig) {
   try {
     const { stdout: projectDescriptionStr } = await execa(
       'cargo',
@@ -189,9 +198,11 @@ async function buildSingleFile(
 
   // TODO: we're assuming there's a Cargo.toml file. We need to create one
   // otherwise
-  let cargoToml: toml.JsonMap;
+  let cargoToml: CargoToml;
   try {
-    cargoToml = await parseTOMLStream(fs.createReadStream(cargoTomlFile));
+    cargoToml = (await parseTOMLStream(
+      fs.createReadStream(cargoTomlFile)
+    )) as CargoToml;
   } catch (err) {
     console.error('Failed to parse TOML from entrypoint:', entrypoint);
     throw err;
@@ -261,13 +272,13 @@ async function buildSingleFile(
 }
 
 export async function build(opts: BuildOptions) {
-  const { files, entrypoint, workPath, config, meta } = opts;
+  const { files, entrypoint, workPath, config, meta = {} } = opts;
   console.log('downloading files');
   const downloadedFiles = await download(files, workPath, meta);
   const entryPath = downloadedFiles[entrypoint].fsPath;
 
-  if (!isDev) {
-    await installRust();
+  if (!meta.isDev) {
+    await installRust(config.version);
   }
 
   const { PATH, HOME } = process.env;
@@ -374,7 +385,7 @@ function findCargoToml(
   return cargoTomlPath;
 }
 
-exports.getDefaultCache = ({ files, entrypoint }: BuildOptions) => {
+export const getDefaultCache = ({ files, entrypoint }: BuildOptions) => {
   const cargoTomlPath = findCargoToml(files, entrypoint);
   if (!cargoTomlPath) return undefined;
   const targetFolderDir = path.dirname(cargoTomlPath);
@@ -385,4 +396,4 @@ exports.getDefaultCache = ({ files, entrypoint }: BuildOptions) => {
   return { [targetFolderDir]: defaultCacheRef };
 };
 
-exports.shouldServe = shouldServe;
+export { shouldServe } from '@now/build-utils';

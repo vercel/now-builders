@@ -11,10 +11,12 @@
   "scripts": {
     "build": "tsc",
     "test": "tsc && jest",
-    "prepublish": "tsc"
+    "prepublish": "tsc",
+    "typecheck": "tsc -p . --noEmit"
   },
   "files": [
-    "dist",
+    "index.js",
+    "install-rust.js",
     "launcher.rs"
   ],
   "peerDependencies": {
