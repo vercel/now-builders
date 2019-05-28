@@ -490,6 +490,19 @@ export const build = async ({
       ...staticDirectoryFiles,
     },
     routes: [
+      // Next.js page lambdas
+      ...Object.keys(lambdas).map(lambdaName => {
+        const lambdaPath = path.join('/', lambdaName);
+
+        // All page lambda routes are normalized except for `/index`
+        const isRoot = lambdaPath === path.join('/', entryDirectory, '/index');
+        return {
+          src: isRoot
+            ? // The root page should be mached by `^/?$`, not `/index`
+              '^' + path.join('/', entryDirectory, '/') + '?$'
+            : lambdaPath,
+        };
+      }),
       // Next.js `static/` folder
       { src: path.join('/', entryDirectory, '/static/.+') },
       // Next.js reserved assets
