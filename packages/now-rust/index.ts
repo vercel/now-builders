@@ -65,12 +65,11 @@ async function parseTOMLStream(stream: NodeJS.ReadableStream) {
 }
 
 async function buildWholeProject(
-  opts: BuildOptions,
+  { entrypoint, config }: BuildOptions,
   downloadedFiles: DownloadedFiles,
   extraFiles: DownloadedFiles,
-  rustEnv: { [key: string]: string }
+  rustEnv: Record<string, string>
 ) {
-  const { entrypoint, config } = opts;
   const entrypointDirname = path.dirname(downloadedFiles[entrypoint].fsPath);
   const { debug } = config;
   console.log('running `cargo build`...');
@@ -174,7 +173,7 @@ async function buildSingleFile(
   { workPath, entrypoint, config }: BuildOptions,
   downloadedFiles: DownloadedFiles,
   extraFiles: DownloadedFiles,
-  rustEnv: { [key: string]: string }
+  rustEnv: Record<string, string>
 ) {
   console.log('building single file');
   const launcherPath = path.join(__dirname, 'launcher.rs');
@@ -278,11 +277,11 @@ export async function build(opts: BuildOptions) {
   const entryPath = downloadedFiles[entrypoint].fsPath;
 
   if (!meta.isDev) {
-    await installRust(config.version);
+    await installRust(config.rust);
   }
 
   const { PATH, HOME } = process.env;
-  const rustEnv: { [key: string]: string } = {
+  const rustEnv: Record<string, string> = {
     ...process.env,
     PATH: `${path.join(HOME!, '.cargo/bin')}:${PATH}`,
     RUSTFLAGS: [process.env.RUSTFLAGS, ...codegenFlags]
@@ -306,12 +305,13 @@ export async function prepareCache({
 }: PrepareCacheOptions) {
   console.log('preparing cache...');
 
-  let targetFolderDir;
+  let targetFolderDir: string;
+
   if (path.extname(entrypoint) === '.toml') {
     targetFolderDir = path.dirname(path.join(workPath, entrypoint));
   } else {
     const { PATH, HOME } = process.env;
-    const rustEnv: { [key: string]: string } = {
+    const rustEnv: Record<string, string> = {
       ...process.env,
       PATH: `${path.join(HOME!, '.cargo/bin')}:${PATH}`,
       RUSTFLAGS: [process.env.RUSTFLAGS, ...codegenFlags]

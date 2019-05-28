@@ -2,7 +2,6 @@
   "name": "@now/rust",
   "version": "0.2.5-canary.0",
   "license": "MIT",
-  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
@@ -19,9 +18,6 @@
     "install-rust.js",
     "launcher.rs"
   ],
-  "peerDependencies": {
-    "@now/build-utils": "*"
-  },
   "dependencies": {
     "@iarna/toml": "^2.2.1",
     "execa": "^1.0.0",
