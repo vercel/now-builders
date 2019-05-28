@@ -23,4 +23,4 @@ else
   echo "Publishing stable release"
 fi
 
-npm run lerna publish from-git $npm_tag --yes
+yarn run lerna publish from-git $npm_tag --yes
