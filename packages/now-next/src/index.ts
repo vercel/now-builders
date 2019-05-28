@@ -155,7 +155,7 @@ export const build = async ({
   entrypoint,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType): Promise<{
-  routes?: { src: string; dest: string }[];
+  routes?: { src: string; dest?: string }[];
   output: Files;
   watch?: string[];
   childProcesses: ChildProcess[];
@@ -489,7 +489,18 @@ export const build = async ({
       ...staticFiles,
       ...staticDirectoryFiles,
     },
-    routes,
+    routes: [
+      // Next.js `static/` folder
+      { src: path.join('/', entryDirectory, '/static/.+') },
+      // Next.js reserved assets
+      { src: path.join('/', entryDirectory, '/_next/.+') },
+      // Next.js `public/` folder
+      ...Object.keys(publicFiles).map(fileName => ({
+        src: path.join('/', fileName),
+      })),
+      // Dynamic routes and static exported pages
+      ...routes,
+    ],
     watch: [],
     childProcesses: [],
   };
