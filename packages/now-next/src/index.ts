@@ -399,9 +399,9 @@ export const build = async ({
       });
     });
 
-    const dynamicRoutedPageNames = Object.keys(pages).filter(
-      p => p.startsWith('$') || p.includes('/$')
-    );
+    const dynamicRoutedPageNames = Object.keys(pages)
+      .filter(p => p.startsWith('$') || p.includes('/$'))
+      .map(p => p.replace(/\.js$/, ''));
     if (dynamicRoutedPageNames.length) {
       let getRouteRegex:
         | ((pageName: string) => { re: RegExp })
