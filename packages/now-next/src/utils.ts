@@ -171,6 +171,7 @@ function getPathsInside(entryDirectory: string, files: Files) {
 }
 
 function getRoutes(
+  entryPath: string,
   entryDirectory: string,
   pathsInside: string[],
   files: Files,
@@ -199,6 +200,7 @@ function getRoutes(
   ];
   const filePaths = Object.keys(filesInside);
 
+  const dynamicPages = [];
   for (const file of filePaths) {
     const relativePath = path.relative(entryDirectory, file);
     const isPage = pathIsInside('pages', relativePath);
@@ -228,7 +230,12 @@ function getRoutes(
         dest: `${url}/${resolvedIndex}`,
       });
     }
+
+    if (pageName.startsWith('$') || pageName.includes('/$')) {
+      dynamicPages.push(pageName.replace(/[\\\/]index$/, ''));
+    }
   }
+  routes.push(...getDynamicRoutes(entryPath, entryDirectory, dynamicPages));
 
   // Add public folder routes
   for (const file of filePaths) {

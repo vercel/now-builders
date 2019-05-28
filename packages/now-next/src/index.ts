@@ -215,7 +215,13 @@ export const build = async ({
 
     return {
       output: {},
-      routes: getRoutes(entryDirectory, pathsInside, files, urls[entrypoint]),
+      routes: getRoutes(
+        entryPath,
+        entryDirectory,
+        pathsInside,
+        files,
+        urls[entrypoint]
+      ),
       watch: pathsInside,
       childProcesses: childProcess ? [childProcess] : [],
     };
