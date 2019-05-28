@@ -11,7 +11,7 @@ action "1. yarn install" {
 
 action "2. yarn run build" {
   uses = "actions/npm@59b64a598378f31e49cb76f27d6f3312b582f680"
-  needs = ["1. npm install"]
+  needs = ["1. yarn install"]
   runs = "yarn"
   args = "run build"
 }
