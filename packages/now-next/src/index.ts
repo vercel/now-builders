@@ -7,7 +7,6 @@ import {
 } from 'fs-extra';
 import os from 'os';
 import path from 'path';
-import resolveFrom from 'resolve-from';
 import semver from 'semver';
 
 import {
