@@ -1,5 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
+import resolveFrom from 'resolve-from';
+
 import { Files } from '@now/build-utils';
 
 type stringMap = { [key: string]: string };
@@ -262,6 +264,52 @@ function syncEnvVars(base: EnvConfig, removeEnv: EnvConfig, addEnv: EnvConfig) {
 
   // Add in the keys from `addEnv`
   Object.assign(base, addEnv);
+}
+
+export function getDynamicRoutes(
+  entryPath: string,
+  entryDirectory: string,
+  dynamicPages: string[]
+): { src: string; dest: string }[] {
+  if (!dynamicPages.length) {
+    return [];
+  }
+
+  let getRouteRegex:
+    | ((pageName: string) => { re: RegExp })
+    | undefined = undefined;
+  try {
+    ({ getRouteRegex } = require(resolveFrom(
+      entryPath,
+      'next-server/dist/lib/router/utils'
+    )));
+    if (typeof getRouteRegex !== 'function') {
+      getRouteRegex = undefined;
+    }
+  } catch (_) {}
+
+  if (!getRouteRegex) {
+    throw new Error(
+      'Found usage of dynamic routes but not on a new enough version of Next.js.'
+    );
+  }
+
+  const pageMatchers = dynamicPages
+    .map(pageName => ({ pageName, matcher: getRouteRegex!(pageName).re }))
+    .sort((a, b) =>
+      Math.sign(
+        a.pageName.match(/\/\$/g)!.length - b.pageName.match(/\/\$/g)!.length
+      )
+    );
+
+  const routes: { src: string; dest: string }[] = [];
+  pageMatchers.forEach(pageMatcher => {
+    routes.push({
+      src: pageMatcher.matcher.source,
+      dest: path.join('/', entryDirectory, pageMatcher.pageName),
+    });
+  });
+  return routes;
 }
 
 export {

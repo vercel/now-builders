@@ -37,6 +37,7 @@ import {
   stringMap,
   syncEnvVars,
   validateEntrypoint,
+  getDynamicRoutes,
 } from './utils';
 
 interface BuildParamsMeta {
@@ -402,41 +403,9 @@ export const build = async ({
     const dynamicRoutedPageNames = Object.keys(pages)
       .filter(p => p.startsWith('$') || p.includes('/$'))
       .map(p => p.replace(/\.js$/, ''));
-    if (dynamicRoutedPageNames.length) {
-      let getRouteRegex:
-        | ((pageName: string) => { re: RegExp })
-        | undefined = undefined;
-      try {
-        ({ getRouteRegex } = require(resolveFrom(
-          entryPath,
-          'next-server/dist/lib/router/utils'
-        )));
-        if (typeof getRouteRegex !== 'function') {
-          getRouteRegex = undefined;
-        }
-      } catch (_) {}
-
-      if (!getRouteRegex) {
-        throw new Error(
-          'Found usage of dynamic routes but not on a new enough version of Next.js.'
-        );
-      }
-
-      const pageMatchers = dynamicRoutedPageNames
-        .map(pageName => ({ pageName, matcher: getRouteRegex!(pageName).re }))
-        .sort((a, b) =>
-          Math.sign(
-            a.pageName.match(/\/\$/g)!.length -
-              b.pageName.match(/\/\$/g)!.length
-          )
-        );
-      pageMatchers.forEach(pageMatcher => {
-        routes.push({
-          src: pageMatcher.matcher.source,
-          dest: path.join('/', entryDirectory, pageMatcher.pageName),
-        });
-      });
-    }
+    routes.push(
+      ...getDynamicRoutes(entryPath, entryDirectory, dynamicRoutedPageNames)
+    );
 
     const pageKeys = Object.keys(pages);
 
