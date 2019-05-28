@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+
 if [ ! -e ~/.npmrc ]; then
   echo "~/.npmrc file does not exist, skipping publish"
   exit 0
@@ -21,4 +23,4 @@ else
   echo "Publishing stable release"
 fi
 
-yarn run lerna publish from-git $npm_tag --yes
+npm run lerna publish from-git $npm_tag --yes
