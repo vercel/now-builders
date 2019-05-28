@@ -495,7 +495,7 @@ export const build = async ({
         const lambdaPath = path.join('/', lambdaName);
 
         // All page lambda routes are normalized except for `/index`
-        const isRoot = lambdaPath === path.join('/', entryDirectory, '/index');
+        const isRoot = lambdaPath === path.join('/', entryDirectory, 'index');
         return {
           src: isRoot
             ? // The root page should be mached by `^/?$`, not `/index`
@@ -504,9 +504,9 @@ export const build = async ({
         };
       }),
       // Next.js `static/` folder
-      { src: path.join('/', entryDirectory, '/static/.+') },
+      { src: path.join('/', entryDirectory, 'static', '.+') },
       // Next.js reserved assets
-      { src: path.join('/', entryDirectory, '/_next/.+') },
+      { src: path.join('/', entryDirectory, '_next', '.+') },
       // Next.js `public/` folder
       ...Object.keys(publicFiles).map(fileName => ({
         src: path.join('/', fileName),
