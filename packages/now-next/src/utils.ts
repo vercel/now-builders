@@ -232,7 +232,7 @@ function getRoutes(
     }
 
     if (pageName.startsWith('$') || pageName.includes('/$')) {
-      dynamicPages.push(pageName.replace(/[\\\/]index$/, ''));
+      dynamicPages.push(path.join('/', pageName.replace(/[\\\/]index$/, '')));
     }
   }
   routes.push(...getDynamicRoutes(entryPath, entryDirectory, dynamicPages));
