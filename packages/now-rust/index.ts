@@ -16,7 +16,7 @@ import {
 } from '@now/build-utils'; // eslint-disable-line import/no-extraneous-dependencies
 import installRust from './install-rust';
 
-interface PackageManfest {
+interface PackageManifest {
   targets: { kind: string; name: string }[];
 }
 
@@ -49,7 +49,7 @@ async function inferCargoBinaries(config: CargoConfig) {
       config
     );
 
-    const { targets } = JSON.parse(manifestStr) as PackageManfest;
+    const { targets } = JSON.parse(manifestStr) as PackageManifest;
 
     return targets
       .filter(({ kind }) => kind.includes('bin'))
