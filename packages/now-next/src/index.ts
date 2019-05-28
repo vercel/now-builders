@@ -399,12 +399,10 @@ export const build = async ({
       });
     });
 
-    const buildManifestPath = path.join(
-      entryPath,
-      '.next',
-      'build-manifest.json'
+    const dynamicRoutedPageNames = Object.keys(pages).filter(
+      p => p.startsWith('$') || p.includes('/$')
     );
-    if (await pathExists(buildManifestPath)) {
+    if (dynamicRoutedPageNames.length) {
       let getRouteRegex:
         | ((pageName: string) => { re: RegExp })
         | undefined = undefined;
@@ -418,32 +416,26 @@ export const build = async ({
         }
       } catch (_) {}
 
-      const buildManifest = require(buildManifestPath);
-      if (buildManifest && buildManifest.pages) {
-        const pageNames = Object.keys(buildManifest.pages).filter(p =>
-          p.includes('/$')
+      if (!getRouteRegex) {
+        throw new Error(
+          'Found usage of dynamic routes but not on a new enough version of Next.js.'
         );
-        if (pageNames.length && !getRouteRegex) {
-          throw new Error(
-            'Found usage of dynamic routes but not on a new enough version of Next.js.'
-          );
-        }
-
-        const pageMatchers = pageNames
-          .map(pageName => ({ pageName, matcher: getRouteRegex!(pageName).re }))
-          .sort((a, b) =>
-            Math.sign(
-              a.pageName.match(/\/\$/g)!.length -
-                b.pageName.match(/\/\$/g)!.length
-            )
-          );
-        pageMatchers.forEach(pageMatcher => {
-          routes.push({
-            src: pageMatcher.matcher.source,
-            dest: path.join('/', entryDirectory, pageMatcher.pageName),
-          });
-        });
       }
+
+      const pageMatchers = dynamicRoutedPageNames
+        .map(pageName => ({ pageName, matcher: getRouteRegex!(pageName).re }))
+        .sort((a, b) =>
+          Math.sign(
+            a.pageName.match(/\/\$/g)!.length -
+              b.pageName.match(/\/\$/g)!.length
+          )
+        );
+      pageMatchers.forEach(pageMatcher => {
+        routes.push({
+          src: pageMatcher.matcher.source,
+          dest: path.join('/', entryDirectory, pageMatcher.pageName),
+        });
+      });
     }
 
     const pageKeys = Object.keys(pages);
