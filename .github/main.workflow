@@ -3,7 +3,7 @@ workflow "Main" {
   resolves = ["3. yarn run publish-from-github"]
 }
 
-action "1. npm install" {
+action "1. yarn install" {
   uses = "actions/npm@59b64a598378f31e49cb76f27d6f3312b582f680"
   runs = "yarn"
   args = "install"
