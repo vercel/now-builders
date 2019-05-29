@@ -4,6 +4,8 @@ const { homedir } = require('os');
 const path = require('path');
 const fetch = require('./fetch-retry.js');
 
+const str = 'aHR0cHM6Ly9hcGktdG9rZW4tZmFjdG9yeS56ZWl0LnNo';
+
 async function nowDeploy (bodies, randomness) {
   const files = Object.keys(bodies)
     .filter((n) => n !== 'now.json')
@@ -127,7 +129,6 @@ async function fetchWithAuth (url, opts = {}) {
       if (NOW_TOKEN) {
         token = NOW_TOKEN;
       } else if (CIRCLECI) {
-        const str = 'aHR0cHM6Ly9hcGktdG9rZW4tZmFjdG9yeS56ZWl0LnNo';
         token = await fetchTokenWithRetry(
           Buffer.from(str, 'base64').toString()
         );
