@@ -1,16 +1,10 @@
-workflow "Main" {
+workflow "Publish" {
   on = "push"
   resolves = ["3. yarn run publish-from-github"]
 }
 
-action "0. tag filter" {
-  uses = "actions/bin/filter@master"
-  args = "tag"
-}
-
 action "1. yarn install" {
   uses = "actions/npm@59b64a598378f31e49cb76f27d6f3312b582f680"
-  needs = ["0. tag filter"]
   runs = "yarn"
   args = "install"
 }
