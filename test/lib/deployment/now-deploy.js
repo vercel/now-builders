@@ -55,7 +55,6 @@ async function nowDeploy (bodies, randomness) {
 
   for (let i = 0; i < 750; i += 1) {
     const { state } = await deploymentGet(deploymentId);
-    console.log('state', state);
     if (state === 'ERROR') throw new Error(`State of ${deploymentUrl} is ${state}`);
     if (state === 'READY') break;
     await new Promise((r) => setTimeout(r, 1000));

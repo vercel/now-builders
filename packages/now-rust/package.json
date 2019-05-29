@@ -2,6 +2,7 @@
   "name": "@now/rust",
   "version": "0.2.5-canary.0",
   "license": "MIT",
+  "main": "./dist/index",
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
@@ -11,11 +12,10 @@
     "build": "tsc",
     "test": "tsc && jest",
     "prepublish": "tsc",
-    "typecheck": "tsc -p . --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "files": [
-    "index.js",
-    "install-rust.js",
+    "dist",
     "launcher.rs"
   ],
   "dependencies": {

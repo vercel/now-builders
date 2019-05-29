@@ -10,10 +10,10 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "types": ["node"],
+    "outDir": "dist",
+    "sourceMap": false,
     "strict": true,
     "target": "esnext",
-    "baseUrl": ".",
-    "paths": { "@now/build-utils": ["../now-build-utils/src"] }
+    "types": ["node"]
   }
 }
