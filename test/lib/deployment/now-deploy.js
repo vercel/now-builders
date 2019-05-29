@@ -11,7 +11,7 @@ async function nowDeploy (bodies, randomness) {
       sha: digestOfFile(bodies[n]),
       size: bodies[n].length,
       file: n,
-      mode: path.extname(n) === '.sh' ? 0o100755 : 0o100644
+      mode: path.extname(n) === '.sh' ? 0o100755 : 0o100644,
     }));
 
   const nowJson = JSON.parse(bodies['now.json']);
@@ -23,14 +23,14 @@ async function nowDeploy (bodies, randomness) {
     build: {
       env: {
         ...(nowJson.build || {}).env,
-        RANDOMNESS_BUILD_ENV_VAR: randomness
-      }
+        RANDOMNESS_BUILD_ENV_VAR: randomness,
+      },
     },
     name: 'test',
     files,
     builds: nowJson.builds,
     routes: nowJson.routes || [],
-    meta: {}
+    meta: {},
   };
 
   console.log(`posting ${files.length} files`);
@@ -51,8 +51,9 @@ async function nowDeploy (bodies, randomness) {
 
   console.log('id', deploymentId);
 
-  for (let i = 0; i < 500; i += 1) {
+  for (let i = 0; i < 750; i += 1) {
     const { state } = await deploymentGet(deploymentId);
+    console.log('state', state);
     if (state === 'ERROR') throw new Error(`State of ${deploymentUrl} is ${state}`);
     if (state === 'READY') break;
     await new Promise((r) => setTimeout(r, 1000));
@@ -74,13 +75,13 @@ async function filePost (body, digest) {
     'Content-Type': 'application/octet-stream',
     'Content-Length': body.length,
     'x-now-digest': digest,
-    'x-now-size': body.length
+    'x-now-size': body.length,
   };
 
   const resp = await fetchWithAuth('/v2/now/files', {
     method: 'POST',
     headers,
-    body
+    body,
   });
   const json = await resp.json();
 
@@ -94,7 +95,7 @@ async function filePost (body, digest) {
 async function deploymentPost (payload) {
   const resp = await fetchWithAuth('/v6/now/deployments?forceNew=1', {
     method: 'POST',
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
   console.log(`fetch status: ${resp.status} ${resp.statusText}`);
@@ -185,5 +186,5 @@ async function fetchApi (url, opts = {}) {
 module.exports = {
   fetchApi,
   fetchWithAuth,
-  nowDeploy
+  nowDeploy,
 };
