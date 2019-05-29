@@ -11,4 +11,4 @@
 /packages/now-python/*
 /packages/now-optipng/dist/*
 /packages/now-go/*
-/packages/now-rust/*
+/packages/now-rust/dist/*
