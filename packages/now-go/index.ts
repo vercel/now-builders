@@ -96,7 +96,6 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
     throw err;
   }
 
-  // const entrypointDirnameDev = dirname(downloadedFiles[entrypoint].fsPath);
   const parsedAnalyzed = JSON.parse(analyzed) as Analyzed;
 
   if (meta.isDev) {
