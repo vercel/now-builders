@@ -300,7 +300,7 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
         join(entrypointDirname, 'go.sum.bk'),
         { overwrite: true }
       );
-    } else {
+    } else if (meta.isDev) {
       // caching for `now dev`
       await move(join(goModPath, 'go.mod'), join(goModPath, 'go.mod.bk'), {
         overwrite: true,
