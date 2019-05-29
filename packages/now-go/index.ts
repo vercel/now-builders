@@ -1,5 +1,5 @@
 import { join, sep, dirname, basename } from 'path';
-import { readFile, writeFile, pathExists, move, copy } from 'fs-extra';
+import { readFile, writeFile, pathExists, move } from 'fs-extra';
 import { homedir } from 'os';
 import execa from 'execa';
 
@@ -96,7 +96,7 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
     throw err;
   }
 
-  const entrypointDirnameDev = dirname(downloadedFiles[entrypoint].fsPath);
+  // const entrypointDirnameDev = dirname(downloadedFiles[entrypoint].fsPath);
   const parsedAnalyzed = JSON.parse(analyzed) as Analyzed;
 
   if (meta.isDev) {
@@ -109,35 +109,10 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
       'src',
       'lambda'
     );
-    const goMod = await pathExists(join(entrypointDirnameDev, 'go.mod'));
-
     // this will ensure Go rebuilt fast
     goPath = join(base, '.now', 'cache', basename(entrypoint, '.go'));
+    await download(downloadedFiles, destNow);
 
-    for (const file of parsedAnalyzed.watch) {
-      if (entrypointArr.length > 0) {
-        await copy(
-          join(base, dirname(entrypoint), file),
-          join(destNow, dirname(entrypoint), file)
-        );
-
-        if (goMod) {
-          await copy(
-            join(entrypointDirnameDev, 'go.mod'),
-            join(destNow, dirname(entrypoint), 'go.mod')
-          );
-        }
-      } else {
-        await copy(join(base, file), join(destNow, file));
-
-        if (goMod) {
-          await copy(
-            join(entrypointDirnameDev, 'go.mod'),
-            join(destNow, 'go.mod')
-          );
-        }
-      }
-    }
     downloadedFiles = await glob('**', destNow);
   }
 
@@ -270,16 +245,20 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
     }
 
     if (meta.isDev) {
-      const isGoModBk = await pathExists(join(entrypointDirname, 'go.mod.bk'));
+      let entrypointDir = entrypointDirname;
+      if (goModPathArr.length > 1) {
+        entrypointDir = goModPath;
+      }
+      const isGoModBk = await pathExists(join(entrypointDir, 'go.mod.bk'));
       if (isGoModBk) {
         await move(
-          join(entrypointDirname, 'go.mod.bk'),
-          join(entrypointDirname, 'go.mod'),
+          join(entrypointDir, 'go.mod.bk'),
+          join(entrypointDir, 'go.mod'),
           { overwrite: true }
         );
         await move(
-          join(entrypointDirname, 'go.sum.bk'),
-          join(entrypointDirname, 'go.sum'),
+          join(entrypointDir, 'go.sum.bk'),
+          join(entrypointDir, 'go.sum'),
           { overwrite: true }
         );
       }
@@ -309,7 +288,7 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
       console.log('failed to `go build`');
       throw err;
     }
-    if (meta.isDev) {
+    if (meta.isDev && goModPathArr.length === 1) {
       // caching for `now dev`
       await move(
         join(entrypointDirname, 'go.mod'),
@@ -321,6 +300,14 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
         join(entrypointDirname, 'go.sum.bk'),
         { overwrite: true }
       );
+    } else {
+      // caching for `now dev`
+      await move(join(goModPath, 'go.mod'), join(goModPath, 'go.mod.bk'), {
+        overwrite: true,
+      });
+      await move(join(goModPath, 'go.sum'), join(goModPath, 'go.sum.bk'), {
+        overwrite: true,
+      });
     }
   } else {
     // legacy mode
