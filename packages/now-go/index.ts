@@ -141,7 +141,26 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
     downloadedFiles = await glob('**', destNow);
   }
 
+  // find `go.mod` in downloadedFiles
   const entrypointDirname = dirname(downloadedFiles[entrypoint].fsPath);
+  let isGoModExist = false;
+  let goModPath = '';
+  let goModPathArr = [];
+  for (const file of Object.keys(downloadedFiles)) {
+    const fileDirname = dirname(downloadedFiles[file].fsPath);
+    if (file === 'go.mod') {
+      isGoModExist = true;
+      goModPath = fileDirname;
+      goModPathArr = goModPath.split(sep);
+    } else if (file.includes('go.mod')) {
+      isGoModExist = true;
+      if (entrypointDirname === fileDirname) {
+        goModPath = fileDirname;
+        goModPathArr = goModPath.split(sep);
+      }
+    }
+  }
+
   const input = entrypointDirname;
   var includedFiles: Files = {};
 
@@ -162,7 +181,6 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
   // check if package name other than main
   // using `go.mod` way building the handler
   const packageName = parsedAnalyzed.packageName;
-  const isGoModExist = await pathExists(join(entrypointDirname, 'go.mod'));
 
   if (isGoModExist && packageName === 'main') {
     throw new Error('Please change `package main` to `package handler`');
@@ -199,10 +217,7 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
     const goFuncName = `${packageName}.${handlerFunctionName}`;
 
     if (isGoModExist) {
-      const goModContents = await readFile(
-        join(entrypointDirname, 'go.mod'),
-        'utf8'
-      );
+      const goModContents = await readFile(join(goModPath, 'go.mod'), 'utf8');
       const usrModName = goModContents.split('\n')[0].split(' ')[1];
       goPackageName = `${usrModName}/${packageName}`;
     }
@@ -211,11 +226,16 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
       .replace('__NOW_HANDLER_PACKAGE_NAME', goPackageName)
       .replace('__NOW_HANDLER_FUNC_NAME', goFuncName);
 
-    // write main__mod__.go
-    await writeFile(
-      join(entrypointDirname, mainModGoFileName),
-      mainModGoContents
-    );
+    if (goModPathArr.length > 1) {
+      // using `go.mod` path to write main__mod__.go
+      await writeFile(join(goModPath, mainModGoFileName), mainModGoContents);
+    } else {
+      // using `entrypointDirname` to write main__mod__.go
+      await writeFile(
+        join(entrypointDirname, mainModGoFileName),
+        mainModGoContents
+      );
+    }
 
     // move user go file to folder
     try {
@@ -236,9 +256,14 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
         );
       }
 
-      await move(downloadedFiles[entrypoint].fsPath, finalDestination, {
-        overwrite: forceMove,
-      });
+      if (
+        dirname(downloadedFiles[entrypoint].fsPath) === goModPath ||
+        !isGoModExist
+      ) {
+        await move(downloadedFiles[entrypoint].fsPath, finalDestination, {
+          overwrite: forceMove,
+        });
+      }
     } catch (err) {
       console.log('failed to move entry to package folder');
       throw err;
@@ -272,7 +297,13 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
     console.log('Running `go build`...');
     const destPath = join(outDir, 'handler');
     try {
-      const src = [join(entrypointDirname, mainModGoFileName)];
+      let src;
+      if (goModPathArr.length > 1) {
+        src = [join(goModPath, mainModGoFileName)];
+      } else {
+        src = [join(entrypointDirname, mainModGoFileName)];
+      }
+
       await go.build(src, destPath, config.ldsflags);
     } catch (err) {
       console.log('failed to `go build`');
