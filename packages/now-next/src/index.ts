@@ -496,12 +496,16 @@ export const build = async ({
 
         // All page lambda routes are normalized except for `/index`
         const isRoot = lambdaPath === path.join('/', entryDirectory, 'index');
-        return {
-          src: isRoot
-            ? // The root page should be mached by `^/?$`, not `/index`
-              '^' + path.join('/', entryDirectory, '/') + '?$'
-            : lambdaPath,
-        };
+
+        if (isRoot) {
+          return {
+            // The root page should be mached by `^/?$`, not `/index`
+            src: '^' + path.join('/', entryDirectory, '/') + '?$',
+            dest: lambdaPath,
+          };
+        }
+
+        return { src: lambdaPath };
       }),
       // Next.js `static/` folder
       { src: path.join('/', entryDirectory, 'static', '.+') },
