@@ -119,7 +119,7 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
   const entrypointDirname = dirname(downloadedFiles[entrypoint].fsPath);
   let isGoModExist = false;
   let goModPath = '';
-  let goModPathArr = [];
+  let goModPathArr: string[] = [];
   for (const file of Object.keys(downloadedFiles)) {
     const fileDirname = dirname(downloadedFiles[file].fsPath);
     if (file === 'go.mod') {
