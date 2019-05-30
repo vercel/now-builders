@@ -155,7 +155,7 @@ export const build = async ({
   entrypoint,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType): Promise<{
-  routes?: { src: string; dest?: string }[];
+  routes?: ({ src?: string; dest?: string } | { handle: string })[];
   output: Files;
   watch?: string[];
   childProcesses: ChildProcess[];
@@ -288,7 +288,7 @@ export const build = async ({
     await unlinkFile(path.join(entryPath, '.npmrc'));
   }
 
-  const routes: { src: string; dest: string }[] = [];
+  const exportedPageRoutes: { src: string; dest: string }[] = [];
   const lambdas: { [key: string]: Lambda } = {};
   const staticPages: { [key: string]: FileFsRef } = {};
 
@@ -392,7 +392,7 @@ export const build = async ({
       staticPages[staticRoute] = staticPageFiles[page];
 
       const pathname = page.replace(/\.html$/, '');
-      routes.push({
+      exportedPageRoutes.push({
         src: `^${path.join('/', entryDirectory, pathname)}$`,
         dest: path.join('/', staticRoute),
       });
@@ -490,33 +490,11 @@ export const build = async ({
       ...staticDirectoryFiles,
     },
     routes: [
-      // Next.js page lambdas
-      ...Object.keys(lambdas).map(lambdaName => {
-        const lambdaPath = path.join('/', lambdaName);
-
-        // All page lambda routes are normalized except for `/index`
-        const isRoot = lambdaPath === path.join('/', entryDirectory, 'index');
-
-        if (isRoot) {
-          return {
-            // The root page should be mached by `^/?$`, not `/index`
-            src: '^' + path.join('/', entryDirectory, '/') + '?$',
-            dest: lambdaPath,
-          };
-        }
-
-        return { src: lambdaPath };
-      }),
-      // Next.js `static/` folder
-      { src: path.join('/', entryDirectory, 'static', '.+') },
-      // Next.js reserved assets
-      { src: path.join('/', entryDirectory, '_next', '.+') },
-      // Next.js `public/` folder
-      ...Object.keys(publicFiles).map(fileName => ({
-        src: path.join('/', fileName),
-      })),
-      // Dynamic routes and static exported pages
-      ...routes,
+      // Next.js page lambdas, `static/` folder, reserved assets, and `public/`
+      // folder
+      { handle: 'filesystem' },
+      // Static exported pages (.html rewrites)
+      ...exportedPageRoutes,
     ],
     watch: [],
     childProcesses: [],
