@@ -6,29 +6,21 @@ import json
 import __NOW_HANDLER_FILENAME
 __now_variables = dir(__NOW_HANDLER_FILENAME)
 
-def _now_get_import():
-    try:
-        from __NOW_HANDLER_FILENAME import Handler
-        assert issubclass(Handler, BaseHTTPRequestHandler)
-        return Handler, True
-    except:
-        try:
-            from __NOW_HANDLER_FILENAME import handler
-            assert issubclass(handler, BaseHTTPRequestHandler)
-            return handler, True
-        except:
-            from __NOW_HANDLER_FILENAME import app
-            return app, False
-
 
 if 'handler' in __now_variables or 'Handler' in __now_variables:
+    base = __NOW_HANDLER_FILENAME.handler if ('handler' in __now_variables) else  __NOW_HANDLER_FILENAME.Handler
+    if not issubclass(base, BaseHTTPRequestHandler):
+        print('Handler must inherit from BaseHTTPRequestHandler')
+        print('See the docs https://zeit.co/docs/v2/deployments/official-builders/python-now-python')
+        exit(1)
+    
     print('using HTTP Handler')
     from http.server import HTTPServer
     from urllib.parse import unquote
     import requests
     import _thread
-    app = __NOW_HANDLER_FILENAME.handler if ('handler' in __now_variables) else  __NOW_HANDLER_FILENAME.Handler
-    server = HTTPServer(('', 0), app)
+    
+    server = HTTPServer(('', 0), base)
     port = server.server_address[1]
     def now_handler(event, context):
         _thread.start_new_thread(server.handle_request, ())
@@ -125,7 +117,7 @@ elif 'app' in __now_variables:
 
         return return_dict
 else:
-    print('Missing variable `handler` or `app` in file __NOW_HANDLER_FILENAME')
+    print('Missing variable `handler` or `app` in file __NOW_HANDLER_FILENAME.py')
     print('See the docs https://zeit.co/docs/v2/deployments/official-builders/python-now-python')
     exit(1)
 
