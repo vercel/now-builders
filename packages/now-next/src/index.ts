@@ -406,9 +406,8 @@ export const build = async ({
     });
 
     const dynamicRoutedPageNames = Object.keys(pages)
-      .map(p => path.join('/', p))
-      .filter(p => p.includes('/$'))
-      .map(p => p.replace(/\.js$/, ''));
+      .map(p => path.join('/', p).replace(/\.js$/, ''))
+      .filter(p => p.includes('/$'));
     routes.push(
       ...getDynamicRoutes(entryPath, entryDirectory, dynamicRoutedPageNames)
     );
