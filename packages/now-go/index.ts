@@ -80,7 +80,16 @@ export async function build({
   console.log(`Parsing AST for "${entrypoint}"`);
   let analyzed: string;
   try {
-    analyzed = await getAnalyzedEntrypoint(downloadedFiles[entrypoint].fsPath);
+    let goModAbsPathDir = '';
+    for (const file of Object.keys(downloadedFiles)) {
+      if (file === 'go.mod') {
+        goModAbsPathDir = dirname(downloadedFiles[file].fsPath);
+      }
+    }
+    analyzed = await getAnalyzedEntrypoint(
+      downloadedFiles[entrypoint].fsPath,
+      goModAbsPathDir
+    );
   } catch (err) {
     console.log(`Failed to parse AST for "${entrypoint}"`);
     throw err;
@@ -373,16 +382,17 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
   };
 
   let watch = parsedAnalyzed.watch;
+  let watchSub: string[] = [];
   // if `entrypoint` located in subdirectory
   // we will need to concat it with return watch array
   if (entrypointArr.length > 1) {
     entrypointArr.pop();
-    watch = parsedAnalyzed.watch.map(file => join(...entrypointArr, file));
+    watchSub = parsedAnalyzed.watch.map(file => join(...entrypointArr, file));
   }
 
   return {
     output,
-    watch,
+    watch: watch.concat(watchSub),
   };
 }
 
