@@ -283,39 +283,28 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
 
     console.log('Running `go build`...');
     const destPath = join(outDir, 'handler');
+    const isGoModInRootDir = goModPathArr.length === 1;
+    const baseGoModPath = isGoModInRootDir ? entrypointDirname : goModPath;
     try {
-      let src;
-      if (goModPathArr.length > 1) {
-        src = [join(goModPath, mainModGoFileName)];
-      } else {
-        src = [join(entrypointDirname, mainModGoFileName)];
-      }
+      let src = [join(baseGoModPath, mainModGoFileName)];
 
       await go.build(src, destPath, config.ldsflags);
     } catch (err) {
       console.log('failed to `go build`');
       throw err;
     }
-    if (meta.isDev && goModPathArr.length === 1) {
+    if (meta.isDev) {
       // caching for `now dev`
       await move(
-        join(entrypointDirname, 'go.mod'),
-        join(entrypointDirname, 'go.mod.bk'),
+        join(baseGoModPath, 'go.mod'),
+        join(baseGoModPath, 'go.mod.bk'),
         { overwrite: true }
       );
       await move(
-        join(entrypointDirname, 'go.sum'),
-        join(entrypointDirname, 'go.sum.bk'),
+        join(baseGoModPath, 'go.sum'),
+        join(baseGoModPath, 'go.sum.bk'),
         { overwrite: true }
       );
-    } else if (meta.isDev) {
-      // caching for `now dev`
-      await move(join(goModPath, 'go.mod'), join(goModPath, 'go.mod.bk'), {
-        overwrite: true,
-      });
-      await move(join(goModPath, 'go.sum'), join(goModPath, 'go.sum.bk'), {
-        overwrite: true,
-      });
     }
   } else {
     // legacy mode

@@ -35,8 +35,7 @@ export async function getAnalyzedEntrypoint(filePath: string, modulePath = '') {
     await go.build(src, dest);
   }
 
-  const args = [filePath];
-  args.unshift(`-modpath=${modulePath}`);
+  const args = [`-modpath=${modulePath}`, filePath];
 
   const analyzed = await execa.stdout(bin, args);
   debug('Analyzed entrypoint %o', analyzed);
