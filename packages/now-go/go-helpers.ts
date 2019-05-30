@@ -23,7 +23,7 @@ const getGoUrl = (version: string, platform: string, arch: string) => {
   return `https://dl.google.com/go/go${version}.${goPlatform}-${goArch}.${ext}`;
 };
 
-export async function getAnalyzedEntrypoint(filePath: string) {
+export async function getAnalyzedEntrypoint(filePath: string, modulePath = '') {
   debug('Analyzing entrypoint %o', filePath);
   const bin = join(__dirname, 'analyze');
 
@@ -35,7 +35,8 @@ export async function getAnalyzedEntrypoint(filePath: string) {
     await go.build(src, dest);
   }
 
-  const args = [filePath];
+  const args = [`-modpath=${modulePath}`, filePath];
+
   const analyzed = await execa.stdout(bin, args);
   debug('Analyzed entrypoint %o', analyzed);
   return analyzed;
@@ -125,7 +126,15 @@ export async function downloadGo(
   // If we found GOPATH in ENV, or default `Go` path exists
   // asssume that user have `Go` installed
   if (isUserGo || process.env.GOPATH !== undefined) {
-    return createGo(dir, platform, arch);
+    const { stdout } = await execa('go', ['version']);
+
+    if (parseInt(stdout.split('.')[1]) >= 11) {
+      return createGo(dir, platform, arch);
+    }
+
+    throw new Error(
+      `Your current ${stdout} doesn't support Go Modules. Please update.`
+    );
   } else {
     // Check `Go` bin in builder CWD
     const isGoExist = await pathExists(join(dir, 'bin'));
