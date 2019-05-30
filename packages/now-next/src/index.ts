@@ -490,11 +490,11 @@ export const build = async ({
       ...staticDirectoryFiles,
     },
     routes: [
+      // Static exported pages (.html rewrites)
+      ...exportedPageRoutes,
       // Next.js page lambdas, `static/` folder, reserved assets, and `public/`
       // folder
       { handle: 'filesystem' },
-      // Static exported pages (.html rewrites)
-      ...exportedPageRoutes,
     ],
     watch: [],
     childProcesses: [],
