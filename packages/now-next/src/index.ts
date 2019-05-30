@@ -296,6 +296,7 @@ export const build = async ({
   }
 
   const exportedPageRoutes: { src: string; dest: string }[] = [];
+  const dynamicPageRoutes: { src: string; dest: string }[] = [];
   const lambdas: { [key: string]: Lambda } = {};
   const staticPages: { [key: string]: FileFsRef } = {};
 
@@ -408,7 +409,7 @@ export const build = async ({
     const dynamicRoutedPageNames = Object.keys(pages)
       .map(p => path.join('/', p).replace(/\.js$/, ''))
       .filter(p => p.includes('/$'));
-    routes.push(
+    dynamicPageRoutes.push(
       ...getDynamicRoutes(entryPath, entryDirectory, dynamicRoutedPageNames)
     );
 
@@ -509,6 +510,8 @@ export const build = async ({
       // Next.js page lambdas, `static/` folder, reserved assets, and `public/`
       // folder
       { handle: 'filesystem' },
+      // Next.js dynamic routing
+      ...dynamicPageRoutes,
     ],
     watch: [],
     childProcesses: [],
