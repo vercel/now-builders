@@ -1,8 +1,11 @@
 {
   "name": "@now/python",
   "version": "0.2.5-canary.0",
-  "main": "index.js",
+  "main": "./dist/index",
   "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
