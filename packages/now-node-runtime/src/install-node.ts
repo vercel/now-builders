@@ -13,7 +13,8 @@ export async function installNode(
   arch: string = process.arch
 ): Promise<void> {
   const tarballUrl = generateNodeTarballUrl(version, platform, arch);
-  const res = await fetch(tarballUrl);
+  console.log('Downloading ' + tarballUrl);
+  const res = await fetch(tarballUrl, { compress: false });
   if (!res.ok) {
     throw new Error(`HTTP request failed: ${res.status}`);
   }
@@ -31,10 +32,12 @@ export async function installNode(
     const zipFile = await zipFromFile(zipPath);
     await unzip(zipFile, finalDest, { strip: 1 });
   } else {
+    const foo = extract({ strip: 1, C: dest });
+    foo.destroy = () => {};
     await pipe(
       res.body,
       createGunzip(),
-      extract({ strip: 1, C: dest })
+      foo
     );
   }
 }
