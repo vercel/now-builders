@@ -285,29 +285,31 @@ export function getDynamicRoutes(
   let getRouteRegex:
     | ((pageName: string) => { re: RegExp })
     | undefined = undefined;
+  let getSortedRoutes: ((routes: string[]) => string[]) | undefined = undefined;
   try {
-    ({ getRouteRegex } = require(resolveFrom(
+    ({ getRouteRegex, getSortedRoutes } = require(resolveFrom(
       entryPath,
       'next-server/dist/lib/router/utils'
     )));
-    if (typeof getRouteRegex !== 'function') {
+    if (
+      typeof getRouteRegex !== 'function' ||
+      typeof getSortedRoutes !== 'function'
+    ) {
       getRouteRegex = undefined;
+      getSortedRoutes = undefined;
     }
   } catch (_) {}
 
-  if (!getRouteRegex) {
+  if (!(getRouteRegex && getSortedRoutes)) {
     throw new Error(
       'Found usage of dynamic routes but not on a new enough version of Next.js.'
     );
   }
 
-  const pageMatchers = dynamicPages
-    .map(pageName => ({ pageName, matcher: getRouteRegex!(pageName).re }))
-    .sort((a, b) =>
-      Math.sign(
-        a.pageName.match(/\/\$/g)!.length - b.pageName.match(/\/\$/g)!.length
-      )
-    );
+  const pageMatchers = getSortedRoutes(dynamicPages).map(pageName => ({
+    pageName,
+    matcher: getRouteRegex!(pageName).re,
+  }));
 
   const routes: { src: string; dest: string }[] = [];
   pageMatchers.forEach(pageMatcher => {
