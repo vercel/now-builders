@@ -1,6 +1,5 @@
 import { basename, join } from 'path';
 import fetch from 'node-fetch';
-import { createGunzip } from 'zlib';
 import { extract } from 'tar';
 import pipe from 'promisepipe';
 import { createWriteStream } from 'fs-extra';
@@ -15,7 +14,7 @@ export async function installNode(
   const tarballUrl = generateNodeTarballUrl(version, platform, arch);
   console.log('Downloading from ' + tarballUrl);
   console.log('Downloading to ' + dest);
-  const res = await fetch(tarballUrl, { compress: false });
+  const res = await fetch(tarballUrl);
   if (!res.ok) {
     throw new Error(`HTTP request failed: ${res.status}`);
   }
@@ -41,7 +40,6 @@ export async function installNode(
     }
     await pipe(
       res.body,
-      createGunzip(),
       extractStream
     );
   }
