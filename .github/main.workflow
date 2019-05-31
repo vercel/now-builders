@@ -15,7 +15,7 @@ action "0. Canary PR not deleted" {
 
 action "1. Canary yarn install" {
   uses = "actions/npm@59b64a598378f31e49cb76f27d6f3312b582f680"
-  needs = ["0. Canary filter", ""0. Canary PR not deleted""]
+  needs = ["0. Canary filter", "0. Canary PR not deleted"]
   runs = "yarn"
   args = "install"
 }
