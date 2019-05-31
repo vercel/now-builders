@@ -15,7 +15,6 @@ export async function buildLayer({ nodeVersion }: Config) {
     await remove(dir);
   }
   await mkdir(dir);
-  console.log('Downloading to ' + dir);
   await installNode(dir, nodeVersion);
   const files = await glob('**', { cwd: dir });
   return { files };
