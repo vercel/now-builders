@@ -5,7 +5,7 @@
   "license": "MIT",
   "files": [
     "dist",
-    "now-init.py"
+    "now_init.py"
   ],
   "repository": {
     "type": "git",
