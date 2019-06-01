@@ -140,7 +140,7 @@ export const build = async ({
     await remove(join(vendorDir, 'cache'));
   } catch (e) {}
 
-  const originalRbPath = join(__dirname, 'now_init.rb');
+  const originalRbPath = join(__dirname, '..', 'now_init.rb');
   const originalNowHandlerRbContents = await readFile(originalRbPath, 'utf8');
 
   // will be used on `require_relative '$here'` or for loading rack config.ru file

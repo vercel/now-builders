@@ -12,4 +12,4 @@
 /packages/now-optipng/dist/*
 /packages/now-go/*
 /packages/now-rust/dist/*
-/packages/now-ruby/*
+/packages/now-ruby/dist/*

@@ -6,6 +6,9 @@ require 'json'
 
 $entrypoint = '__NOW_HANDLER_FILENAME'
 
+ENV['RAILS_ENV'] ||= 'production'
+ENV['RAILS_LOG_TO_STDOUT'] ||= '1'
+
 def rack_handler(httpMethod, path, body, headers)
   require 'rack'
 
