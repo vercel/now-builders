@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "builds": [{
+    "src": "build.sh",
+    "use": "@now/binary-build",
+    "config": {
+      "port": 3000,
+      "binary": "bin/postgrest postgrest.conf",
+      "maxLambdaSize": "15mb",
+      "readyText": "Connection successful"
+    }
+  }],
+  "routes": [{ "src": "/", "dest": "build.sh" }],
+  "env": {
+    "PGRST_DB_URI": "@tests-pgrst-db-uri"
+  }
+}
