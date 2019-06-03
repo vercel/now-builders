@@ -25,8 +25,8 @@ export async function buildLayer({
 	}
 	await mkdir(dir);
 	await installNode(dir, runtimeVersion, platform, arch);
-	const bin = await glob('bin/node*', { cwd: dir });
-	const include = await glob('include/**', { cwd: dir });
-	const files = { ...bin, ...include };
+	const files = await glob('{bin/node,bin/node.exe,include/**}', {
+		cwd: dir,
+	});
 	return { files };
 }
