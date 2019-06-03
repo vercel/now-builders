@@ -2,7 +2,7 @@ import { basename, join } from 'path';
 import fetch from 'node-fetch';
 import { extract } from 'tar';
 import pipe from 'promisepipe';
-import { createWriteStream, remove } from 'fs-extra';
+import { createWriteStream } from 'fs-extra';
 import { unzip, zipFromFile } from './unzip';
 
 export async function installNode(
@@ -31,13 +31,6 @@ export async function installNode(
 
 		const zipFile = await zipFromFile(zipPath);
 		await unzip(zipFile, finalDest, { strip: 1 });
-
-		console.log('Deleting supplementary packages such as npm');
-		await remove(join(finalDest, 'npm'));
-		await remove(join(finalDest, 'npx'));
-		await remove(join(finalDest, 'npm.cmd'));
-		await remove(join(finalDest, 'npx.cmd'));
-		await remove(join(finalDest, 'node_modules'));
 	} else {
 		const extractStream = extract({ strip: 1, C: dest });
 		if (!extractStream.destroy) {
@@ -49,17 +42,7 @@ export async function installNode(
 			res.body,
 			extractStream
 		);
-
-		console.log('Deleting supplementary packages such as npm');
-		await remove(join(dest, 'bin', 'npm'));
-		await remove(join(dest, 'bin', 'npx'));
-		await remove(join(dest, 'lib', 'node_modules'));
 	}
-
-	console.log('Deleting unused text files');
-	await remove(join(dest, 'bin/README.md'));
-	await remove(join(dest, 'bin/CHANGELOG.md'));
-	await remove(join(dest, 'bin/LICENSE'));
 }
 
 export function generateNodeTarballUrl(

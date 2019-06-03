@@ -43,9 +43,9 @@ describe('buildLayer', () => {
     expect(names).toBeTruthy();
     expect(names.size).toBeGreaterThan(0);
     expect(names.has('bin/node')).toBeTruthy();
+    expect(names.has('include/node/node.h')).toBeTruthy();
     expect(names.has('bin/npm')).toBeFalsy();
     expect(names.has('bin/npx')).toBeFalsy();
-    expect(names.has('lib/npx')).toBeFalsy();
     expect(names.has('lib/node_modules')).toBeFalsy();
   });
 });
