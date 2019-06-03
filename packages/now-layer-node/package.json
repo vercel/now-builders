@@ -1,5 +1,5 @@
 {
-  "name": "@now/node-runtime",
+  "name": "@now/layer-node",
   "version": "0.0.1-canary.0",
   "main": "./dist/src/index",
   "license": "MIT",
@@ -9,7 +9,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
-    "directory": "packages/now-node-runtime"
+    "directory": "packages/now-layer-node"
   },
   "scripts": {
     "build": "tsc",
