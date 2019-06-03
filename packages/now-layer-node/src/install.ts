@@ -2,16 +2,17 @@ import { basename, join } from 'path';
 import fetch from 'node-fetch';
 import { extract } from 'tar';
 import pipe from 'promisepipe';
-import { createWriteStream } from 'fs-extra';
+import { createWriteStream, writeFile } from 'fs-extra';
 import { unzip, zipFromFile } from './unzip';
+import execa from 'execa';
 
-export async function installNode(
+export async function install(
 	dest: string,
 	version: string,
 	platform: string,
 	arch: string
 ): Promise<void> {
-	const tarballUrl = generateNodeTarballUrl(version, platform, arch);
+	const tarballUrl = getUrl(version, platform, arch);
 	console.log('Downloading from ' + tarballUrl);
 	console.log('Downloading to ' + dest);
 	const res = await fetch(tarballUrl);
@@ -43,9 +44,13 @@ export async function installNode(
 			extractStream
 		);
 	}
+
+	const npmVersion = await execa('bin/npm', ['--version']);
+	const metadata = JSON.stringify({ npmVersion });
+	await writeFile('now-metadata.json', metadata);
 }
 
-export function generateNodeTarballUrl(
+export function getUrl(
 	version: string,
 	platform: string = process.platform,
 	arch: string = process.arch

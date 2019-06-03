@@ -12,6 +12,7 @@ describe('buildLayer', () => {
     const names = new Set(Object.keys(files));
     expect(names).toBeTruthy();
     expect(names.size).toBeGreaterThan(0);
+    expect(names.has('now-metadata.json')).toBeTruthy();
     expect(names.has('bin/node.exe')).toBeTruthy();
     expect(names.has('bin/npm.cmd')).toBeFalsy();
     expect(names.has('bin/npx.cmd')).toBeFalsy();
@@ -27,6 +28,7 @@ describe('buildLayer', () => {
     const names = new Set(Object.keys(files));
     expect(names).toBeTruthy();
     expect(names.size).toBeGreaterThan(0);
+    expect(names.has('now-metadata.json')).toBeTruthy();
     expect(names.has('bin/node')).toBeTruthy();
     expect(names.has('bin/npm')).toBeFalsy();
     expect(names.has('bin/npx')).toBeFalsy();
@@ -42,6 +44,7 @@ describe('buildLayer', () => {
     const names = new Set(Object.keys(files));
     expect(names).toBeTruthy();
     expect(names.size).toBeGreaterThan(0);
+    expect(names.has('now-metadata.json')).toBeTruthy();
     expect(names.has('bin/node')).toBeTruthy();
     expect(names.has('include/node/node.h')).toBeTruthy();
     expect(names.has('bin/npm')).toBeFalsy();

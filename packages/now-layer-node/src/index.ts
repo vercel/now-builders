@@ -2,7 +2,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { glob } from '@now/build-utils';
 import { mkdir, remove, pathExists } from 'fs-extra';
-import { installNode } from './install-node';
+import { install } from './install';
 
 interface LayerConfig {
 	runtimeVersion: string;
@@ -24,7 +24,7 @@ export async function buildLayer({
 		await remove(dir);
 	}
 	await mkdir(dir);
-	await installNode(dir, runtimeVersion, platform, arch);
+	await install(dir, runtimeVersion, platform, arch);
 	const files = await glob('{bin/node,bin/node.exe,include/**}', {
 		cwd: dir,
 	});
