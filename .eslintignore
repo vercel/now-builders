@@ -8,6 +8,7 @@
 /packages/now-node/dist/*
 /packages/now-layer-node/dist/*
 /packages/now-layer-npm/dist/*
+/packages/now-layer-yarn/dist/*
 /packages/now-next/dist/*
 /packages/now-node-bridge/*
 /packages/now-python/dist/*
