@@ -2,14 +2,14 @@ import { basename, join } from 'path';
 import fetch from 'node-fetch';
 import { extract } from 'tar';
 import pipe from 'promisepipe';
-import { createWriteStream } from 'fs-extra';
+import { createWriteStream, remove } from 'fs-extra';
 import { unzip, zipFromFile } from './unzip';
 
 export async function installNode(
 	dest: string,
 	version: string,
-	platform: string = process.platform,
-	arch: string = process.arch
+	platform: string,
+	arch: string
 ): Promise<void> {
 	const tarballUrl = generateNodeTarballUrl(version, platform, arch);
 	console.log('Downloading from ' + tarballUrl);
@@ -31,6 +31,13 @@ export async function installNode(
 
 		const zipFile = await zipFromFile(zipPath);
 		await unzip(zipFile, finalDest, { strip: 1 });
+
+		console.log('Deleting supplementary packages such as npm');
+		await remove(join(finalDest, 'npm'));
+		await remove(join(finalDest, 'npx'));
+		await remove(join(finalDest, 'npm.cmd'));
+		await remove(join(finalDest, 'npx.cmd'));
+		await remove(join(finalDest, 'node_modules'));
 	} else {
 		const extractStream = extract({ strip: 1, C: dest });
 		if (!extractStream.destroy) {
@@ -42,7 +49,17 @@ export async function installNode(
 			res.body,
 			extractStream
 		);
+
+		console.log('Deleting supplementary packages such as npm');
+		await remove(join(dest, 'bin', 'npm'));
+		await remove(join(dest, 'bin', 'npx'));
+		await remove(join(dest, 'lib', 'node_modules'));
 	}
+
+	console.log('Deleting unused text files');
+	await remove(join(dest, 'bin/README.md'));
+	await remove(join(dest, 'bin/CHANGELOG.md'));
+	await remove(join(dest, 'bin/LICENSE'));
 }
 
 export function generateNodeTarballUrl(
@@ -50,9 +67,6 @@ export function generateNodeTarballUrl(
 	platform: string = process.platform,
 	arch: string = process.arch
 ): string {
-	if (!version.startsWith('v')) {
-		version = `v${version}`;
-	}
 	let ext: string;
 	let plat: string;
 	if (platform === 'win32') {
@@ -62,5 +76,5 @@ export function generateNodeTarballUrl(
 		ext = 'tar.gz';
 		plat = platform;
 	}
-	return `https://nodejs.org/dist/${version}/node-${version}-${plat}-${arch}.${ext}`;
+	return `https://nodejs.org/dist/v${version}/node-v${version}-${plat}-${arch}.${ext}`;
 }
