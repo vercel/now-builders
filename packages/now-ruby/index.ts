@@ -1,7 +1,6 @@
 import { join, dirname } from 'path';
 import execa from 'execa';
 import { ensureDir, move, remove, stat, readFile, writeFile } from 'fs-extra';
-import mm from 'micromatch';
 import {
   download,
   getWriteableDirectory,
@@ -166,27 +165,34 @@ export const build = async ({
   // static analysis is impossible with ruby.
   // instead, provide `includeFiles` and `excludeFiles` config options to reduce bundle size.
   if (config && (config.includeFiles || config.excludeFiles)) {
-    let outputPaths = Object.keys(outputFiles);
+    const included = config.includeFiles
+      ? await glob(config.includeFiles, workPath)
+      : outputFiles;
 
-    let notIncluded = config.includeFiles
-      ? mm.not(outputPaths, config.includeFiles)
-      : outputPaths;
-    let excluded = config.excludeFiles
-      ? mm(notIncluded, config.excludeFiles)
-      : [];
+    const excluded = config.excludeFiles
+      ? await glob(config.excludeFiles, workPath)
+      : {};
 
-    for (let i = 0; i < excluded.length; i++) {
+    const includedPaths = Object.keys(included);
+    const excludedPaths = Object.keys(excluded);
+
+    for (let i = 0; i < excludedPaths.length; i++) {
+      // whitelist includeFiles
+      if (includedPaths.includes(excludedPaths[i])) {
+        continue;
+      }
+
       // whitelist handler
-      if (excluded[i] === `${nowHandlerRbFilename}.rb`) {
+      if (excludedPaths[i] === `${nowHandlerRbFilename}.rb`) {
         continue;
       }
 
       // whitelist vendor directory
-      if (excluded[i].startsWith(REQUIRED_VENDOR_DIR)) {
+      if (excludedPaths[i].startsWith(REQUIRED_VENDOR_DIR)) {
         continue;
       }
 
-      delete outputFiles[excluded[i]];
+      delete outputFiles[excludedPaths[i]];
     }
   }
 

@@ -4,7 +4,7 @@ const path = require('path');
 
 const {
   packAndDeploy,
-  testDeployment
+  testDeployment,
 } = require('../../../test/lib/deployment/test-deployment.js');
 
 jest.setTimeout(4 * 60 * 1000);
@@ -26,8 +26,8 @@ for (const fixture of fs.readdirSync(fixturesPath)) {
     await expect(
       testDeployment(
         { builderUrl, buildUtilsUrl },
-        path.join(fixturesPath, fixture)
-      )
+        path.join(fixturesPath, fixture),
+      ),
     ).resolves.toBeDefined();
   });
 }
