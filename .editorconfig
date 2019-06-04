@@ -24,7 +24,7 @@ trim_trailing_whitespace = false
 indent_style = space
 indent_size = 2
 
-# Ideal settings - some plugins might support these.
+# Ideal settings - some plugins might support these
 [*.js,*.jsx,*.ts,*.tsx]
 quote_type = single
 indent_style = space
