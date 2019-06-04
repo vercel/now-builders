@@ -35,4 +35,4 @@ the command line flag to bind to a specific port is (in many cases, it is one of
 
 ### Useful Links
 
--   [`@now/static-build` Local Development Documentation](https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build#local-development)
+- [`@now/static-build` Local Development Documentation](https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build#local-development)
