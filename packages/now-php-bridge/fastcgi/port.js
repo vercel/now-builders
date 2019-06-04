@@ -3,10 +3,7 @@
 const net = require('net');
 
 function whenPortOpensCallback(port, attempts, cb) {
-  const client = net.connect(
-    port,
-    '127.0.0.1',
-  );
+  const client = net.connect(port, '127.0.0.1');
   client.on('error', (error) => {
     if (!attempts) return cb(error);
     setTimeout(() => {
