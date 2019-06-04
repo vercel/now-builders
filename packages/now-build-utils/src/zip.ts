@@ -1,4 +1,5 @@
 import { ZipFile } from 'yazl';
+import { fromBuffer, Entry } from 'yauzl-promise';
 import { readlink } from 'fs-extra';
 import { Files } from './types';
 import FileFsRef from './file-fs-ref';
@@ -49,4 +50,25 @@ export async function createZip(files: Files): Promise<Buffer> {
 	});
 
 	return zipBuffer;
+}
+
+export async function createFiles(
+	stream: NodeJS.ReadableStream
+): Promise<Files> {
+	const files: Files = {};
+	const buffer = await streamToBuffer(stream);
+	const zipFile = await fromBuffer(buffer);
+	let entry: Entry;
+	while ((entry = await zipFile.readEntry()) !== null) {
+		const stream = await zipFile.openReadStream(entry);
+		const fsPath = entry.fileName;
+		const mode = entry.externalFileAttributes >>> 16;
+		const file = await FileFsRef.fromStream({ mode, stream, fsPath });
+		files[fsPath] = file;
+	}
+	zipFile.on('end', () => {
+		console.log(`created ${Object.keys(files).length} files`);
+	});
+	await zipFile.close();
+	return files;
 }

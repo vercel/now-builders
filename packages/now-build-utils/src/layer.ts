@@ -1,13 +1,12 @@
-import assert from 'assert';
 import { createHash } from 'crypto';
-import Sema from 'async-sema';
+import { join } from 'path';
 import fetch from 'node-fetch';
-import { createZip } from './zip';
+import { createZip, createFiles } from './zip';
 import { Files } from './types';
-import { runNpmInstall } from '@now/build-utils';
+import { runNpmInstall } from './fs/run-user-scripts';
+import getWritableDirectory from './fs/get-writable-directory';
 
-const sema = new Sema(10);
-const layerUrl = 'https://example.com/layer/'; // TODO: change
+const layerUrl = 'https://example.com/'; // TODO: create backend API
 
 interface BuildLayerResult {
 	files: Files;
@@ -21,23 +20,42 @@ export interface LayerConfig {
 	arch: string;
 }
 
-export async function getLayer({ use, config }: GetLayerOptions) {
-	assert(typeof use === 'string', '"hash" must be a string');
-	assert(typeof config === 'object', '"config" must be an object');
-
-	const hash = await hashLayer({ use, config });
-	let layer = await fetchAWSLayer(hash);
-
-	if (layer) {
-		return layer;
+export async function getLayers(options: GetLayerOptions[]): Promise<Layer[]> {
+	const hashes = options.map(o => hashLayer(o));
+	const res = await fetch(`${layerUrl}/exists?hashes=${hashes.join(',')}`);
+	const existsArray = (await res.json()) as boolean[];
+	const layers: Layer[] = [];
+	for (let i = 0; i < options.length; i++) {
+		const opt = options[i];
+		const hash = hashes[i];
+		const exists = existsArray[i];
+		let layer: Layer;
+		if (exists) {
+			layer = new Layer({ hash });
+		} else {
+			layer = await createLayer(hash, opt);
+		}
+		layers.push(layer);
 	}
+	return layers;
+}
 
-	await runNpmInstall(dest, [use]);
-	const { buildLayer } = require(use) as { buildLayer: BuildLayerFunc };
+async function createLayer(
+	hash: string,
+	{ use, config }: GetLayerOptions
+): Promise<Layer> {
+	const cwd = await getWritableDirectory();
+	await runNpmInstall(cwd, [use]);
+	const { buildLayer } = require(join(cwd, use)) as {
+		buildLayer: BuildLayerFunc;
+	};
 	const { files } = await buildLayer(config);
-	layer = await createAWSLayer(hash, files);
-
-	return layer;
+	const zipBuffer = await createZip(files);
+	await fetch(`${layerUrl}/upload?hash=${hash}`, {
+		method: 'POST',
+		body: zipBuffer,
+	});
+	return new Layer({ hash, files });
 }
 
 interface GetLayerOptions {
@@ -45,57 +63,35 @@ interface GetLayerOptions {
 	config: LayerConfig;
 }
 
-async function hashLayer(opt: GetLayerOptions): Promise<string> {
+function hashLayer(opt: GetLayerOptions): string {
 	return createHash('sha512')
 		.update(JSON.stringify(opt))
 		.digest('hex');
 }
 
-async function fetchAWSLayer(hash: string): Promise<Layer> {
-	await sema.acquire();
-	try {
-		const res = await fetch(layerUrl + hash);
-		const zipBuffer = Buffer.from(res.body);
-		return new Layer({
-			zipBuffer,
-			hash,
-		});
-	} finally {
-		sema.release();
-	}
-}
-
-async function createAWSLayer(hash: string, files: Files): Promise<Layer> {
-	await sema.acquire();
-	try {
-		const zipBuffer = await createZip(files);
-		return new Layer({
-			zipBuffer,
-			hash,
-		});
-	} finally {
-		sema.release();
-	}
-}
-
 interface LayerOptions {
 	hash: string;
-	zipBuffer: Buffer;
+	files?: Files;
 }
 
 export class Layer {
 	public type: 'Layer';
 	public hash: string;
-	private zipBuffer: Buffer;
+	private files: Files | undefined;
 
-	constructor({ hash, zipBuffer }: LayerOptions) {
+	constructor({ hash, files }: LayerOptions) {
 		this.type = 'Layer';
 		this.hash = hash;
-		this.zipBuffer = zipBuffer;
+		this.files = files;
 	}
 
-	public decompress() {
-		// TODO: unzip the buffer into files
-		return this.zipBuffer;
+	async getFiles(): Promise<Files> {
+		if (this.files) {
+			return this.files;
+		}
+		const res = await fetch(`${layerUrl}/download?layerId=${this.hash}`);
+		const files = await createFiles(res.body);
+		this.files = files;
+		return files;
 	}
 }
