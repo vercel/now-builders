@@ -2,9 +2,8 @@ import { basename, join } from 'path';
 import fetch from 'node-fetch';
 import { extract } from 'tar';
 import pipe from 'promisepipe';
-import { createWriteStream, writeFile } from 'fs-extra';
+import { createWriteStream, readFile, writeFile } from 'fs-extra';
 import { unzip, zipFromFile } from './unzip';
-import execa from 'execa';
 
 export async function install(
 	dest: string,
@@ -19,6 +18,7 @@ export async function install(
 	if (!res.ok) {
 		throw new Error(`HTTP request failed: ${res.status}`);
 	}
+	let pathToManifest: string;
 	if (platform === 'win32') {
 		// Put it in the `bin` dir for consistency with the tarballs
 		const finalDest = join(dest, 'bin');
@@ -32,6 +32,13 @@ export async function install(
 
 		const zipFile = await zipFromFile(zipPath);
 		await unzip(zipFile, finalDest, { strip: 1 });
+		pathToManifest = join(
+			dest,
+			'bin',
+			'node_modules',
+			'npm',
+			'package.json'
+		);
 	} else {
 		const extractStream = extract({ strip: 1, C: dest });
 		if (!extractStream.destroy) {
@@ -43,11 +50,19 @@ export async function install(
 			res.body,
 			extractStream
 		);
+		pathToManifest = join(
+			dest,
+			'lib',
+			'node_modules',
+			'npm',
+			'package.json'
+		);
 	}
 
-	const npmVersion = await execa('bin/npm', ['--version']);
-	const metadata = JSON.stringify({ npmVersion });
-	await writeFile('now-metadata.json', metadata);
+	const json = await readFile(pathToManifest, 'utf8');
+	const manifest = JSON.parse(json);
+	const metadata = JSON.stringify({ npmVersion: manifest.version });
+	await writeFile(join(dest, 'now-metadata.json'), metadata);
 }
 
 export function getUrl(

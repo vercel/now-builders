@@ -17,7 +17,6 @@
     "prepublishOnly": "tsc"
   },
   "dependencies": {
-    "execa": "1.0.0",
     "fs-extra": "7.0.1",
     "node-fetch": "2.6.0",
     "promisepipe": "3.0.0",
