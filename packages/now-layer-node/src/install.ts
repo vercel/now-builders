@@ -2,7 +2,7 @@ import { basename, join } from 'path';
 import fetch from 'node-fetch';
 import { extract } from 'tar';
 import pipe from 'promisepipe';
-import { createWriteStream, readFile, writeFile } from 'fs-extra';
+import { createWriteStream, readFile, writeFile, chmod } from 'fs-extra';
 import { unzip, zipFromFile } from './unzip';
 
 export async function install(
@@ -57,6 +57,12 @@ export async function install(
 			'npm',
 			'package.json'
 		);
+	}
+
+	if (process.env.platform !== 'win32' && platform === 'win32') {
+		// Windows doesn't have permissions so this allows
+		// the tests run in Mac/Linux against the Windows zip
+		await chmod(pathToManifest, 0o444);
 	}
 
 	const json = await readFile(pathToManifest, 'utf8');
