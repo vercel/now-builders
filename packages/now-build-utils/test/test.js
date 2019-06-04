@@ -5,7 +5,7 @@ const fs = require('fs-extra');
 const execa = require('execa');
 const assert = require('assert');
 const { glob, download } = require('../');
-const { createZip } = require('../dist/lambda');
+const { createZip } = require('../dist/zip');
 
 const {
   packAndDeploy,
