@@ -173,7 +173,7 @@ function normalizePage(page: string): string {
   // remove '/index' from the end
   page = page.replace(/\/index$/, '/');
   // Resolve on anything that doesn't start with `/`
-  if (page[0] !== '/') {
+  if (!page.startsWith('/')) {
     page = `/${page}`;
   }
   return page;
