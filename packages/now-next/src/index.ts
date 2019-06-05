@@ -514,6 +514,14 @@ export const build = async ({
       // Next.js page lambdas, `static/` folder, reserved assets, and `public/`
       // folder
       { handle: 'filesystem' },
+      ...(isLegacy
+        ? []
+        : [
+            {
+              src: path.join('/', entryDirectory, '.*'),
+              dest: path.join('/', entryDirectory, '_error'),
+            },
+          ]),
     ],
     watch: [],
     childProcesses: [],
