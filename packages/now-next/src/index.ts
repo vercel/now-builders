@@ -503,6 +503,19 @@ export const build = async ({
     {}
   );
 
+  let dynamicRoutes = getDynamicRoutes(
+    entryPath,
+    entryDirectory,
+    dynamicPages
+  ).map(route => {
+    // make sure .html is added to test for now until
+    // outputting static files to clean routes is available
+    if (staticPages[route.dest]) {
+      route.dest += '.html';
+    }
+    return route;
+  });
+
   return {
     output: {
       ...publicFiles,
@@ -515,7 +528,7 @@ export const build = async ({
       // Static exported pages (.html rewrites)
       ...exportedPageRoutes,
       // Dynamic routes
-      ...getDynamicRoutes(entryPath, entryDirectory, dynamicPages),
+      ...dynamicRoutes,
       // Next.js page lambdas, `static/` folder, reserved assets, and `public/`
       // folder
       { handle: 'filesystem' },
