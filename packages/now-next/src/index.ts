@@ -404,11 +404,12 @@ export const build = async ({
       const staticRoute = path.join(entryDirectory, page);
       staticPages[staticRoute] = staticPageFiles[page];
 
-      if (page.startsWith('$') || page.includes('/$')) {
-        dynamicPages.push(page);
+      const pathname = page.replace(/\.html$/, '');
+
+      if (pathname.startsWith('$') || pathname.includes('/$')) {
+        dynamicPages.push(pathname);
       }
 
-      const pathname = page.replace(/\.html$/, '');
       exportedPageRoutes.push({
         src: `^${path.join('/', entryDirectory, pathname)}$`,
         dest: path.join('/', staticRoute),
