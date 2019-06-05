@@ -527,11 +527,11 @@ export const build = async ({
     routes: [
       // Static exported pages (.html rewrites)
       ...exportedPageRoutes,
-      // Dynamic routes
-      ...dynamicRoutes,
       // Next.js page lambdas, `static/` folder, reserved assets, and `public/`
       // folder
       { handle: 'filesystem' },
+      // Dynamic routes
+      ...dynamicRoutes,
     ],
     watch: [],
     childProcesses: [],
