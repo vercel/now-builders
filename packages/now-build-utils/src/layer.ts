@@ -21,19 +21,19 @@ export interface LayerConfig {
 }
 
 export async function getLayers(options: GetLayerOptions[]): Promise<Layer[]> {
-  const hashes = options.map(o => hashLayer(o));
-  const res = await fetch(`${layerUrl}/exists?hashes=${hashes.join(',')}`);
+  const ids = options.map(o => getId(o));
+  const res = await fetch(`${layerUrl}/exists?ids=${ids.join(',')}`);
   const existsArray = (await res.json()) as boolean[];
   const layers: Layer[] = [];
   for (let i = 0; i < options.length; i++) {
     const opt = options[i];
-    const hash = hashes[i];
+    const id = ids[i];
     const exists = existsArray[i];
     let layer: Layer;
     if (exists) {
-      layer = new Layer({ hash });
+      layer = new Layer({ id });
     } else {
-      layer = await createLayer(hash, opt);
+      layer = await createLayer(id, opt);
     }
     layers.push(layer);
   }
@@ -41,7 +41,7 @@ export async function getLayers(options: GetLayerOptions[]): Promise<Layer[]> {
 }
 
 async function createLayer(
-  hash: string,
+  id: string,
   { use, config }: GetLayerOptions
 ): Promise<Layer> {
   const cwd = await getWritableDirectory();
@@ -51,11 +51,11 @@ async function createLayer(
   };
   const { files } = await buildLayer(config);
   const zipBuffer = await createZip(files);
-  await fetch(`${layerUrl}/upload?hash=${hash}`, {
+  await fetch(`${layerUrl}/upload?id=${id}`, {
     method: 'POST',
     body: zipBuffer,
   });
-  return new Layer({ hash, files });
+  return new Layer({ id, files });
 }
 
 interface GetLayerOptions {
@@ -63,25 +63,25 @@ interface GetLayerOptions {
   config: LayerConfig;
 }
 
-function hashLayer(opt: GetLayerOptions): string {
+function getId(opt: GetLayerOptions): string {
   return createHash('sha512')
     .update(JSON.stringify(opt))
     .digest('hex');
 }
 
 interface LayerOptions {
-  hash: string;
+  id: string;
   files?: Files;
 }
 
 export class Layer {
   public type: 'Layer';
-  public hash: string;
+  public id: string;
   private files: Files | undefined;
 
-  constructor({ hash, files }: LayerOptions) {
+  constructor({ id, files }: LayerOptions) {
     this.type = 'Layer';
-    this.hash = hash;
+    this.id = id;
     this.files = files;
   }
 
@@ -89,7 +89,7 @@ export class Layer {
     if (this.files) {
       return this.files;
     }
-    const res = await fetch(`${layerUrl}/download?layerId=${this.hash}`);
+    const res = await fetch(`${layerUrl}/download?layerId=${this.id}`);
     const files = await createFiles(res.body);
     this.files = files;
     return files;
