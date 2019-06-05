@@ -508,7 +508,7 @@ export const build = async ({
     entryDirectory,
     dynamicPages
   ).map(route => {
-    // make sure .html is added to test for now until
+    // make sure .html is added to dest for now until
     // outputting static files to clean routes is available
     if (staticPages[route.dest]) {
       route.dest += '.html';
