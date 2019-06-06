@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "builds": [{ "src": "index.js", "use": "@now/node" }],
+  "probes": [
+    {
+      "path": "/?who=bill",
+      "mustContain": "hello bill:RANDOMNESS_PLACEHOLDER"
+    }
+  ]
+}
