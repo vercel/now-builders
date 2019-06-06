@@ -1,4 +1,17 @@
+/* eslint-disable prefer-destructuring */
+
 module.exports = (req, res) => {
   res.status(200);
-  res.send(`hello ${req.query.who || 'anonymous'}:RANDOMNESS_PLACEHOLDER`);
+
+  let who = 'anonymous';
+
+  if (req.body && req.body.who) {
+    who = req.body.who;
+  } else if (req.query.who) {
+    who = req.query.who;
+  } else if (req.cookies.who) {
+    who = req.cookies.who;
+  }
+
+  res.send(`hello ${who}:RANDOMNESS_PLACEHOLDER`);
 };

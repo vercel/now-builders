@@ -86,6 +86,7 @@ async function testDeployment (
       method: probe.method,
       body: probe.body ? JSON.stringify(probe.body) : undefined,
       headers: {
+        ...probe.headers,
         'content-type': 'application/json',
       },
     });

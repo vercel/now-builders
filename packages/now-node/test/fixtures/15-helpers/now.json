@@ -12,8 +12,22 @@
   ],
   "probes": [
     {
+      "path": "/",
+      "mustContain": "hello anonymous:RANDOMNESS_PLACEHOLDER"
+    },
+    {
       "path": "/?who=bill",
       "mustContain": "hello bill:RANDOMNESS_PLACEHOLDER"
+    },
+    {
+      "path": "/",
+      "body": { "who": "john" },
+      "mustContain": "hello john:RANDOMNESS_PLACEHOLDER"
+    },
+    {
+      "path": "/",
+      "headers": { "cookie": "who=chris" },
+      "mustContain": "hello chris:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/no-helpers/",
