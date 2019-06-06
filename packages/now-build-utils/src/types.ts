@@ -16,7 +16,7 @@ export interface Files {
 }
 
 export interface Config {
-  [key: string]: string;
+  [key: string]: string | boolean | number;
 }
 
 export interface Meta {
