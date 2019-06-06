@@ -70,6 +70,7 @@ elif 'app' in __now_variables:
 
         path = unquote(payload['path'])
         query = urlparse(path).query
+        path = urlparse(path).path
 
         environ = {
             'CONTENT_LENGTH': str(len(body)),
