@@ -16,7 +16,11 @@ export interface Files {
 }
 
 export interface Config {
-  [key: string]: any;
+  maxLambdaSize?: string;
+  includeFiles?: string | string[];
+  bundle?: boolean;
+  ldsflags?: string;
+  helpers?: boolean;
 }
 
 export interface Meta {
