@@ -106,6 +106,7 @@ async function compile(
 
 export const config = {
   maxLambdaSize: '5mb',
+  helpers: true,
 };
 
 export async function build({
@@ -139,7 +140,10 @@ export async function build({
     [
       `listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
-    ].join(' ')
+      config.helpers && `listener = require("./helpers").addHelpers(listener)`,
+    ]
+      .filter(Boolean)
+      .join(' ')
   );
 
   const launcherFiles = {
