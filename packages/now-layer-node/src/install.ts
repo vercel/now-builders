@@ -2,7 +2,7 @@ import { basename, join } from 'path';
 import fetch from 'node-fetch';
 import { extract } from 'tar';
 import pipe from 'promisepipe';
-import { createWriteStream, readFile, chmod } from 'fs-extra';
+import { createWriteStream } from 'fs-extra';
 import { unzip, zipFromFile } from './unzip';
 
 export async function install(
@@ -18,7 +18,6 @@ export async function install(
   if (!res.ok) {
     throw new Error(`HTTP request failed: ${res.status}`);
   }
-  let pathToManifest: string;
   let entrypoint: string;
   if (platform === 'win32') {
     // Put it in the `bin` dir for consistency with the tarballs
@@ -33,7 +32,6 @@ export async function install(
 
     const zipFile = await zipFromFile(zipPath);
     await unzip(zipFile, finalDest, { strip: 1 });
-    pathToManifest = join(dest, 'bin', 'node_modules', 'npm', 'package.json');
     entrypoint = join('bin', 'node.exe');
   } else {
     const extractStream = extract({ strip: 1, C: dest });
@@ -46,20 +44,10 @@ export async function install(
       res.body,
       extractStream
     );
-    pathToManifest = join(dest, 'lib', 'node_modules', 'npm', 'package.json');
     entrypoint = join('bin', 'node');
   }
 
-  if (process.env.platform !== 'win32' && platform === 'win32') {
-    // Windows doesn't have permissions so this allows
-    // the tests run in Mac/Linux against the Windows zip
-    await chmod(pathToManifest, 0o444);
-  }
-
-  const json = await readFile(pathToManifest, 'utf8');
-  const manifest = JSON.parse(json);
-  const npmVersion = manifest.version;
-  return { entrypoint, meta: { npmVersion } };
+  return { entrypoint };
 }
 
 export function getUrl(
