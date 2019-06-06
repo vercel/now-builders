@@ -195,7 +195,7 @@ export function addHelpers(listener: any) {
       if (err instanceof ApiError) {
         sendError(res, err.statusCode, err.message);
       } else {
-        sendError(res, 500, err.message);
+        throw err;
       }
     }
   };
