@@ -54,6 +54,38 @@ it('req.cookies should reflect req.cookie header', async () => {
   });
 });
 
+it('req.body should contained the parsed body', async () => {
+  mockListener.mockImplementation((req, res) => {
+    res.send('hello');
+  });
+
+  await fetch(url, {
+    method: 'POST',
+    body: 'hello',
+  });
+
+  expect(mockListener.mock.calls[0][0].body).toBe('hello');
+});
+
+it('req.body should contained the parsed json when content-type is application/json', async () => {
+  mockListener.mockImplementation((req, res) => {
+    res.send('hello');
+  });
+
+  const json = {
+    who: 'bill',
+    where: 'us',
+  };
+
+  await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(json),
+    headers: { 'content-type': 'application/json' },
+  });
+
+  expect(mockListener.mock.calls[0][0].body).toMatchObject(json);
+});
+
 it('res.send() should send text', async () => {
   mockListener.mockImplementation((req, res) => {
     res.send('hello');
