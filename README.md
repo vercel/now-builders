@@ -6,10 +6,10 @@ This is a monorepo containing the [Official Builders](https://zeit.co/docs/v2/de
 
 There are two Channels:
 
-| Channel | Git Branch | npm dist-tag | use example  |
-|---------|-----------|------------|---------------------|
-| Canary  | `canary`  | `@canary`  | `@now/node@canary`  |
-| Stable  | `master`  | `@latest`  | `@now/node@latest`  |
+| Channel | Git Branch | npm dist-tag | use example        |
+| ------- | ---------- | ------------ | ------------------ |
+| Canary  | `canary`   | `@canary`    | `@now/node@canary` |
+| Stable  | `master`   | `@latest`    | `@now/node@latest` |
 
 All PRs should be submitted to the `canary` branch.
 
