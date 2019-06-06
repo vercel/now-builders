@@ -31,6 +31,7 @@ git pull      # make sure you're up to date
 git cherry-pick <PR501_COMMIT_SHA>
 git cherry-pick <PR502_COMMIT_SHA>
 git cherry-pick <PR503_COMMIT_SHA>
+git cherry-pick <PR504_COMMIT_SHA>
 # ... etc ...
 yarn publish-stable
 ```
