@@ -1,20 +1,29 @@
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { glob } from '@now/build-utils';
+import { glob, Files } from '@now/build-utils';
 import { mkdir, remove, pathExists } from 'fs-extra';
 import { install } from './install';
 
-interface LayerConfig {
+interface BuildLayerConfig {
   runtimeVersion: string;
   platform: string;
   arch: string;
+}
+
+interface BuildLayerMeta {
+  [key: string]: string;
+}
+
+interface BuildLayerResult {
+  files: Files;
+  meta: BuildLayerMeta;
 }
 
 export async function buildLayer({
   runtimeVersion,
   platform,
   arch,
-}: LayerConfig) {
+}: BuildLayerConfig): Promise<BuildLayerResult> {
   const dir = join(
     tmpdir(),
     `now-layer-npm-${runtimeVersion}-${platform}-${arch}`
@@ -24,9 +33,9 @@ export async function buildLayer({
     await remove(dir);
   }
   await mkdir(dir);
-  await install(dir, runtimeVersion);
+  const meta = await install(dir, runtimeVersion);
   const files = await glob('{bin/**,lib/**,node_modules/**}', {
     cwd: dir,
   });
-  return { files };
+  return { files, meta };
 }
