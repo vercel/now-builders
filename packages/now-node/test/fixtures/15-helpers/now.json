@@ -1,10 +1,23 @@
 {
   "version": 2,
-  "builds": [{ "src": "index.js", "use": "@now/node" }],
+  "builds": [
+    { "src": "index.js", "use": "@now/node" },
+    {
+      "src": "no-helpers/index.js",
+      "use": "@now/node",
+      "config": {
+        "helpers": "false"
+      }
+    }
+  ],
   "probes": [
     {
       "path": "/?who=bill",
       "mustContain": "hello bill:RANDOMNESS_PLACEHOLDER"
+    },
+    {
+      "path": "/no-helpers/",
+      "mustContain": "no:RANDOMNESS_PLACEHOLDER"
     }
   ]
 }
