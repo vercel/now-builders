@@ -22,6 +22,8 @@ export async function install(dest: string, version: string) {
     extractStream
   );
 
-  const entrypoint = join('bin', 'yarn.js');
+  const pathToManifest = join(dest, 'package.json');
+  const manifest = require(pathToManifest);
+  const entrypoint = manifest.bin;
   return { entrypoint };
 }
