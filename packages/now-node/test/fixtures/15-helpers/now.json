@@ -6,7 +6,7 @@
       "src": "no-helpers/index.js",
       "use": "@now/node",
       "config": {
-        "helpers": "false"
+        "helpers": false
       }
     }
   ],

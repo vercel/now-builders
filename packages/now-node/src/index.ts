@@ -115,7 +115,7 @@ export async function build({
   config,
   meta,
 }: BuildOptions) {
-  const shouldAddHelpers = config && config.helpers !== 'false';
+  const shouldAddHelpers = !(config && config.helpers === false);
 
   const {
     entrypointPath,
