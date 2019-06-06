@@ -38,6 +38,7 @@ import {
   validateEntrypoint,
   normalizePage,
   getDynamicRoutes,
+  addEntryDir,
 } from './utils';
 
 interface BuildParamsMeta {
@@ -373,7 +374,7 @@ export const build = async ({
         };
 
         console.log(`Creating lambda for page: "${page}"...`);
-        lambdas[path.join(entryDirectory, pathname)] = await createLambda({
+        lambdas[addEntryDir(entryDirectory, pathname)] = await createLambda({
           files: {
             ...nextFiles,
             ...pageFiles,
@@ -458,7 +459,7 @@ export const build = async ({
         }
 
         console.log(`Creating lambda for page: "${page}"...`);
-        lambdas[path.join(entryDirectory, pathname)] = await createLambda({
+        lambdas[addEntryDir(entryDirectory, pathname)] = await createLambda({
           files: {
             ...launcherFiles,
             ...assets,
@@ -479,7 +480,7 @@ export const build = async ({
   const staticFiles = Object.keys(nextStaticFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[
+      [addEntryDir(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[
         file
       ],
     }),

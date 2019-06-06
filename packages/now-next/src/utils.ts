@@ -9,6 +9,10 @@ export interface EnvConfig {
   [name: string]: string | undefined;
 }
 
+function addEntryDir(entryDirectory: string, route: string) {
+  return path.join('/', entryDirectory, route);
+}
+
 /**
  * Validate if the entrypoint is allowed to be used
  */
@@ -351,4 +355,5 @@ export {
   stringMap,
   syncEnvVars,
   normalizePage,
+  addEntryDir,
 };
