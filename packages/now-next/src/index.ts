@@ -481,7 +481,9 @@ export const build = async ({
   const staticFiles = Object.keys(nextStaticFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [scopeToEntry(`_next/static/${file}`)]: nextStaticFiles[file],
+      [path.join(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[
+        file
+      ],
     }),
     {}
   );
