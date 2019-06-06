@@ -11,7 +11,7 @@ describe('buildLayer', () => {
     });
     const names = new Set(Object.keys(files));
     expect(names).toBeTruthy();
-    expect(meta.entrypoint).toBeTruthy();
+    expect(meta.entrypoint).toBe('./bin/yarn.js');
     expect(names.size).toBeGreaterThan(0);
     expect(names.has('bin/yarn.cmd')).toBeTruthy();
     expect(names.has('lib/cli.js')).toBeTruthy();
@@ -25,7 +25,7 @@ describe('buildLayer', () => {
     });
     const names = new Set(Object.keys(files));
     expect(names).toBeTruthy();
-    expect(meta.entrypoint).toBeTruthy();
+    expect(meta.entrypoint).toBe('./bin/yarn.js');
     expect(names.size).toBeGreaterThan(0);
     expect(names.has('bin/yarn')).toBeTruthy();
     expect(names.has('lib/cli.js')).toBeTruthy();
@@ -40,7 +40,7 @@ describe('buildLayer', () => {
     });
     const names = new Set(Object.keys(files));
     expect(names).toBeTruthy();
-    expect(meta.entrypoint).toBeTruthy();
+    expect(meta.entrypoint).toBe('./bin/yarn.js');
     expect(names.size).toBeGreaterThan(0);
     expect(names.has('bin/yarn')).toBeTruthy();
     expect(names.has('lib/cli.js')).toBeTruthy();

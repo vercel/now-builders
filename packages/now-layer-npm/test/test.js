@@ -11,7 +11,7 @@ describe('buildLayer', () => {
     });
     const names = new Set(Object.keys(files));
     expect(names).toBeTruthy();
-    expect(meta.entrypoint).toBeTruthy();
+    expect(meta.entrypoint).toBe('./bin/npm-cli.js');
     expect(names.size).toBeGreaterThan(0);
     expect(names.has('bin/npm.cmd')).toBeTruthy();
     expect(names.has('bin/npx.cmd')).toBeTruthy();
@@ -26,7 +26,7 @@ describe('buildLayer', () => {
     });
     const names = new Set(Object.keys(files));
     expect(names).toBeTruthy();
-    expect(meta.entrypoint).toBeTruthy();
+    expect(meta.entrypoint).toBe('./bin/npm-cli.js');
     expect(names.size).toBeGreaterThan(0);
     expect(names.has('bin/npm')).toBeTruthy();
     expect(names.has('bin/npx')).toBeTruthy();
@@ -41,7 +41,7 @@ describe('buildLayer', () => {
     });
     const names = new Set(Object.keys(files));
     expect(names).toBeTruthy();
-    expect(meta.entrypoint).toBeTruthy();
+    expect(meta.entrypoint).toBe('./bin/npm-cli.js');
     expect(names.size).toBeGreaterThan(0);
     expect(names.has('bin/npm')).toBeTruthy();
     expect(names.has('bin/npx')).toBeTruthy();

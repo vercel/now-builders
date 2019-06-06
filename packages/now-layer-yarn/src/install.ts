@@ -24,6 +24,6 @@ export async function install(dest: string, version: string) {
 
   const pathToManifest = join(dest, 'package.json');
   const manifest = require(pathToManifest);
-  const entrypoint = manifest.bin;
+  const entrypoint = manifest.bin.yarn;
   return { entrypoint };
 }
