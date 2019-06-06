@@ -115,6 +115,8 @@ export async function build({
   config,
   meta,
 }: BuildOptions) {
+  const shouldAddHelpers = config && config.helpers !== 'false';
+
   const {
     entrypointPath,
     entrypointFsDirname,
@@ -139,18 +141,23 @@ export async function build({
     [
       `listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
-      config &&
-        config.helpers !== 'false' &&
+      shouldAddHelpers &&
         `listener = require("./helpers").addHelpers(listener)`,
     ]
       .filter(Boolean)
       .join(' ')
   );
 
-  const launcherFiles = {
+  const launcherFiles: Files = {
     'launcher.js': new FileBlob({ data: launcherData }),
     'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
   };
+
+  if (shouldAddHelpers) {
+    launcherFiles['helpers.js'] = new FileFsRef({
+      fsPath: join(__dirname, 'helpers.js'),
+    });
+  }
 
   const lambda = await createLambda({
     files: { ...preparedFiles, ...launcherFiles },
