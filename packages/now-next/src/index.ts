@@ -301,6 +301,7 @@ export const build = async ({
   const lambdas: { [key: string]: Lambda } = {};
   const staticPages: { [key: string]: FileFsRef } = {};
   const dynamicPages: string[] = [];
+  const scopeToEntry = scope.bind(entryDirectory);
 
   if (isLegacy) {
     const filesAfterBuild = await glob('**', entryPath);
@@ -372,7 +373,6 @@ export const build = async ({
             `.next/server/static/${buildId}/pages/${page}`
           ],
         };
-        const scopeToEntry = scope.bind(entryDirectory);
         console.log(`Creating lambda for page: "${page}"...`);
         lambdas[scopeToEntry(pathname)] = await createLambda({
           files: {
@@ -481,9 +481,7 @@ export const build = async ({
   const staticFiles = Object.keys(nextStaticFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [scopeToEntry(`_next/static/${file}`)]: nextStaticFiles[
-        file
-      ],
+      [scopeToEntry(`_next/static/${file}`)]: nextStaticFiles[file],
     }),
     {}
   );

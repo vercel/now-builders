@@ -9,9 +9,13 @@ export interface EnvConfig {
   [name: string]: string | undefined;
 }
 
-function scopeToEntry(route: string) {
-  return path.join('/', this, route);
+interface IScopeToEntry extends Function {
+  (this: string, route: string): string;
 }
+
+const scopeToEntry: IScopeToEntry = function(route) {
+  return path.join('/', this, route);
+};
 
 /**
  * Validate if the entrypoint is allowed to be used
