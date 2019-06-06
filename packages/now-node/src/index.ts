@@ -140,7 +140,9 @@ export async function build({
     [
       `listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
-      config.helpers && `listener = require("./helpers").addHelpers(listener)`,
+      config &&
+        config.helpers &&
+        `listener = require("./helpers").addHelpers(listener)`,
     ]
       .filter(Boolean)
       .join(' ')
