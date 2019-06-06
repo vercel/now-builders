@@ -13,7 +13,7 @@ There are two Channels:
 
 All PRs should be submitted to the `canary` branch.
 
-Onced a PR is merged into the `canary` branch, it should be published to npm immediately using the Canary Channel.
+Once a PR is merged into the `canary` branch, it should be published to npm immediately using the Canary Channel.
 
 ### Publishing to npm
 
