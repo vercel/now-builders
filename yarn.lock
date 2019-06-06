@@ -9518,6 +9518,11 @@ test-exclude@^5.0.0:
     read-pkg-up "^4.0.0"
     require-main-filename "^1.0.1"
 
+test-listen@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/test-listen/-/test-listen-1.1.0.tgz#2ba614d96c3bc9157469003027b42a495dd83b6a"
+  integrity sha512-OyEVi981C1sb9NX1xayfgZls3p8QTDRwp06EcgxSgd1kktaENBW8dO15i8v/7Fi15j0IYQctJzk5J+hyEBId2w==
+
 text-extensions@^1.0.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"

@@ -29,6 +29,8 @@
     "@types/cookie": "0.3.3",
     "@types/node": "11.9.4",
     "jest": "24.1.0",
+    "node-fetch": "2.6.0",
+    "test-listen": "1.1.0",
     "typescript": "3.3.3"
   }
 }
