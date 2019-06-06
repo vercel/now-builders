@@ -409,6 +409,7 @@ export const build = async ({
 
       if (pathname.startsWith('$') || pathname.includes('/$')) {
         dynamicPages.push(pathname);
+        return;
       }
 
       exportedPageRoutes.push({
