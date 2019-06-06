@@ -38,7 +38,7 @@ import {
   validateEntrypoint,
   normalizePage,
   getDynamicRoutes,
-  addEntryDir,
+  scopeToEntry as scope,
 } from './utils';
 
 interface BuildParamsMeta {
@@ -372,9 +372,9 @@ export const build = async ({
             `.next/server/static/${buildId}/pages/${page}`
           ],
         };
-
+        const scopeToEntry = scope.bind(entryDirectory);
         console.log(`Creating lambda for page: "${page}"...`);
-        lambdas[addEntryDir(entryDirectory, pathname)] = await createLambda({
+        lambdas[scopeToEntry(pathname)] = await createLambda({
           files: {
             ...nextFiles,
             ...pageFiles,
@@ -402,7 +402,7 @@ export const build = async ({
     const staticPageFiles = await glob('**/*.html', pagesDir);
 
     Object.keys(staticPageFiles).forEach((page: string) => {
-      const staticRoute = path.join('/', entryDirectory, page);
+      const staticRoute = scopeToEntry(page);
       staticPages[staticRoute] = staticPageFiles[page];
 
       const pathname = page.replace(/\.html$/, '');
@@ -459,7 +459,7 @@ export const build = async ({
         }
 
         console.log(`Creating lambda for page: "${page}"...`);
-        lambdas[addEntryDir(entryDirectory, pathname)] = await createLambda({
+        lambdas[scopeToEntry(pathname)] = await createLambda({
           files: {
             ...launcherFiles,
             ...assets,
@@ -480,7 +480,7 @@ export const build = async ({
   const staticFiles = Object.keys(nextStaticFiles).reduce(
     (mappedFiles, file) => ({
       ...mappedFiles,
-      [addEntryDir(entryDirectory, `_next/static/${file}`)]: nextStaticFiles[
+      [scopeToEntry(`_next/static/${file}`)]: nextStaticFiles[
         file
       ],
     }),
