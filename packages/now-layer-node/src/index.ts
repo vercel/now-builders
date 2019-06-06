@@ -10,14 +10,9 @@ interface BuildLayerConfig {
   arch: string;
 }
 
-interface BuildLayerMeta {
-  [key: string]: string;
-}
-
 interface BuildLayerResult {
   files: Files;
   entrypoint: string;
-  meta?: BuildLayerMeta;
 }
 
 export async function buildLayer({
@@ -43,5 +38,5 @@ export async function buildLayer({
   const files = await glob('{bin/node,bin/node.exe,include/**}', {
     cwd: dir,
   });
-  return { files, entrypoint, meta };
+  return { files, entrypoint };
 }

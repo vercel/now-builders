@@ -10,14 +10,9 @@ interface BuildLayerConfig {
   arch: string;
 }
 
-interface BuildLayerMeta {
-  [key: string]: string;
-}
-
 interface BuildLayerResult {
   files: Files;
   entrypoint: string;
-  meta?: BuildLayerMeta;
 }
 
 export async function buildLayer({
