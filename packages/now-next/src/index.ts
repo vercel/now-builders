@@ -166,6 +166,7 @@ export const build = async ({
   validateEntrypoint(entrypoint);
 
   const entryDirectory = path.dirname(entrypoint);
+  const scopeToEntry = scope.bind(entryDirectory);
   const entryPath = path.join(workPath, entryDirectory);
   const dotNext = path.join(entryPath, '.next');
 
@@ -301,7 +302,6 @@ export const build = async ({
   const lambdas: { [key: string]: Lambda } = {};
   const staticPages: { [key: string]: FileFsRef } = {};
   const dynamicPages: string[] = [];
-  const scopeToEntry = scope.bind(entryDirectory);
 
   if (isLegacy) {
     const filesAfterBuild = await glob('**', entryPath);
@@ -374,7 +374,7 @@ export const build = async ({
           ],
         };
         console.log(`Creating lambda for page: "${page}"...`);
-        lambdas[scopeToEntry(pathname)] = await createLambda({
+        lambdas[path.join(entryDirectory, pathname)] = await createLambda({
           files: {
             ...nextFiles,
             ...pageFiles,
@@ -460,7 +460,7 @@ export const build = async ({
         }
 
         console.log(`Creating lambda for page: "${page}"...`);
-        lambdas[scopeToEntry(pathname)] = await createLambda({
+        lambdas[path.join(entryDirectory, pathname)] = await createLambda({
           files: {
             ...launcherFiles,
             ...assets,
