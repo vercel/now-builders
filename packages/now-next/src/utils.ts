@@ -9,8 +9,8 @@ export interface EnvConfig {
   [name: string]: string | undefined;
 }
 
-function addEntryDir(entryDirectory: string, route: string) {
-  return path.join('/', entryDirectory, route);
+function scopeToEntry(route: string) {
+  return path.join('/', this, route);
 }
 
 /**
@@ -355,5 +355,5 @@ export {
   stringMap,
   syncEnvVars,
   normalizePage,
-  addEntryDir,
+  scopeToEntry,
 };
