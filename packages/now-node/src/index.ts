@@ -141,11 +141,10 @@ export async function build({
     [
       `listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
-      shouldAddHelpers &&
-        `listener = require("./helpers").addHelpers(listener)`,
-    ]
-      .filter(Boolean)
-      .join(' ')
+      shouldAddHelpers
+        ? 'listener = require("./helpers").addHelpers(listener)'
+        : '',
+    ].join(' ')
   );
 
   const launcherFiles: Files = {
