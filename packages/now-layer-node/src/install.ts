@@ -10,7 +10,7 @@ export async function install(
   version: string,
   platform: string,
   arch: string
-): Promise<{ entrypoint: string; npmVersion: string }> {
+) {
   const tarballUrl = getUrl(version, platform, arch);
   console.log('Downloading from ' + tarballUrl);
   console.log('Downloading to ' + dest);
@@ -59,7 +59,7 @@ export async function install(
   const json = await readFile(pathToManifest, 'utf8');
   const manifest = JSON.parse(json);
   const npmVersion = manifest.version;
-  return { entrypoint, npmVersion };
+  return { entrypoint, meta: { npmVersion } };
 }
 
 export function getUrl(

@@ -16,7 +16,8 @@ interface BuildLayerMeta {
 
 interface BuildLayerResult {
   files: Files;
-  meta: BuildLayerMeta;
+  entrypoint: string;
+  meta?: BuildLayerMeta;
 }
 
 export async function buildLayer({
@@ -33,9 +34,14 @@ export async function buildLayer({
     await remove(dir);
   }
   await mkdir(dir);
-  const meta = await install(dir, runtimeVersion, platform, arch);
+  const { entrypoint, meta } = await install(
+    dir,
+    runtimeVersion,
+    platform,
+    arch
+  );
   const files = await glob('{bin/node,bin/node.exe,include/**}', {
     cwd: dir,
   });
-  return { files, meta };
+  return { files, entrypoint, meta };
 }
