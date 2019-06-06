@@ -2,6 +2,7 @@
   "version": 2,
   "builds": [
     { "src": "index.js", "use": "@now/node" },
+    { "src": "ts/index.ts", "use": "@now/node" },
     {
       "src": "no-helpers/index.js",
       "use": "@now/node",
@@ -14,6 +15,10 @@
     {
       "path": "/",
       "mustContain": "hello anonymous:RANDOMNESS_PLACEHOLDER"
+    },
+    {
+      "path": "/ts",
+      "mustContain": "hello:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/?who=bill",
