@@ -14,6 +14,7 @@ import {
   BuildOptions,
   shouldServe,
 } from '@now/build-utils';
+export { NowRequest, NowResponse } from './types';
 
 interface CompilerConfig {
   includeFiles?: string | string[];

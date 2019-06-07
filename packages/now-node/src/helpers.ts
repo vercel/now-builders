@@ -3,24 +3,7 @@ import { Stream } from 'stream';
 import getRawBody from 'raw-body';
 import { URL } from 'url';
 import { parse as parseCT } from 'content-type';
-import { ServerResponse, IncomingMessage } from 'http';
-
-type NowRequest = IncomingMessage & {
-  query: {
-    [key: string]: string | string[];
-  };
-  cookies: {
-    [key: string]: string;
-  };
-
-  body: any;
-};
-
-type NowResponse = ServerResponse & {
-  send: (body: any) => void;
-  json: (body: any) => void;
-  status: (statusCode: number) => void;
-};
+import { NowRequest, NowResponse } from './types';
 
 type NowListener = (req: NowRequest, res: NowResponse) => void | Promise<void>;
 
@@ -62,7 +45,7 @@ function parseJson(str: string) {
   }
 }
 
-function parseQuery({ url = '/' }: IncomingMessage) {
+function parseQuery({ url = '/' }: NowRequest) {
   // we provide a placeholder base url because we only want searchParams
   const params = new URL(url, 'https://n').searchParams;
 
