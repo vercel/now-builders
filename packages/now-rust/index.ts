@@ -119,7 +119,10 @@ async function buildWholeProject(
   return lambdas;
 }
 
-async function gatherExtraFiles(globMatcher: string, entrypoint: string) {
+async function gatherExtraFiles(
+  globMatcher: string | string[] | undefined,
+  entrypoint: string
+) {
   if (!globMatcher) return {};
 
   console.log('gathering extra files for the fs...');
@@ -290,9 +293,6 @@ export async function build(opts: BuildOptions) {
   };
 
   await runUserScripts(entryPath);
-
-  if (typeof config.includeFiles !== 'string')
-    throw Error('includeFiles should be a string');
 
   const extraFiles = await gatherExtraFiles(config.includeFiles, entryPath);
 
