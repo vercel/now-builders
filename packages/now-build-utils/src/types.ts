@@ -15,12 +15,15 @@ export interface Files {
   [filePath: string]: File;
 }
 
-export type Config = {
-  [key: string]: string;
-} & {
-  helpers?: boolean;
+export interface Config {
+  maxLambdaSize?: string;
   includeFiles?: string | string[];
-};
+  bundle?: boolean;
+  ldsflags?: string;
+  helpers?: boolean;
+  rust?: string;
+  debug?: boolean;
+}
 
 export interface Meta {
   isDev?: boolean;
