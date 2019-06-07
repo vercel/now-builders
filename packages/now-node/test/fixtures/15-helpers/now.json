@@ -26,23 +26,32 @@
   "probes": [
     {
       "path": "/",
+      "method": "POST",
+      "body": {},
       "mustContain": "hello anonymous:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/ts",
+      "method": "POST",
+      "body": {},
       "mustContain": "hello:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/?who=bill",
+      "method": "POST",
+      "body": {},
       "mustContain": "hello bill:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/",
+      "method": "POST",
       "body": { "who": "john" },
       "mustContain": "hello john:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/",
+      "method": "POST",
+      "body": {},
       "headers": { "cookie": "who=chris" },
       "mustContain": "hello chris:RANDOMNESS_PLACEHOLDER"
     },
