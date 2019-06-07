@@ -4,6 +4,7 @@
   "probes": [
     {
       "path": "/",
+      "body": {},
       "mustContain": "index.js:4"
     }
   ]

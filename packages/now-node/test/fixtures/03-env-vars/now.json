@@ -5,7 +5,11 @@
     { "src": "env/index.js", "use": "@now/node" }
   ],
   "probes": [
-    { "path": "/build-env", "mustContain": "RANDOMNESS_PLACEHOLDER:build-env" },
-    { "path": "/env", "mustContain": "RANDOMNESS_PLACEHOLDER:env" }
+    {
+      "path": "/build-env",
+      "body": {},
+      "mustContain": "RANDOMNESS_PLACEHOLDER:build-env"
+    },
+    { "path": "/env", "body": {}, "mustContain": "RANDOMNESS_PLACEHOLDER:env" }
   ]
 }

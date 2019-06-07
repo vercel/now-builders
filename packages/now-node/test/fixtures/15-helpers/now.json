@@ -14,14 +14,17 @@
   "probes": [
     {
       "path": "/",
+      "body": {},
       "mustContain": "hello anonymous:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/ts",
+      "body": {},
       "mustContain": "hello:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/?who=bill",
+      "body": {},
       "mustContain": "hello bill:RANDOMNESS_PLACEHOLDER"
     },
     {
@@ -31,6 +34,7 @@
     },
     {
       "path": "/",
+      "body": {},
       "headers": { "cookie": "who=chris" },
       "mustContain": "hello chris:RANDOMNESS_PLACEHOLDER"
     },
