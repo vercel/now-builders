@@ -1158,10 +1158,10 @@
     globby "8.0.0"
     signal-exit "3.0.2"
 
-"@zeit/ncc-watcher@https://files-ebqj41ws3.zeit.sh":
-  version "0.0.0"
-  uid "2a825038507ac3cb7a30f4c0c8ed3b73cf092561"
-  resolved "https://files-ebqj41ws3.zeit.sh#2a825038507ac3cb7a30f4c0c8ed3b73cf092561"
+"@zeit/ncc-watcher@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@zeit/ncc-watcher/-/ncc-watcher-1.0.0.tgz#4db1124bc76614afe6724e49395f2afd7e71fb18"
+  integrity sha512-bFYxd3ccNd2jF8ZfMkOvnY2G7qT8BStuneFiUZ8iCss39dxrGObL3cftYU/CcPJo6IdtLPzJdQ1PD8LINx7t/A==
   dependencies:
     "@zeit/ncc" "^0.18.5"
 
