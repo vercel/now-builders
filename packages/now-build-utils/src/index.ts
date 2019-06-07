@@ -7,6 +7,7 @@ import {
   AnalyzeOptions,
   BuildOptions,
   PrepareCacheOptions,
+  PrepareLayersOptions,
   ShouldServeOptions,
   Meta,
 } from './types';
@@ -46,6 +47,7 @@ export {
   AnalyzeOptions,
   BuildOptions,
   PrepareCacheOptions,
+  PrepareLayersOptions,
   ShouldServeOptions,
   shouldServe,
 };
