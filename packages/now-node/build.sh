@@ -11,6 +11,7 @@ fi
 cp -v "$bridge_defs" src
 tsc
 
+# bundle helpers.ts with ncc
 rm dist/helpers.js
 ncc build src/helpers.ts -o dist/helpers
 mv dist/helpers/index.js dist/helpers.js
