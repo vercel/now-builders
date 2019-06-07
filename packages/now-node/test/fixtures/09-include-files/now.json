@@ -26,17 +26,14 @@
   "probes": [
     {
       "path": "/",
-      "body": {},
       "mustContain": "hello Now!"
     },
     {
       "path": "/accepts-string.js",
-      "body": {},
       "mustContain": "hello String!"
     },
     {
       "path": "/root.js",
-      "body": {},
       "mustContain": "hello Root!"
     }
   ]
