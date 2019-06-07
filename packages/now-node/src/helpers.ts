@@ -60,19 +60,15 @@ function parseJson(str: string) {
   }
 }
 
-function parseQuery(req: IncomingMessage) {
-  if (req.url) {
-    // we provide a placeholder base url because we only want searchParams
-    const params = new URL(req.url, 'https://n').searchParams;
+function parseQuery({ url = '/' }: IncomingMessage) {
+  // we provide a placeholder base url because we only want searchParams
+  const params = new URL(url, 'https://n').searchParams;
 
-    const obj: { [key: string]: string | string[] } = {};
-    for (const [key, value] of params) {
-      obj[key] = value;
-    }
-    return obj;
-  } else {
-    return {};
+  const obj: { [key: string]: string | string[] } = {};
+  for (const [key, value] of params) {
+    obj[key] = value;
   }
+  return obj;
 }
 
 function sendStatusCode(res: Response, statusCode: number) {
