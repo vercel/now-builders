@@ -5,5 +5,5 @@ app = Flask(__name__)
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):
-    qs = urlencode(request.args.to_dict())
+    qs = request.args.to_dict()
     return Response("path: %s query: %s" %(path, qs), mimetype='text/html')
