@@ -32,7 +32,7 @@ interface DownloadOptions {
 const watchers: Map<string, NccWatcher> = new Map();
 
 function getWatcher(entrypoint: string, options: NccOptions): NccWatcher {
-  let watcher: NccWatcher | void = watchers.get(entrypoint);
+  let watcher = watchers.get(entrypoint);
   if (!watcher) {
     watcher = new NccWatcher(entrypoint, options);
     watchers.set(entrypoint, watcher);
@@ -80,8 +80,8 @@ async function compile(
     sourceMapRegister: true,
   };
   let code: string;
-  let map: string | void;
-  let assets: Assets | void;
+  let map: string | undefined;
+  let assets: Assets | undefined;
   let watch: string[] = [];
   if (isDev) {
     const watcher = getWatcher(entrypointPath, options);

@@ -20,11 +20,11 @@ declare namespace ncc {
   }
 
   export interface BuildResult {
-    err: Error | null | void;
+    err: Error | null | undefined;
     code: string;
-    map: string | void;
-    assets: Assets | void;
-    permissions: number | void;
+    map: string | undefined;
+    assets: Assets | undefined;
+    permissions: number | undefined;
   }
 
   export type HandlerFn = (params: BuildResult) => void;
