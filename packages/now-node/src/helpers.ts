@@ -22,6 +22,8 @@ type NowResponse = ServerResponse & {
   status: (statusCode: number) => void;
 };
 
+type NowListener = (req: NowRequest, res: NowResponse) => void | Promise<void>;
+
 async function parseBody(req: NowRequest, limit: string = '1mb') {
   const contentType = parseCT(req.headers['content-type'] || 'text/plain');
   const { type, parameters } = contentType;
@@ -140,8 +142,8 @@ export function sendError(
   res.end();
 }
 
-export function addHelpers(listener: any) {
-  return async function(req: NowRequest, res: NowResponse) {
+export function addHelpers(listener: NowListener): NowListener {
+  return async function(req, res) {
     try {
       req.cookies = parseCookies(req.headers.cookie || '');
       req.query = parseQuery(req);
