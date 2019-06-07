@@ -1,15 +1,16 @@
 /* global beforeAll, beforeEach, afterAll, expect, it, jest */
-const listen = require('test-listen');
-const { createServer } = require('http');
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
+import { createServer } from 'http';
+import listen from 'test-listen';
+import { mocked } from 'ts-jest/utils';
 
-const { addHelpers } = require('../dist/helpers');
+import { addHelpers } from '../src/helpers';
 
-const mockListener = jest.fn();
+const mockListener = mocked(jest.fn(), true);
 const listener = addHelpers(mockListener);
 
-let server;
-let url;
+let server: any;
+let url: any;
 
 beforeAll(async () => {
   server = createServer(listener);
@@ -104,7 +105,7 @@ it('res.json() should send json', async () => {
   const res = await fetch(url);
 
   expect(res.headers.get('content-type').includes('application/json')).toBe(
-    true,
+    true
   );
   expect(await res.json()).toMatchObject({ who: 'bill' });
 });
