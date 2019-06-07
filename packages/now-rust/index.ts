@@ -290,6 +290,10 @@ export async function build(opts: BuildOptions) {
   };
 
   await runUserScripts(entryPath);
+
+  if (typeof config.includeFiles !== 'string')
+    throw Error('includeFiles should be a string');
+
   const extraFiles = await gatherExtraFiles(config.includeFiles, entryPath);
 
   if (path.extname(entrypoint) === '.toml') {
