@@ -6,15 +6,9 @@ import { parse as parseCT } from 'content-type';
 import { ServerResponse, IncomingMessage } from 'http';
 
 type Request = IncomingMessage & {
-  /**
-   * Object of `query` values from url
-   */
   query: {
     [key: string]: string | string[];
   };
-  /**
-   * Object of `cookies` from header
-   */
   cookies: {
     [key: string]: string;
   };
@@ -28,10 +22,6 @@ type Response = ServerResponse & {
   status: (statusCode: number) => void;
 };
 
-/**
- * Parse incoming message like `json` or `urlencoded`
- * @param req
- */
 async function parseBody(req: Request, limit: string = '1mb') {
   const contentType = parseCT(req.headers['content-type'] || 'text/plain');
   const { type, parameters } = contentType;
@@ -61,10 +51,7 @@ async function parseBody(req: Request, limit: string = '1mb') {
   }
 }
 
-/**
- * Parse `JSON` and handles invalid `JSON` strings
- * @param str `JSON` string
- */
+// Parse `JSON` and handles invalid `JSON` strings
 function parseJson(str: string) {
   try {
     return JSON.parse(str);
@@ -73,14 +60,9 @@ function parseJson(str: string) {
   }
 }
 
-/**
- * Parsing query arguments from request `url` string
- * @param url of request
- * @returns Object with key name of query argument and its value
- */
 function parseQuery(req: IncomingMessage) {
   if (req.url) {
-    // This is just for parsing search params, base it's not important
+    // we provide a placeholder base url because we only want searchParams
     const params = new URL(req.url, 'https://n').searchParams;
 
     const obj: { [key: string]: string | string[] } = {};
@@ -93,21 +75,11 @@ function parseQuery(req: IncomingMessage) {
   }
 }
 
-/**
- *
- * @param res response object
- * @param statusCode `HTTP` status code of response
- */
 function sendStatusCode(res: Response, statusCode: number) {
   res.statusCode = statusCode;
   return res;
 }
 
-/**
- * Send `any` body to response
- * @param res response object
- * @param body of response
- */
 function sendData(res: Response, body: any) {
   if (body === null) {
     res.end();
@@ -145,11 +117,6 @@ function sendData(res: Response, body: any) {
   res.end(str);
 }
 
-/**
- * Send `JSON` object
- * @param res response object
- * @param jsonBody of data
- */
 function sendJson(res: Response, jsonBody: any): void {
   // Set header to application/json
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -167,12 +134,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Sends error in `response`
- * @param res response object
- * @param statusCode of response
- * @param message of response
- */
 export function sendError(res: Response, statusCode: number, message: string) {
   res.statusCode = statusCode;
   res.statusMessage = message;
