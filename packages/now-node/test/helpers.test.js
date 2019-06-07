@@ -103,6 +103,9 @@ it('res.json() should send json', async () => {
 
   const res = await fetch(url);
 
+  expect(res.headers.get('content-type').includes('application/json')).toBe(
+    true,
+  );
   expect(await res.json()).toMatchObject({ who: 'bill' });
 });
 
