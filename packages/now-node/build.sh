@@ -10,3 +10,7 @@ fi
 
 cp -v "$bridge_defs" src
 tsc
+
+rm dist/helpers.js
+ncc build src/helpers.ts -o dist/helpers
+mv dist/helpers/index.js dist/helpers.js
