@@ -36,6 +36,8 @@ import {
   stringMap,
   syncEnvVars,
   validateEntrypoint,
+  normalizePage,
+  getDynamicRoutes,
 } from './utils';
 
 interface BuildParamsMeta {
@@ -213,7 +215,13 @@ export const build = async ({
 
     return {
       output: {},
-      routes: getRoutes(entryDirectory, pathsInside, files, urls[entrypoint]),
+      routes: getRoutes(
+        entryPath,
+        entryDirectory,
+        pathsInside,
+        files,
+        urls[entrypoint]
+      ),
       watch: pathsInside,
       childProcesses: childProcess ? [childProcess] : [],
     };
@@ -291,6 +299,7 @@ export const build = async ({
   const exportedPageRoutes: { src: string; dest: string }[] = [];
   const lambdas: { [key: string]: Lambda } = {};
   const staticPages: { [key: string]: FileFsRef } = {};
+  const dynamicPages: string[] = [];
 
   if (isLegacy) {
     const filesAfterBuild = await glob('**', entryPath);
@@ -396,6 +405,11 @@ export const build = async ({
       staticPages[staticRoute] = staticPageFiles[page];
 
       const pathname = page.replace(/\.html$/, '');
+
+      if (pathname.startsWith('$') || pathname.includes('/$')) {
+        dynamicPages.push(pathname);
+      }
+
       exportedPageRoutes.push({
         src: `^${path.join('/', entryDirectory, pathname)}$`,
         dest: path.join('/', staticRoute),
@@ -438,6 +452,10 @@ export const build = async ({
         }
 
         const pathname = page.replace(/\.js$/, '');
+
+        if (pathname.startsWith('$') || pathname.includes('/$')) {
+          dynamicPages.push(normalizePage(pathname));
+        }
 
         console.log(`Creating lambda for page: "${page}"...`);
         lambdas[path.join(entryDirectory, pathname)] = await createLambda({
@@ -485,6 +503,19 @@ export const build = async ({
     {}
   );
 
+  let dynamicRoutes = getDynamicRoutes(
+    entryPath,
+    entryDirectory,
+    dynamicPages
+  ).map(route => {
+    // make sure .html is added to dest for now until
+    // outputting static files to clean routes is available
+    if (staticPages[`${route.dest}.html`]) {
+      route.dest = `${route.dest}.html`;
+    }
+    return route;
+  });
+
   return {
     output: {
       ...publicFiles,
@@ -499,6 +530,16 @@ export const build = async ({
       // Next.js page lambdas, `static/` folder, reserved assets, and `public/`
       // folder
       { handle: 'filesystem' },
+      // Dynamic routes
+      ...dynamicRoutes,
+      ...(isLegacy
+        ? []
+        : [
+            {
+              src: path.join('/', entryDirectory, '.*'),
+              dest: path.join('/', entryDirectory, '_error'),
+            },
+          ]),
     ],
     watch: [],
     childProcesses: [],
