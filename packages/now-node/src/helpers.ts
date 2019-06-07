@@ -5,7 +5,7 @@ import { URL } from 'url';
 import { parse as parseCT } from 'content-type';
 import { ServerResponse, IncomingMessage } from 'http';
 
-type Request = IncomingMessage & {
+type NowRequest = IncomingMessage & {
   query: {
     [key: string]: string | string[];
   };
@@ -16,13 +16,13 @@ type Request = IncomingMessage & {
   body: any;
 };
 
-type Response = ServerResponse & {
+type NowResponse = ServerResponse & {
   send: (body: any) => void;
   json: (body: any) => void;
   status: (statusCode: number) => void;
 };
 
-async function parseBody(req: Request, limit: string = '1mb') {
+async function parseBody(req: NowRequest, limit: string = '1mb') {
   const contentType = parseCT(req.headers['content-type'] || 'text/plain');
   const { type, parameters } = contentType;
   const encoding = parameters.charset || 'utf-8';
@@ -71,12 +71,12 @@ function parseQuery({ url = '/' }: IncomingMessage) {
   return obj;
 }
 
-function sendStatusCode(res: Response, statusCode: number) {
+function sendStatusCode(res: NowResponse, statusCode: number) {
   res.statusCode = statusCode;
   return res;
 }
 
-function sendData(res: Response, body: any) {
+function sendData(res: NowResponse, body: any) {
   if (body === null) {
     res.end();
     return;
@@ -113,7 +113,7 @@ function sendData(res: Response, body: any) {
   res.end(str);
 }
 
-function sendJson(res: Response, jsonBody: any): void {
+function sendJson(res: NowResponse, jsonBody: any): void {
   // Set header to application/json
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
@@ -130,14 +130,18 @@ export class ApiError extends Error {
   }
 }
 
-export function sendError(res: Response, statusCode: number, message: string) {
+export function sendError(
+  res: NowResponse,
+  statusCode: number,
+  message: string
+) {
   res.statusCode = statusCode;
   res.statusMessage = message;
   res.end();
 }
 
 export function addHelpers(listener: any) {
-  return async function(req: Request, res: Response) {
+  return async function(req: NowRequest, res: NowResponse) {
     try {
       req.cookies = parseCookies(req.headers.cookie || '');
       req.query = parseQuery(req);
