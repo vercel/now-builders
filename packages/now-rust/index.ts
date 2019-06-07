@@ -293,7 +293,6 @@ export async function build(opts: BuildOptions) {
   };
 
   await runUserScripts(entryPath);
-
   const extraFiles = await gatherExtraFiles(config.includeFiles, entryPath);
 
   if (path.extname(entrypoint) === '.toml') {
