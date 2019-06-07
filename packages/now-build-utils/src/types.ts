@@ -156,6 +156,44 @@ export interface PrepareLayersOptions {
   config: Config;
 }
 
+export interface BuildLayerConfig {
+  /**
+   * The version of the layer we are building, not to be confused with the version of the npm package
+   */
+  runtimeVersion: string;
+  /**
+   * The platform of the layer we are building, typically `process.platform`
+   */
+  platform: string;
+  /**
+   * The architecture of the layer we are building, typically `process.arch`
+   */
+  arch: string;
+}
+
+export interface BuildLayerResult {
+  /**
+   * All the files in the layer
+   */
+  files: Files;
+  /**
+   * Name of entrypoint file for this particular Layer. Value
+   * `files[entrypoint]` is guaranteed to exist and be a valid File reference.
+   */
+  entrypoint: string;
+}
+
+export interface GetLayerOptions {
+  /**
+   * The npm package representing the layer such as `@now/layer-node@0.0.1`
+   */
+  use: string;
+  /**
+   * The configuration argument passed to `buildLayer(config)`
+   */
+  config: BuildLayerConfig;
+}
+
 export interface ShouldServeOptions {
   /**
    * A path string from a request.

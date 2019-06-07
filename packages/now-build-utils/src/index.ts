@@ -8,6 +8,9 @@ import {
   BuildOptions,
   PrepareCacheOptions,
   PrepareLayersOptions,
+  BuildLayerConfig,
+  BuildLayerResult,
+  GetLayerOptions,
   ShouldServeOptions,
   Meta,
 } from './types';
@@ -48,6 +51,9 @@ export {
   BuildOptions,
   PrepareCacheOptions,
   PrepareLayersOptions,
+  BuildLayerConfig,
+  BuildLayerResult,
+  GetLayerOptions,
   ShouldServeOptions,
   shouldServe,
 };
