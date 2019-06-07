@@ -15,6 +15,7 @@ tsc
 rm dist/helpers.js
 ncc build src/helpers.ts -o dist/helpers
 mv dist/helpers/index.js dist/helpers.js
+rm -rf dist/helpers
 
 # todo: improve
 # copy type file for ts test
