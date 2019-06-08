@@ -1,16 +1,24 @@
 /* global beforeAll, beforeEach, afterAll, expect, it, jest */
 import fetch from 'node-fetch';
-import { createServer } from 'http';
+import { createServer, Server } from 'http';
 import listen from 'test-listen';
 import { mocked } from 'ts-jest/utils';
 
+import { NowRequest, NowResponse } from '../src/index';
 import { addHelpers } from '../src/helpers';
 
-const mockListener = mocked(jest.fn(), true);
+const mockListener = mocked(
+  jest.fn(
+    (req: NowRequest, res: NowResponse): void => {
+      res.status(200);
+    }
+  ),
+  true
+);
 const listener = addHelpers(mockListener);
 
-let server: any;
-let url: any;
+let server: Server;
+let url: string;
 
 beforeAll(async () => {
   server = createServer(listener);
@@ -26,7 +34,7 @@ afterAll(async () => {
 });
 
 it('req.query should reflect querystring in the url', async () => {
-  mockListener.mockImplementation((req, res) => {
+  mockListener.mockImplementation((req: NowRequest, res: NowResponse) => {
     res.send('hello');
   });
 
