@@ -1,4 +1,3 @@
-from urllib.parse import urlencode
 from flask import Flask, Response, request, __version__
 app = Flask(__name__)
 
