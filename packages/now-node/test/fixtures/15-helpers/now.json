@@ -1,8 +1,8 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.js", "use": "@now/node" },
-    { "src": "ts/index.ts", "use": "@now/node" },
+    { "src": "index.js", "use": "@now/node", "helpers": true },
+    { "src": "ts/index.ts", "use": "@now/node", "helpers": true },
     {
       "src": "no-helpers/index.js",
       "use": "@now/node",
