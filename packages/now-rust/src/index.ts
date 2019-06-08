@@ -119,7 +119,10 @@ async function buildWholeProject(
   return lambdas;
 }
 
-async function gatherExtraFiles(globMatcher: string, entrypoint: string) {
+async function gatherExtraFiles(
+  globMatcher: string | string[] | undefined,
+  entrypoint: string
+) {
   if (!globMatcher) return {};
 
   console.log('gathering extra files for the fs...');
@@ -176,7 +179,7 @@ async function buildSingleFile(
   rustEnv: Record<string, string>
 ) {
   console.log('building single file');
-  const launcherPath = path.join(__dirname, 'launcher.rs');
+  const launcherPath = path.join(__dirname, '..', 'launcher.rs');
   let launcherData = await fs.readFile(launcherPath, 'utf8');
 
   const entrypointPath = downloadedFiles[entrypoint].fsPath;
