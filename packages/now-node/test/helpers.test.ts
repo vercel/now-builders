@@ -8,12 +8,7 @@ import { NowRequest, NowResponse } from '../src/index';
 import { addHelpers } from '../src/helpers';
 
 const mockListener = mocked(
-  jest.fn(
-    (req: NowRequest, res: NowResponse): void => {
-      res.status(200);
-    }
-  ),
-  true
+  jest.fn((req: NowRequest, res: NowResponse): void => {})
 );
 const listener = addHelpers(mockListener);
 
@@ -34,7 +29,7 @@ afterAll(async () => {
 });
 
 it('req.query should reflect querystring in the url', async () => {
-  mockListener.mockImplementation((req: NowRequest, res: NowResponse) => {
+  mockListener.mockImplementation((req, res) => {
     res.send('hello');
   });
 
@@ -111,10 +106,9 @@ it('res.json() should send json', async () => {
   });
 
   const res = await fetch(url);
+  const contentType = res.headers.get('content-type') || '';
 
-  expect(res.headers.get('content-type').includes('application/json')).toBe(
-    true
-  );
+  expect(contentType.includes('application/json')).toBe(true);
   expect(await res.json()).toMatchObject({ who: 'bill' });
 });
 
