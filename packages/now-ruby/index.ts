@@ -13,19 +13,41 @@ import {
   getWriteableDirectory,
   glob,
   createLambda,
+  Config,
   BuildOptions,
 } from '@now/build-utils';
 import { installBundler } from './install-ruby';
 
-interface RubyConfigOptions {
-  [key: string]: string;
+interface RubyConfig extends Config {
+  excludeFiles?: string | string[];
 }
 
 interface RubyBuildOptions extends BuildOptions {
-  config: RubyConfigOptions;
+  config: RubyConfig;
 }
 
 const REQUIRED_VENDOR_DIR = 'vendor/bundle/ruby/2.5.0';
+
+async function matchPaths(
+  configPatterns: string | string[] | undefined,
+  workPath: string
+) {
+  const patterns =
+    typeof configPatterns === 'string' ? [configPatterns] : configPatterns;
+
+  if (!patterns) {
+    return [];
+  }
+
+  const patternPaths = await Promise.all(
+    patterns.map(async pattern => {
+      const files = await glob(pattern, workPath);
+      return Object.keys(files);
+    })
+  );
+
+  return patternPaths.reduce((a, b) => a.concat(b), []);
+}
 
 async function bundleInstall(
   bundlePath: string,
@@ -163,21 +185,13 @@ export const build = async ({
     nowHandlerRbContents
   );
 
-  let outputFiles = await glob('**', workPath);
+  const outputFiles = await glob('**', workPath);
 
   // static analysis is impossible with ruby.
   // instead, provide `includeFiles` and `excludeFiles` config options to reduce bundle size.
   if (config && (config.includeFiles || config.excludeFiles)) {
-    const included = config.includeFiles
-      ? await glob(config.includeFiles, workPath)
-      : outputFiles;
-
-    const excluded = config.excludeFiles
-      ? await glob(config.excludeFiles, workPath)
-      : {};
-
-    const includedPaths = Object.keys(included);
-    const excludedPaths = Object.keys(excluded);
+    const includedPaths = await matchPaths(config.includeFiles, workPath);
+    const excludedPaths = await matchPaths(config.excludeFiles, workPath);
 
     for (let i = 0; i < excludedPaths.length; i++) {
       // whitelist includeFiles
