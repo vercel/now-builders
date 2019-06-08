@@ -4,7 +4,10 @@ import { createServer, Server } from 'http';
 import listen from 'test-listen';
 import { mocked } from 'ts-jest/utils';
 
+// we intentionally import these types from src/index
+// to test that they are exported
 import { NowRequest, NowResponse } from '../src/index';
+
 import { addHelpers } from '../src/helpers';
 
 const mockListener = mocked(
