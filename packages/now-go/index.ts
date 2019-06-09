@@ -135,7 +135,7 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
       isGoModExist = true;
       goModPath = fileDirname;
       goModPathArr = goModPath.split(sep);
-    } else if (file.includes('go.mod')) {
+    } else if (file.includes('go.mod') && !file.includes('vendor')) {
       isGoModExist = true;
       if (entrypointDirname === fileDirname) {
         goModPath = fileDirname;
