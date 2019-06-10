@@ -216,7 +216,7 @@ export async function build({
 
   const launcherFiles: Files = {
     'launcher.js': new FileBlob({ data: launcherData }),
-    'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
+    'bridge.js': new FileFsRef({ fsPath: join(__dirname, 'bridge.js') }),
   };
 
   if (shouldAddHelpers) {
