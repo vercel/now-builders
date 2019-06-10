@@ -37,5 +37,4 @@ module.exports = {
     '!**/node_modules/**',
     '!**/test/**',
   ],
-  projects: ['<rootDir>', '<rootDir>/packages/*'],
 };
