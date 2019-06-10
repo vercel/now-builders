@@ -31,6 +31,7 @@ const testMatch = Array.from(new Set(matches)).map(
 
 module.exports = {
   testEnvironment: 'node',
+  preset: 'ts-jest', // only applies to .ts files
   testMatch,
   collectCoverageFrom: [
     'packages/(!test)/**/*.{js,jsx}',
