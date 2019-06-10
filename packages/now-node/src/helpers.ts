@@ -122,6 +122,8 @@ export function createServerWithHelpers(
     const res = _res as NowResponse;
 
     try {
+      console.log(_req.headers);
+
       const reqId = _req.headers['x-bridge-reqid'];
 
       if (typeof reqId !== 'string') {
