@@ -1,9 +1,8 @@
 import { Bridge } from './bridge';
-import { Server } from 'http';
 
-let server: Server;
 let shouldStoreProxyRequests: boolean = false;
-// PLACEHOLDER_shouldStoreProxyRequests
+// PLACEHOLDER:shouldStoreProxyRequests
+
 const bridge = new Bridge(undefined, shouldStoreProxyRequests);
 
 if (!process.env.NODE_ENV) {
@@ -12,7 +11,7 @@ if (!process.env.NODE_ENV) {
 }
 
 try {
-  // PLACEHOLDER
+  // PLACEHOLDER:setServer
 } catch (err) {
   if (err.code === 'MODULE_NOT_FOUND') {
     console.error(err.message);
@@ -26,8 +25,6 @@ try {
   }
 }
 
-// @ts-ignore: server is assigned in `PLACEHOLDER`
-bridge.setServer(server);
 bridge.listen();
 
 exports.launcher = bridge.launcher;

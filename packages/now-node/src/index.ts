@@ -203,19 +203,20 @@ export async function build({
   let launcherData = await readFile(launcherPath, 'utf8');
 
   launcherData = launcherData.replace(
-    '// PLACEHOLDER',
+    '// PLACEHOLDER:shouldStoreProxyRequests',
+    shouldAddHelpers ? 'shouldStoreProxyRequests = true;' : ''
+  );
+
+  launcherData = launcherData.replace(
+    '// PLACEHOLDER:setServer',
     [
       `listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
       shouldAddHelpers
-        ? 'server = require("./helpers").createServerWithHelpers(listener, bridge);'
-        : 'server = new Server(listener)',
+        ? 'const server = require("./helpers").createServerWithHelpers(listener, bridge);'
+        : 'const server = require("http").createServer(listener);',
+      'bridge.setServer(server);',
     ].join(' ')
-  );
-
-  launcherData = launcherData.replace(
-    '// PLACEHOLDER_shouldStoreProxyRequests',
-    shouldAddHelpers ? 'shouldStoreProxyRequests = true;' : ''
   );
 
   const launcherFiles: Files = {
