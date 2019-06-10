@@ -84,7 +84,7 @@ test('`NowProxyEvent` normalizing', async () => {
   server.close();
 });
 
-test('consumeProxyRequest', async () => {
+test('consumeEvent', async () => {
   const mockListener = jest.fn((req, res) => {
     res.end('hello');
   });
@@ -112,12 +112,12 @@ test('consumeProxyRequest', async () => {
 
   expect(reqId).toBeTruthy();
 
-  const proxyReq = bridge.consumeProxyRequest(reqId);
-  expect(proxyReq.body.toString()).toBe('body=1');
+  const event = bridge.consumeEvent(reqId);
+  expect(event.body.toString()).toBe('body=1');
 
-  // a proxyRequest can't be consumed multiple times
+  // an event can't be consumed multiple times
   // to avoid memory leaks
-  expect(bridge.consumeProxyRequest(reqId)).toBeUndefined();
+  expect(bridge.consumeEvent(reqId)).toBeUndefined();
 
   server.close();
 });
