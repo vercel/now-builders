@@ -95,13 +95,13 @@ export class Bridge {
   private server: Server | null;
   private listening: Promise<AddressInfo>;
   private resolveListening: (info: AddressInfo) => void;
-  private proxyReqs: { [key: string]: NowProxyRequest } = {};
-  private reqSeed: number = 0;
-  private shouldStoreProxyRequests: boolean = false;
+  private events: { [key: string]: NowProxyRequest } = {};
+  private reqIdSeed: number = 1;
+  private shouldStoreEvents: boolean = false;
 
-  constructor(server?: Server, shouldStoreProxyRequests: boolean = false) {
+  constructor(server?: Server, shouldStoreEvents: boolean = false) {
     this.server = null;
-    this.shouldStoreProxyRequests = shouldStoreProxyRequests;
+    this.shouldStoreEvents = shouldStoreEvents;
     if (server) {
       this.setServer(server);
     }
@@ -148,12 +148,12 @@ export class Bridge {
     context.callbackWaitsForEmptyEventLoop = false;
     const { port } = await this.listening;
 
-    const proxyReq = normalizeEvent(event);
-    const { isApiGateway, method, path, headers, body } = proxyReq;
+    const normalizedEvent = normalizeEvent(event);
+    const { isApiGateway, method, path, headers, body } = normalizedEvent;
 
-    if (this.shouldStoreProxyRequests) {
-      const reqId = `${this.reqSeed++}`;
-      this.proxyReqs[reqId] = proxyReq;
+    if (this.shouldStoreEvents) {
+      const reqId = `${this.reqIdSeed++}`;
+      this.events[reqId] = normalizedEvent;
       headers['x-bridge-reqid'] = reqId;
     }
 
@@ -198,9 +198,9 @@ export class Bridge {
     });
   }
 
-  consumeProxyRequest(reqId: string) {
-    const proxyReq = this.proxyReqs[reqId];
-    delete this.proxyReqs[reqId];
-    return proxyReq;
+  consumeEvent(reqId: string) {
+    const event = this.events[reqId];
+    delete this.events[reqId];
+    return event;
   }
 }
