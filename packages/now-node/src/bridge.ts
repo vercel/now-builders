@@ -113,14 +113,18 @@ export class Bridge {
     });
 
     this.listening = new Promise(resolve => {
-      const addr = this.server.address();
-      if (typeof addr === 'string') {
-        throw new Error(`Unexpected string for \`server.address()\`: ${addr}`);
-      } else if (!addr) {
-        throw new Error('`server.address()` returned `null`');
-      } else {
-        resolve(addr);
-      }
+      this.server.once('listening', () => {
+        const addr = this.server.address();
+        if (typeof addr === 'string') {
+          throw new Error(
+            `Unexpected string for \`server.address()\`: ${addr}`
+          );
+        } else if (!addr) {
+          throw new Error('`server.address()` returned `null`');
+        } else {
+          resolve(addr);
+        }
+      });
     });
 
     this.launcher = this.launcher.bind(this);
