@@ -45,6 +45,7 @@
   "devDependencies": {
     "@types/fs-extra": "^5.0.4",
     "@types/glob": "^7.1.1",
+    "@types/jest": "24.0.13",
     "@types/multistream": "^2.1.1",
     "@types/node": "^10.12.8",
     "async-retry": "1.2.3",
@@ -60,7 +61,8 @@
     "lint-staged": "^8.0.4",
     "node-fetch": "^2.3.0",
     "pre-commit": "^1.2.2",
-    "prettier": "1.17.1"
+    "prettier": "1.17.1",
+    "ts-jest": "24.0.2"
   },
   "prettier": {
     "singleQuote": true,
