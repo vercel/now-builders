@@ -3,8 +3,8 @@ import { Stream } from 'stream';
 import { URL } from 'url';
 import { parse as parseCT } from 'content-type';
 import { NowRequest, NowResponse } from './types';
-import { IncomingMessage, ServerResponse, Server } from 'http';
-import { Bridge, NowProxyRequest } from './bridge';
+import { IncomingMessage, Server } from 'http';
+import { Bridge } from './bridge';
 
 function parseBody(req: IncomingMessage, body?: Buffer) {
   if (!body) {
@@ -122,19 +122,17 @@ export function createServerWithHelpers(
     const res = _res as NowResponse;
 
     try {
-      console.log(_req.headers);
-
       const reqId = _req.headers['x-bridge-reqid'];
 
       if (typeof reqId !== 'string') {
-        throw new ApiError(500, 'x-bridge-reqid header is wrong or missing');
+        throw new ApiError(500, 'Internal Server Error');
       }
 
-      const proxyReq = bridge.consumeProxyRequest(reqId);
+      const event = bridge.consumeEvent(reqId);
 
       req.cookies = parseCookies(req.headers.cookie || '');
       req.query = parseQuery(req);
-      req.body = parseBody(req, proxyReq.body);
+      req.body = parseBody(req, event.body);
 
       res.status = statusCode => sendStatusCode(res, statusCode);
       res.send = data => sendData(res, data);
@@ -145,7 +143,6 @@ export function createServerWithHelpers(
       if (err instanceof ApiError) {
         sendError(res, err.statusCode, err.message);
       } else {
-        console.log(err);
         throw err;
       }
     }
