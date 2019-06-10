@@ -205,6 +205,7 @@ export async function build({
   launcherData = launcherData.replace(
     '// PLACEHOLDER',
     [
+      `shouldSendAddon = ${shouldAddHelpers ? true : false};`,
       `listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
       shouldAddHelpers

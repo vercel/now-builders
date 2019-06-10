@@ -115,7 +115,7 @@ export function sendError(
 export function addHelpers(
   listener: (req: NowRequest, res: NowResponse) => void | Promise<void>
 ): NowAddonListener {
-  return function(_req, _res, addon) {
+  return function(_req, _res, addon = {}) {
     const req = _req as NowRequest;
     const res = _res as NowResponse;
 

@@ -100,11 +100,13 @@ export class Bridge {
   private server: Server;
   private listening: Promise<AddressInfo>;
   private reqSeed: number;
+  private shouldSendAddon: boolean;
 
-  constructor(listener?: NowAddonListener) {
+  constructor(listener?: NowAddonListener, shouldSendAddon?: boolean) {
     this.addons = {};
     this.listener = listener;
     this.reqSeed = 0;
+    this.shouldSendAddon = shouldSendAddon || false;
 
     this.server = new Server((req, res) => {
       this.executeRequest(req, res);
@@ -130,17 +132,21 @@ export class Bridge {
   }
 
   executeRequest(req: IncomingMessage, res: ServerResponse) {
-    const reqId = req.headers['x-bridge-reqid'];
-
-    if (typeof reqId !== 'string') {
-      throw new Error('x-bridge-reqid header is wrong or missing');
-    }
-
     if (!this.listener) {
       throw new Error('listener has not been defined');
     }
 
-    this.listener(req, res, this.addons[reqId] || {});
+    if (!this.shouldSendAddon) {
+      this.listener(req, res);
+    } else {
+      const reqId = req.headers['x-bridge-reqid'];
+
+      if (typeof reqId !== 'string') {
+        throw new Error('x-bridge-reqid header is wrong or missing');
+      }
+
+      this.listener(req, res, this.addons[reqId] || {});
+    }
   }
 
   async launcher(
@@ -150,17 +156,28 @@ export class Bridge {
     context.callbackWaitsForEmptyEventLoop = false;
     const { port } = await this.listening;
 
-    const { isApiGateway, method, path, headers, body } = normalizeEvent(event);
+    const {
+      isApiGateway,
+      method,
+      path,
+      headers: _headers,
+      body,
+    } = normalizeEvent(event);
 
-    const reqId = `${this.reqSeed++}`;
-    this.addons[reqId] = { body };
+    let headers = _headers;
+
+    if (this.shouldSendAddon) {
+      const reqId = `${this.reqSeed++}`;
+      this.addons[reqId] = { body };
+      headers = { ...headers, 'x-bridge-reqid': reqId };
+    }
 
     const opts = {
       hostname: '127.0.0.1',
       port,
       path,
       method,
-      headers: { ...headers, 'x-bridge-reqid': reqId },
+      headers,
     };
 
     // eslint-disable-next-line consistent-return

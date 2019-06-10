@@ -13,11 +13,11 @@ export type NowResponse = ServerResponse & {
 };
 
 export interface NowAddon {
-  body: Buffer;
+  body?: Buffer;
 }
 
 export type NowAddonListener = (
   req: IncomingMessage,
   res: ServerResponse,
-  addon: NowAddon
+  addon?: NowAddon
 ) => void | Promise<void>;

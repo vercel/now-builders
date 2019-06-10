@@ -1,6 +1,7 @@
 import { Bridge } from './bridge';
 
 let listener;
+let shouldSendAddon;
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV =
@@ -22,6 +23,6 @@ try {
   }
 }
 
-const bridge = new Bridge(listener);
+const bridge = new Bridge(listener, shouldSendAddon);
 
 exports.launcher = bridge.launcher;
