@@ -1,3 +1,2 @@
 /dist
-/src/bridge.d.ts
 /test/fixtures/**/types.d.ts
