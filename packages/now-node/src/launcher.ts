@@ -1,7 +1,10 @@
 import { Bridge } from './bridge';
+import { Server } from 'http';
 
-let listener;
-let shouldSendAddon;
+let server: Server;
+let shouldStoreProxyRequests: boolean = false;
+// PLACEHOLDER_shouldStoreProxyRequests
+const bridge = new Bridge(undefined, shouldStoreProxyRequests);
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV =
@@ -23,6 +26,8 @@ try {
   }
 }
 
-const bridge = new Bridge(listener, shouldSendAddon);
+// @ts-ignore: server is assigned in `PLACEHOLDER`
+bridge.setServer(server);
+bridge.listen();
 
 exports.launcher = bridge.launcher;

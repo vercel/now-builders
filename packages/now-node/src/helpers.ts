@@ -2,8 +2,9 @@ import { parse as parseCookies } from 'cookie';
 import { Stream } from 'stream';
 import { URL } from 'url';
 import { parse as parseCT } from 'content-type';
-import { NowRequest, NowResponse, NowAddonListener } from './types';
-import { IncomingMessage } from 'http';
+import { NowRequest, NowResponse } from './types';
+import { IncomingMessage, ServerResponse, Server } from 'http';
+import { Bridge, NowProxyRequest } from './bridge';
 
 function parseBody(req: IncomingMessage, body?: Buffer) {
   if (!body) {
@@ -112,17 +113,26 @@ export function sendError(
   res.end();
 }
 
-export function addHelpers(
-  listener: (req: NowRequest, res: NowResponse) => void | Promise<void>
-): NowAddonListener {
-  return function(_req, _res, addon = {}) {
+export function createServerWithHelpers(
+  listener: (req: NowRequest, res: NowResponse) => void | Promise<void>,
+  bridge: Bridge
+) {
+  const server = new Server((_req, _res) => {
     const req = _req as NowRequest;
     const res = _res as NowResponse;
 
     try {
+      const reqId = _req.headers['x-bridge-reqid'];
+
+      if (typeof reqId !== 'string') {
+        throw new ApiError(500, 'x-bridge-reqid header is wrong or missing');
+      }
+
+      const proxyReq = bridge.consumeProxyRequest(reqId);
+
       req.cookies = parseCookies(req.headers.cookie || '');
       req.query = parseQuery(req);
-      req.body = parseBody(req, addon.body);
+      req.body = parseBody(req, proxyReq.body);
 
       res.status = statusCode => sendStatusCode(res, statusCode);
       res.send = data => sendData(res, data);
@@ -136,5 +146,7 @@ export function addHelpers(
         throw err;
       }
     }
-  };
+  });
+
+  return server;
 }

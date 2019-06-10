@@ -205,18 +205,22 @@ export async function build({
   launcherData = launcherData.replace(
     '// PLACEHOLDER',
     [
-      `shouldSendAddon = ${shouldAddHelpers ? true : false};`,
       `listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
       shouldAddHelpers
-        ? 'listener = require("./helpers").addHelpers(listener)'
-        : '',
+        ? 'server = require("./helpers").createServerWithHelpers(listener, bridge);'
+        : 'server = new Server(listener)',
     ].join(' ')
+  );
+
+  launcherData = launcherData.replace(
+    '// PLACEHOLDER_shouldStoreProxyRequests',
+    shouldAddHelpers ? 'shouldStoreProxyRequests = true;' : ''
   );
 
   const launcherFiles: Files = {
     'launcher.js': new FileBlob({ data: launcherData }),
-    'bridge.js': new FileFsRef({ fsPath: join(__dirname, 'bridge.js') }),
+    'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
   };
 
   if (shouldAddHelpers) {
