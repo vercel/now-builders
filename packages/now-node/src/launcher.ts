@@ -1,4 +1,3 @@
-import { Server } from 'http';
 import { Bridge } from './bridge';
 
 let listener;
@@ -23,8 +22,6 @@ try {
   }
 }
 
-const server = new Server(listener);
-const bridge = new Bridge(server);
-bridge.listen();
+const bridge = new Bridge(listener);
 
 exports.launcher = bridge.launcher;

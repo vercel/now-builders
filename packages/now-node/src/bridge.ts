@@ -5,7 +5,10 @@ import {
   IncomingHttpHeaders,
   OutgoingHttpHeaders,
   request,
+  IncomingMessage,
+  ServerResponse,
 } from 'http';
+import { NowAddon, NowAddonListener } from './types';
 
 interface NowProxyEvent {
   Action: string;
@@ -92,49 +95,52 @@ function normalizeEvent(
 }
 
 export class Bridge {
-  private server: Server | null;
+  private addons: { [key: string]: NowAddon };
+  private listener: NowAddonListener | undefined;
+  private server: Server;
   private listening: Promise<AddressInfo>;
-  private resolveListening: (info: AddressInfo) => void;
+  private reqSeed: number;
 
-  constructor(server?: Server) {
-    this.server = null;
-    if (server) {
-      this.setServer(server);
-    }
-    this.launcher = this.launcher.bind(this);
+  constructor(listener?: NowAddonListener) {
+    this.addons = {};
+    this.listener = listener;
+    this.reqSeed = 0;
 
-    // This is just to appease TypeScript strict mode, since it doesn't
-    // understand that the Promise constructor is synchronous
-    this.resolveListening = (info: AddressInfo) => {};
+    this.server = new Server((req, res) => {
+      this.executeRequest(req, res);
+    });
 
     this.listening = new Promise(resolve => {
-      this.resolveListening = resolve;
-    });
-  }
-
-  setServer(server: Server) {
-    this.server = server;
-    server.once('listening', () => {
-      const addr = server.address();
+      const addr = this.server.address();
       if (typeof addr === 'string') {
         throw new Error(`Unexpected string for \`server.address()\`: ${addr}`);
       } else if (!addr) {
         throw new Error('`server.address()` returned `null`');
       } else {
-        this.resolveListening(addr);
+        resolve(addr);
       }
     });
-  }
 
-  listen() {
-    if (!this.server) {
-      throw new Error('Server has not been set!');
-    }
+    this.launcher = this.launcher.bind(this);
 
-    return this.server.listen({
+    this.server.listen({
       host: '127.0.0.1',
       port: 0,
     });
+  }
+
+  executeRequest(req: IncomingMessage, res: ServerResponse) {
+    const reqId = req.headers['x-bridge-reqid'];
+
+    if (typeof reqId !== 'string') {
+      throw new Error('x-bridge-reqid header is wrong or missing');
+    }
+
+    if (!this.listener) {
+      throw new Error('listener has not been defined');
+    }
+
+    this.listener(req, res, this.addons[reqId] || {});
   }
 
   async launcher(
@@ -146,12 +152,15 @@ export class Bridge {
 
     const { isApiGateway, method, path, headers, body } = normalizeEvent(event);
 
+    const reqId = `${this.reqSeed++}`;
+    this.addons[reqId] = { body };
+
     const opts = {
       hostname: '127.0.0.1',
       port,
       path,
       method,
-      headers,
+      headers: { ...headers, 'x-bridge-reqid': reqId },
     };
 
     // eslint-disable-next-line consistent-return
