@@ -1,25 +1,27 @@
 /* global beforeAll, beforeEach, afterAll, expect, it, jest */
-import fetch from 'node-fetch';
-import { createServer, Server } from 'http';
-import listen from 'test-listen';
-import { mocked } from 'ts-jest/utils';
+const fetch = require('node-fetch');
+const listen = require('test-listen');
 
-// we intentionally import these types from src/index
-// to test that they are exported
-import { NowRequest, NowResponse } from '../src/index';
+const { createServerWithHelpers } = require('../dist/helpers');
 
-import { addHelpers } from '../src/helpers';
+const mockListener = jest.fn(() => {});
+const consumeProxyReqMock = jest.fn(() => ({}));
+const mockBridge = { consumeProxyRequest: consumeProxyReqMock };
 
-const mockListener = mocked(
-  jest.fn((req: NowRequest, res: NowResponse): void => {})
-);
-const listener = addHelpers(mockListener);
+let server;
+let url;
 
-let server: Server;
-let url: string;
+async function fetchWithProxyReq(_url, opts = {}) {
+  consumeProxyReqMock.mockImplementationOnce(() => opts);
+
+  return fetch(_url, {
+    ...opts,
+    headers: { ...opts.headers, 'x-bridge-reqid': 'ok' },
+  });
+}
 
 beforeAll(async () => {
-  server = createServer(listener);
+  server = createServerWithHelpers(mockListener, mockBridge);
   url = await listen(server);
 });
 
@@ -36,7 +38,7 @@ it('req.query should reflect querystring in the url', async () => {
     res.send('hello');
   });
 
-  await fetch(`${url}/?who=bill&where=us`);
+  await fetchWithProxyReq(`${url}/?who=bill&where=us`);
 
   expect(mockListener.mock.calls[0][0].query).toMatchObject({
     who: 'bill',
@@ -49,7 +51,7 @@ it('req.cookies should reflect req.cookie header', async () => {
     res.send('hello');
   });
 
-  await fetch(url, {
+  await fetchWithProxyReq(url, {
     headers: {
       cookie: 'who=bill; where=us',
     },
@@ -61,32 +63,35 @@ it('req.cookies should reflect req.cookie header', async () => {
   });
 });
 
-it('req.body should contained the parsed body', async () => {
+it('req.body should contain the parsed body', async () => {
   mockListener.mockImplementation((req, res) => {
     res.send('hello');
   });
 
-  await fetch(url, {
+  await fetchWithProxyReq(url, {
     method: 'POST',
-    body: 'hello',
+    body: Buffer.from('hello'),
   });
 
-  expect(mockListener.mock.calls[0][0].body).toBe('hello');
+  const { body } = mockListener.mock.calls[0][0];
+  const str = body.toString();
+
+  expect(str).toBe('hello');
 });
 
 it('req.body should contained the parsed json when content-type is application/json', async () => {
-  mockListener.mockImplementation((req, res) => {
-    res.send('hello');
-  });
-
   const json = {
     who: 'bill',
     where: 'us',
   };
 
-  await fetch(url, {
+  mockListener.mockImplementation((req, res) => {
+    res.send('hello');
+  });
+
+  await fetchWithProxyReq(url, {
     method: 'POST',
-    body: JSON.stringify(json),
+    body: Buffer.from(JSON.stringify(json)),
     headers: { 'content-type': 'application/json' },
   });
 
@@ -98,7 +103,7 @@ it('res.send() should send text', async () => {
     res.send('hello');
   });
 
-  const res = await fetch(url);
+  const res = await fetchWithProxyReq(url);
 
   expect(await res.text()).toBe('hello');
 });
@@ -108,7 +113,7 @@ it('res.json() should send json', async () => {
     res.json({ who: 'bill' });
   });
 
-  const res = await fetch(url);
+  const res = await fetchWithProxyReq(url);
   const contentType = res.headers.get('content-type') || '';
 
   expect(contentType.includes('application/json')).toBe(true);
@@ -121,7 +126,7 @@ it('res.status() should set the status code', async () => {
     res.end();
   });
 
-  const res = await fetch(url);
+  const res = await fetchWithProxyReq(url);
 
   expect(res.status).toBe(404);
 });
