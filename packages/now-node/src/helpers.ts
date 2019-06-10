@@ -145,6 +145,7 @@ export function createServerWithHelpers(
       if (err instanceof ApiError) {
         sendError(res, err.statusCode, err.message);
       } else {
+        console.log(err);
         throw err;
       }
     }
