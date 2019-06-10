@@ -83,38 +83,3 @@ test('`NowProxyEvent` normalizing', async () => {
 
   server.close();
 });
-
-test('consumeProxyRequest', async () => {
-  const mockListener = jest.fn((req, res) => {
-    res.end('hello');
-  });
-
-  const server = new Server(mockListener);
-  const bridge = new Bridge(server, true);
-  bridge.listen();
-
-  const context = { callbackWaitsForEmptyEventLoop: true };
-  await bridge.launcher(
-    {
-      Action: 'Invoke',
-      body: JSON.stringify({
-        method: 'POST',
-        headers: { foo: 'baz' },
-        path: '/nowproxy',
-        body: 'body=1',
-      }),
-    },
-    context
-  );
-
-  const headers = mockListener.mock.calls[0][0].headers;
-  const reqId = headers['x-bridge-reqid'];
-
-  expect(reqId).toBeTruthy();
-
-  const proxyReq = bridge.consumeProxyRequest(reqId);
-
-  expect(proxyReq.body.toString()).toBe('body=1');
-
-  server.close();
-});
