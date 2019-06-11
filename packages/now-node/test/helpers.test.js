@@ -1,35 +1,59 @@
 /* global beforeAll, beforeEach, afterAll, expect, it, jest */
-const listen = require('test-listen');
-const { createServer } = require('http');
 const fetch = require('node-fetch');
+const listen = require('test-listen');
+const qs = require('querystring');
 
-const { addHelpers } = require('../dist/helpers');
+const { createServerWithHelpers } = require('../dist/helpers');
 
-const mockListener = jest.fn();
-const listener = addHelpers(mockListener);
+const mockListener = jest.fn((req, res) => {
+  res.send('hello');
+});
+const consumeEventMock = jest.fn(() => ({}));
+const mockBridge = { consumeEvent: consumeEventMock };
 
 let server;
 let url;
 
+async function fetchWithProxyReq(_url, opts = {}) {
+  consumeEventMock.mockImplementationOnce(() => opts);
+
+  return fetch(_url, {
+    ...opts,
+    headers: { ...opts.headers, 'x-now-bridge-request-id': '2' },
+  });
+}
+
 beforeAll(async () => {
-  server = createServer(listener);
+  server = createServerWithHelpers(mockListener, mockBridge);
   url = await listen(server);
 });
 
 beforeEach(() => {
-  mockListener.mockReset();
+  mockListener.mockClear();
+  consumeEventMock.mockClear();
 });
 
 afterAll(async () => {
   await server.close();
 });
 
-it('req.query should reflect querystring in the url', async () => {
-  mockListener.mockImplementation((req, res) => {
-    res.send('hello');
-  });
+it('createServerWithHelpers should call consumeEvent with the correct reqId', async () => {
+  await fetchWithProxyReq(`${url}/`);
 
-  await fetch(`${url}/?who=bill&where=us`);
+  expect(consumeEventMock).toHaveBeenLastCalledWith('2');
+});
+
+it('should not expose the request id header', async () => {
+  await fetchWithProxyReq(`${url}/`, { headers: { 'x-test-header': 'ok' } });
+
+  const { headers } = mockListener.mock.calls[0][0];
+
+  expect(headers['x-now-bridge-request-id']).toBeUndefined();
+  expect(headers['x-test-header']).toBe('ok');
+});
+
+it('req.query should reflect querystring in the url', async () => {
+  await fetchWithProxyReq(`${url}/?who=bill&where=us`);
 
   expect(mockListener.mock.calls[0][0].query).toMatchObject({
     who: 'bill',
@@ -38,11 +62,7 @@ it('req.query should reflect querystring in the url', async () => {
 });
 
 it('req.cookies should reflect req.cookie header', async () => {
-  mockListener.mockImplementation((req, res) => {
-    res.send('hello');
-  });
-
-  await fetch(url, {
+  await fetchWithProxyReq(url, {
     headers: {
       cookie: 'who=bill; where=us',
     },
@@ -54,32 +74,43 @@ it('req.cookies should reflect req.cookie header', async () => {
   });
 });
 
-it('req.body should contained the parsed body', async () => {
-  mockListener.mockImplementation((req, res) => {
-    res.send('hello');
-  });
-
-  await fetch(url, {
+it('req.body should contain the buffer', async () => {
+  await fetchWithProxyReq(url, {
     method: 'POST',
-    body: 'hello',
+    body: Buffer.from('hello'),
   });
 
-  expect(mockListener.mock.calls[0][0].body).toBe('hello');
+  const { body } = mockListener.mock.calls[0][0];
+  const str = body.toString();
+
+  expect(str).toBe('hello');
+});
+
+it('req.body should contained the parsed object when content-type is application/x-www-form-urlencoded', async () => {
+  const obj = { who: 'mike' };
+
+  await fetchWithProxyReq(url, {
+    method: 'POST',
+    body: Buffer.from(qs.encode(obj)),
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+  });
+
+  expect(mockListener.mock.calls[0][0].body).toMatchObject(obj);
 });
 
 it('req.body should contained the parsed json when content-type is application/json', async () => {
-  mockListener.mockImplementation((req, res) => {
-    res.send('hello');
-  });
-
   const json = {
     who: 'bill',
     where: 'us',
   };
 
-  await fetch(url, {
+  mockListener.mockImplementation((req, res) => {
+    res.send('hello');
+  });
+
+  await fetchWithProxyReq(url, {
     method: 'POST',
-    body: JSON.stringify(json),
+    body: Buffer.from(JSON.stringify(json)),
     headers: { 'content-type': 'application/json' },
   });
 
@@ -91,7 +122,7 @@ it('res.send() should send text', async () => {
     res.send('hello');
   });
 
-  const res = await fetch(url);
+  const res = await fetchWithProxyReq(url);
 
   expect(await res.text()).toBe('hello');
 });
@@ -101,11 +132,10 @@ it('res.json() should send json', async () => {
     res.json({ who: 'bill' });
   });
 
-  const res = await fetch(url);
+  const res = await fetchWithProxyReq(url);
+  const contentType = res.headers.get('content-type') || '';
 
-  expect(res.headers.get('content-type').includes('application/json')).toBe(
-    true,
-  );
+  expect(contentType.includes('application/json')).toBe(true);
   expect(await res.json()).toMatchObject({ who: 'bill' });
 });
 
@@ -115,7 +145,7 @@ it('res.status() should set the status code', async () => {
     res.end();
   });
 
-  const res = await fetch(url);
+  const res = await fetchWithProxyReq(url);
 
   expect(res.status).toBe(404);
 });

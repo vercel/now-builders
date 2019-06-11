@@ -1,36 +1,23 @@
 import { parse as parseCookies } from 'cookie';
 import { Stream } from 'stream';
-import getRawBody from 'raw-body';
 import { URL } from 'url';
 import { parse as parseCT } from 'content-type';
 import { NowRequest, NowResponse } from './types';
+import { IncomingMessage, Server } from 'http';
+import { Bridge } from './bridge';
 
-type NowListener = (req: NowRequest, res: NowResponse) => void | Promise<void>;
-
-async function parseBody(req: NowRequest, limit: string = '1mb') {
-  const contentType = parseCT(req.headers['content-type'] || 'text/plain');
-  const { type, parameters } = contentType;
-  const encoding = parameters.charset || 'utf-8';
-
-  let buffer;
-
-  try {
-    buffer = await getRawBody(req, { encoding, limit });
-  } catch (e) {
-    if (e.type === 'entity.too.large') {
-      throw new ApiError(413, `Body exceeded ${limit} limit`);
-    } else {
-      throw new ApiError(400, 'Invalid body');
-    }
+function parseBody(req: IncomingMessage, body?: Buffer) {
+  if (!body) {
+    return null;
   }
 
-  const body = buffer.toString();
+  const { type } = parseCT(req.headers['content-type'] || 'text/plain');
 
   if (type === 'application/json' || type === 'application/ld+json') {
-    return parseJson(body);
+    return parseJson(body.toString());
   } else if (type === 'application/x-www-form-urlencoded') {
     const qs = require('querystring');
-    return qs.decode(body);
+    return qs.decode(body.toString());
   } else {
     return body;
   }
@@ -125,18 +112,38 @@ export function sendError(
   res.end();
 }
 
-export function addHelpers(listener: NowListener): NowListener {
-  return async function(req, res) {
+export function createServerWithHelpers(
+  listener: (req: NowRequest, res: NowResponse) => void | Promise<void>,
+  bridge: Bridge
+) {
+  const server = new Server(async (_req, _res) => {
+    const req = _req as NowRequest;
+    const res = _res as NowResponse;
+
     try {
-      req.cookies = parseCookies(req.headers.cookie || '');
+      const reqId = req.headers['x-now-bridge-request-id'];
+
+      // don't expose this header to the client
+      delete req.headers['x-now-bridge-request-id'];
+
+      if (typeof reqId !== 'string') {
+        throw new ApiError(500, 'Internal Server Error');
+      }
+
+      const event = bridge.consumeEvent(reqId);
+
+      const c: undefined | string | string[] = req.headers.cookie;
+      const cookies = Array.isArray(c) ? c.join(';') : c;
+
+      req.cookies = parseCookies(cookies || '');
       req.query = parseQuery(req);
-      req.body = await parseBody(req);
+      req.body = parseBody(req, event.body);
 
       res.status = statusCode => sendStatusCode(res, statusCode);
       res.send = data => sendData(res, data);
       res.json = data => sendJson(res, data);
 
-      listener(req, res);
+      await listener(req, res);
     } catch (err) {
       if (err instanceof ApiError) {
         sendError(res, err.statusCode, err.message);
@@ -144,5 +151,7 @@ export function addHelpers(listener: NowListener): NowListener {
         throw err;
       }
     }
-  };
+  });
+
+  return server;
 }
