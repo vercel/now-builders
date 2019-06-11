@@ -1,18 +1,21 @@
 /* global beforeAll, beforeEach, afterAll, expect, it, jest */
 const fetch = require('node-fetch');
 const listen = require('test-listen');
+const qs = require('querystring');
 
 const { createServerWithHelpers } = require('../dist/helpers');
 
-const mockListener = jest.fn(() => {});
-const consumeProxyReqMock = jest.fn(() => ({}));
-const mockBridge = { consumeProxyRequest: consumeProxyReqMock };
+const mockListener = jest.fn((req, res) => {
+  res.send('hello');
+});
+const consumeEventMock = jest.fn(() => ({}));
+const mockBridge = { consumeEvent: consumeEventMock };
 
 let server;
 let url;
 
 async function fetchWithProxyReq(_url, opts = {}) {
-  consumeProxyReqMock.mockImplementationOnce(() => opts);
+  consumeEventMock.mockImplementationOnce(() => opts);
 
   return fetch(_url, {
     ...opts,
@@ -34,10 +37,6 @@ afterAll(async () => {
 });
 
 it('req.query should reflect querystring in the url', async () => {
-  mockListener.mockImplementation((req, res) => {
-    res.send('hello');
-  });
-
   await fetchWithProxyReq(`${url}/?who=bill&where=us`);
 
   expect(mockListener.mock.calls[0][0].query).toMatchObject({
@@ -47,10 +46,6 @@ it('req.query should reflect querystring in the url', async () => {
 });
 
 it('req.cookies should reflect req.cookie header', async () => {
-  mockListener.mockImplementation((req, res) => {
-    res.send('hello');
-  });
-
   await fetchWithProxyReq(url, {
     headers: {
       cookie: 'who=bill; where=us',
@@ -63,11 +58,7 @@ it('req.cookies should reflect req.cookie header', async () => {
   });
 });
 
-it('req.body should contain the parsed body', async () => {
-  mockListener.mockImplementation((req, res) => {
-    res.send('hello');
-  });
-
+it('req.body should contain the buffer', async () => {
   await fetchWithProxyReq(url, {
     method: 'POST',
     body: Buffer.from('hello'),
@@ -77,6 +68,18 @@ it('req.body should contain the parsed body', async () => {
   const str = body.toString();
 
   expect(str).toBe('hello');
+});
+
+it('req.body should contained the parsed object when content-type is application/x-www-form-urlencoded', async () => {
+  const obj = { who: 'mike' };
+
+  await fetchWithProxyReq(url, {
+    method: 'POST',
+    body: Buffer.from(qs.encode(obj)),
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+  });
+
+  expect(mockListener.mock.calls[0][0].body).toMatchObject(obj);
 });
 
 it('req.body should contained the parsed json when content-type is application/json', async () => {
