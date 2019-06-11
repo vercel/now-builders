@@ -116,10 +116,7 @@ export function createServerWithHelpers(
   listener: (req: NowRequest, res: NowResponse) => void | Promise<void>,
   bridge: Bridge
 ) {
-  const server = new Server((_req, _res) => {
-    const req = _req as NowRequest;
-    const res = _res as NowResponse;
-
+  async function wrappedListener(req: NowRequest, res: NowResponse) {
     try {
       const reqId = req.headers['x-now-bridge-request-id'];
 
@@ -140,7 +137,7 @@ export function createServerWithHelpers(
       res.send = data => sendData(res, data);
       res.json = data => sendJson(res, data);
 
-      listener(req, res);
+      await listener(req, res);
     } catch (err) {
       if (err instanceof ApiError) {
         sendError(res, err.statusCode, err.message);
@@ -148,6 +145,13 @@ export function createServerWithHelpers(
         throw err;
       }
     }
+  }
+
+  const server = new Server((_req, _res) => {
+    const req = _req as NowRequest;
+    const res = _res as NowResponse;
+
+    wrappedListener(req, res);
   });
 
   return server;
