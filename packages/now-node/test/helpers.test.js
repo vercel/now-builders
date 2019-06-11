@@ -43,6 +43,15 @@ it('createServerWithHelpers should call consumeEvent with the correct reqId', as
   expect(consumeEventMock).toHaveBeenLastCalledWith('2');
 });
 
+it('should not expose the request id header', async () => {
+  await fetchWithProxyReq(`${url}/`, { headers: { 'x-test-header': 'ok' } });
+
+  const { headers } = mockListener.mock.calls[0][0];
+
+  expect(headers['x-now-bridge-request-id']).toBeUndefined();
+  expect(headers['x-test-header']).toBe('ok');
+});
+
 it('req.query should reflect querystring in the url', async () => {
   await fetchWithProxyReq(`${url}/?who=bill&where=us`);
 
