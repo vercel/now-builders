@@ -154,7 +154,7 @@ export class Bridge {
     if (this.shouldStoreEvents) {
       const reqId = `${this.reqIdSeed++}`;
       this.events[reqId] = normalizedEvent;
-      headers['x-bridge-reqid'] = reqId;
+      headers['x-now-bridge-request-id'] = reqId;
     }
 
     const opts = { hostname: '127.0.0.1', port, path, method, headers };
