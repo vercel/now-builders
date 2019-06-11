@@ -108,7 +108,7 @@ test('consumeEvent', async () => {
   );
 
   const headers = mockListener.mock.calls[0][0].headers;
-  const reqId = headers['x-bridge-reqid'];
+  const reqId = headers['x-now-bridge-request-id'];
 
   expect(reqId).toBeTruthy();
 
