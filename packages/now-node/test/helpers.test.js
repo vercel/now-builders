@@ -19,7 +19,7 @@ async function fetchWithProxyReq(_url, opts = {}) {
 
   return fetch(_url, {
     ...opts,
-    headers: { ...opts.headers, 'x-now-bridge-request-id': 'ok' },
+    headers: { ...opts.headers, 'x-now-bridge-request-id': '2' },
   });
 }
 
@@ -35,6 +35,12 @@ beforeEach(() => {
 
 afterAll(async () => {
   await server.close();
+});
+
+it('createServerWithHelpers should call consumeEvent with the correct reqId', async () => {
+  await fetchWithProxyReq(`${url}/`);
+
+  expect(consumeEventMock).toHaveBeenLastCalledWith('2');
 });
 
 it('req.query should reflect querystring in the url', async () => {
