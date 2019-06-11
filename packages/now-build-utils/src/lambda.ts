@@ -2,7 +2,7 @@ import assert from 'assert';
 import Sema from 'async-sema';
 import { ZipFile } from 'yazl';
 import { readlink } from 'fs-extra';
-import { Files } from './types';
+import { Files, Layer } from './types';
 import FileFsRef from './file-fs-ref';
 import { isSymbolicLink } from './fs/download';
 import streamToBuffer from './fs/stream-to-buffer';
@@ -16,10 +16,12 @@ interface LambdaOptions {
   handler: string;
   runtime: string;
   environment: Environment;
+  layerNames: string[];
 }
 
 interface CreateLambdaOptions {
   files: Files;
+  layers?: Layer[];
   handler: string;
   runtime: string;
   environment?: Environment;
@@ -31,13 +33,21 @@ export class Lambda {
   public handler: string;
   public runtime: string;
   public environment: Environment;
+  public layerNames: string[];
 
-  constructor({ zipBuffer, handler, runtime, environment }: LambdaOptions) {
+  constructor({
+    zipBuffer,
+    handler,
+    runtime,
+    environment,
+    layerNames,
+  }: LambdaOptions) {
     this.type = 'Lambda';
     this.zipBuffer = zipBuffer;
     this.handler = handler;
     this.runtime = runtime;
     this.environment = environment;
+    this.layerNames = layerNames;
   }
 }
 
@@ -46,11 +56,13 @@ const mtime = new Date(1540000000000);
 
 export async function createLambda({
   files,
+  layers = [],
   handler,
   runtime,
   environment = {},
 }: CreateLambdaOptions): Promise<Lambda> {
   assert(typeof files === 'object', '"files" must be an object');
+  assert(Array.isArray(layers), '"layers" must be an array');
   assert(typeof handler === 'string', '"handler" is not a string');
   assert(typeof runtime === 'string', '"runtime" is not a string');
   assert(typeof environment === 'object', '"environment" is not an object');
@@ -59,11 +71,13 @@ export async function createLambda({
 
   try {
     const zipBuffer = await createZip(files);
+    const layerNames = layers.map(l => l.name);
     return new Lambda({
       zipBuffer,
       handler,
       runtime,
       environment,
+      layerNames,
     });
   } finally {
     sema.release();

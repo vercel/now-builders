@@ -12,6 +12,7 @@ import {
   BuildLayerResult,
   GetLayerOptions,
   ShouldServeOptions,
+  Layer,
   Meta,
 } from './types';
 import { Lambda, createLambda } from './lambda';
@@ -54,6 +55,7 @@ export {
   BuildLayerConfig,
   BuildLayerResult,
   GetLayerOptions,
+  Layer,
   ShouldServeOptions,
   shouldServe,
 };

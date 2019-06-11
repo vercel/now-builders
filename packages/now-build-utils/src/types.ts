@@ -89,11 +89,21 @@ export interface BuildOptions {
   config: Config;
 
   /**
+   * An mapping of layer name to layer from the `prepareLayers()` function
+   */
+  layers: { [use: string]: Layer };
+
+  /**
    * Metadata related to the invoker of the builder, used by `now dev`.
    * Builders may use the properties on this object to change behavior based
    * on the build environment.
    */
   meta?: Meta;
+}
+
+export interface Layer {
+  name: string;
+  getEntrypoint(): string;
 }
 
 export interface PrepareCacheOptions {

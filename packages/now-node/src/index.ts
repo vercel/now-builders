@@ -12,7 +12,9 @@ import {
   createLambda,
   runNpmInstall,
   runPackageJsonScript,
+  PrepareLayersOptions,
   PrepareCacheOptions,
+  BuildLayerConfig,
   BuildOptions,
   shouldServe,
 } from '@now/build-utils';
@@ -168,14 +170,53 @@ export const config = {
   maxLambdaSize: '5mb',
 };
 
+export async function prepareLayers({ files, config }: PrepareLayersOptions) {
+  const { node = '8.10.0', npm = '5.6.0', yarn = '1.13.0' } = config;
+  const { platform, arch } = process;
+
+  if (
+    typeof node !== 'string' ||
+    typeof npm !== 'string' ||
+    typeof yarn !== 'string'
+  ) {
+    throw new Error('Expected a string ');
+  }
+
+  const layers: { [key: string]: BuildLayerConfig } = {
+    '@now/layer-node@0.0.2': { runtimeVersion: node, platform, arch },
+  };
+
+  if ('package-lock.json' in files) {
+    layers['@now/layer-npm@0.0.2'] = { runtimeVersion: npm, platform, arch };
+  } else {
+    layers['@now/layer-yarn@0.0.2'] = { runtimeVersion: yarn, platform, arch };
+  }
+
+  return layers;
+}
+
 export async function build({
   files,
   entrypoint,
   workPath,
   config,
+  layers,
   meta = {},
 }: BuildOptions) {
   const shouldAddHelpers = !(config && config.helpers === false);
+  const nodePath = await layers['@now/layer-node@0.0.2'].getEntrypoint();
+
+  let npmPath = '';
+
+  if ('package-lock.json' in files) {
+    npmPath = await layers['@now/layer-npm@0.0.2'].getEntrypoint();
+  } else {
+    npmPath = await layers['@now/layer-yarn@0.0.2'].getEntrypoint();
+  }
+
+  // TODO: use nodePath and npmPath below to run npm install
+  console.log('node path ' + nodePath);
+  console.log('npm path ' + npmPath);
 
   const {
     entrypointPath,
@@ -232,6 +273,7 @@ export async function build({
 
   const lambda = await createLambda({
     files: { ...preparedFiles, ...launcherFiles },
+    layers: Object.values(layers),
     handler: 'launcher.launcher',
     runtime: 'nodejs8.10',
   });
