@@ -29,7 +29,8 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  mockListener.mockReset();
+  mockListener.mockClear();
+  consumeEventMock.mockClear();
 });
 
 afterAll(async () => {
