@@ -116,7 +116,10 @@ export function createServerWithHelpers(
   listener: (req: NowRequest, res: NowResponse) => void | Promise<void>,
   bridge: Bridge
 ) {
-  async function wrappedListener(req: NowRequest, res: NowResponse) {
+  const server = new Server(async (_req, _res) => {
+    const req = _req as NowRequest;
+    const res = _res as NowResponse;
+
     try {
       const reqId = req.headers['x-now-bridge-request-id'];
 
@@ -145,10 +148,6 @@ export function createServerWithHelpers(
         throw err;
       }
     }
-  }
-
-  const server = new Server((req, res) => {
-    wrappedListener(req as NowRequest, res as NowResponse);
   });
 
   return server;
