@@ -11,14 +11,13 @@ function parseBody(req: IncomingMessage, body?: Buffer) {
     return null;
   }
 
-  const str = body.toString();
   const { type } = parseCT(req.headers['content-type'] || 'text/plain');
 
   if (type === 'application/json' || type === 'application/ld+json') {
-    return parseJson(str);
+    return parseJson(body.toString());
   } else if (type === 'application/x-www-form-urlencoded') {
     const qs = require('querystring');
-    return qs.decode(str);
+    return qs.decode(body.toString());
   } else {
     return body;
   }
