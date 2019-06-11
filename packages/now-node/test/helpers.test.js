@@ -19,7 +19,7 @@ async function fetchWithProxyReq(_url, opts = {}) {
 
   return fetch(_url, {
     ...opts,
-    headers: { ...opts.headers, 'x-bridge-reqid': 'ok' },
+    headers: { ...opts.headers, 'x-now-bridge-request-id': 'ok' },
   });
 }
 

@@ -121,7 +121,7 @@ export function createServerWithHelpers(
     const res = _res as NowResponse;
 
     try {
-      const reqId = _req.headers['x-bridge-reqid'];
+      const reqId = _req.headers['x-now-bridge-request-id'];
 
       if (typeof reqId !== 'string') {
         throw new ApiError(500, 'Internal Server Error');
