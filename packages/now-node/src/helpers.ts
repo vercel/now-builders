@@ -147,11 +147,8 @@ export function createServerWithHelpers(
     }
   }
 
-  const server = new Server((_req, _res) => {
-    const req = _req as NowRequest;
-    const res = _res as NowResponse;
-
-    wrappedListener(req, res);
+  const server = new Server((req, res) => {
+    wrappedListener(req as NowRequest, res as NowResponse);
   });
 
   return server;
