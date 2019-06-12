@@ -191,13 +191,13 @@ export async function prepareLayers({
   const { platform, arch } = process;
 
   if (typeof node !== 'string') {
-    throw new Error(`Expected a string but found ${node}`);
+    throw new Error(`Expected a string for \`config.node\`, but found ${node}`);
   }
   if (typeof npm !== 'string') {
-    throw new Error(`Expected a string but found ${npm}`);
+    throw new Error(`Expected a string for \`config.npm\`, but found ${npm}`);
   }
   if (typeof yarn !== 'string') {
-    throw new Error(`Expected a string but found ${yarn}`);
+    throw new Error(`Expected a string for \`config.yarn\`, but found ${yarn}`);
   }
 
   const layerDefinitions: { [key: string]: BuildLayerConfig } = {
