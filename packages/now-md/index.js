@@ -40,9 +40,6 @@ exports.build = async ({ files, entrypoint, config }) => {
 };
 
 exports.shouldServe = (options) => {
-  if (!options.requestPath.endsWith('.html')) {
-    return false;
-  }
   const requestPath = options.requestPath.replace(/\.html$/, '.md');
   return shouldServe({ ...options, requestPath });
 };
