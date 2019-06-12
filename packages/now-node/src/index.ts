@@ -226,7 +226,7 @@ export async function build({
   entrypoint,
   workPath,
   config,
-  layers,
+  layers = {},
   meta = {},
 }: BuildOptions) {
   const shouldAddHelpers = !(config && config.helpers === false);
