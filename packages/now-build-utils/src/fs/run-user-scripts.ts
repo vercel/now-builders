@@ -4,17 +4,11 @@ import path from 'path';
 import spawn from 'cross-spawn';
 import { SpawnOptions } from 'child_process';
 
-interface NowSpawnOptions extends SpawnOptions {
-  env?: {
-    npm_config_target?: string;
-  };
-}
-
 function spawnAsync(
   command: string,
   args: string[],
   cwd: string,
-  opts: NowSpawnOptions = {}
+  opts: SpawnOptions = {}
 ) {
   return new Promise<void>((resolve, reject) => {
     const stderrLogs: Buffer[] = [];
@@ -109,17 +103,11 @@ export async function runNpmInstall(
   console.log(`installing to ${destPath}`);
   const { hasPackageLockJson } = await scanParentDirs(destPath);
 
-  const opts: NowSpawnOptions = {
+  const opts: SpawnOptions = {
     env: {
       ...process.env,
     },
   };
-
-  if (!cmd && opts.env) {
-    // This is a little hack to force `node-gyp` to build for the
-    // Node.js version that `@now/node` and `@now/node-server` use
-    opts.env.npm_config_target = '8.10.0';
-  }
 
   if (hasPackageLockJson) {
     commandArgs = args.filter(a => a !== '--prefer-offline');
@@ -142,7 +130,7 @@ export async function runNpmInstall(
 export async function runPackageJsonScript(
   destPath: string,
   scriptName: string,
-  opts?: NowSpawnOptions
+  opts?: SpawnOptions
 ) {
   assert(path.isAbsolute(destPath));
   const { hasScript, hasPackageLockJson } = await scanParentDirs(
