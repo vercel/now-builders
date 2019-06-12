@@ -171,15 +171,15 @@ export interface BuildLayerConfig {
   /**
    * The version of the layer we are building, not to be confused with the version of the npm package
    */
-  runtimeVersion: string;
+  runtimeVersion?: string;
   /**
    * The platform of the layer we are building, typically `process.platform`
    */
-  platform: string;
+  platform?: string;
   /**
    * The architecture of the layer we are building, typically `process.arch`
    */
-  arch: string;
+  arch?: string;
 }
 
 export interface BuildLayerResult {
