@@ -190,25 +190,35 @@ export async function prepareLayers({
   const { node = '8.10.0', npm = '5.6.0', yarn = '1.13.0' } = config;
   const { platform, arch } = process;
 
-  if (
-    typeof node !== 'string' ||
-    typeof npm !== 'string' ||
-    typeof yarn !== 'string'
-  ) {
-    throw new Error('Expected a string ');
+  if (typeof node !== 'string') {
+    throw new Error(`Expected a string but found ${node}`);
+  }
+  if (typeof npm !== 'string') {
+    throw new Error(`Expected a string but found ${npm}`);
+  }
+  if (typeof yarn !== 'string') {
+    throw new Error(`Expected a string but found ${yarn}`);
   }
 
-  const layers: { [key: string]: BuildLayerConfig } = {
+  const layerDefinitions: { [key: string]: BuildLayerConfig } = {
     [layerPackages.node]: { runtimeVersion: node, platform, arch },
   };
 
   if (await hasPackageLockJson(entrypoint)) {
-    layers[layerPackages.npm] = { runtimeVersion: npm, platform, arch };
+    layerDefinitions[layerPackages.npm] = {
+      runtimeVersion: npm,
+      platform,
+      arch,
+    };
   } else {
-    layers[layerPackages.yarn] = { runtimeVersion: yarn, platform, arch };
+    layerDefinitions[layerPackages.yarn] = {
+      runtimeVersion: yarn,
+      platform,
+      arch,
+    };
   }
 
-  return layers;
+  return layerDefinitions;
 }
 
 export async function build({

@@ -195,17 +195,6 @@ export interface BuildLayerResult {
   entrypoint: string;
 }
 
-export interface GetLayerOptions {
-  /**
-   * The npm package representing the layer such as `@now/layer-node@0.0.1`
-   */
-  use: string;
-  /**
-   * The configuration argument passed to `buildLayer(config)`
-   */
-  config: BuildLayerConfig;
-}
-
 export interface ShouldServeOptions {
   /**
    * A path string from a request.
