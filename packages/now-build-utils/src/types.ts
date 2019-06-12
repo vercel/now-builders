@@ -103,7 +103,8 @@ export interface BuildOptions {
 
 export interface Layer {
   name: string;
-  getEntrypoint(): string;
+  getEntrypoint(): Promise<string>;
+  getFiles(): Promise<Files>;
 }
 
 export interface PrepareCacheOptions {
