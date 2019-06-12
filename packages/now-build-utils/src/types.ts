@@ -167,6 +167,7 @@ export interface PrepareLayersOptions {
 }
 
 export interface BuildLayerConfig {
+  [key: string]: any;
   /**
    * The version of the layer we are building, not to be confused with the version of the npm package
    */
