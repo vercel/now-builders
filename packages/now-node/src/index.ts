@@ -175,7 +175,7 @@ export async function build({
   config,
   meta = {},
 }: BuildOptions) {
-  const shouldAddHelpers = config && config.helpers;
+  const shouldAddHelpers = !(config && config.helpers === false);
 
   const {
     entrypointPath,
@@ -203,13 +203,19 @@ export async function build({
   let launcherData = await readFile(launcherPath, 'utf8');
 
   launcherData = launcherData.replace(
-    '// PLACEHOLDER',
+    '// PLACEHOLDER:shouldStoreProxyRequests',
+    shouldAddHelpers ? 'shouldStoreProxyRequests = true;' : ''
+  );
+
+  launcherData = launcherData.replace(
+    '// PLACEHOLDER:setServer',
     [
-      `listener = require("./${entrypoint}");`,
+      `let listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
       shouldAddHelpers
-        ? 'listener = require("./helpers").addHelpers(listener)'
-        : '',
+        ? 'const server = require("./helpers").createServerWithHelpers(listener, bridge);'
+        : 'const server = require("http").createServer(listener);',
+      'bridge.setServer(server);',
     ].join(' ')
   );
 

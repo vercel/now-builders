@@ -166,7 +166,7 @@ export const build = async ({
 
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
-  const dotNext = path.join(entryPath, '.next');
+  const dotNextStatic = path.join(entryPath, '.next/static');
 
   console.log(`${name} Downloading user files...`);
   await download(files, workPath, meta);
@@ -227,7 +227,7 @@ export const build = async ({
     };
   }
 
-  if (await pathExists(dotNext)) {
+  if (await pathExists(dotNextStatic)) {
     console.warn(
       'WARNING: You should not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more details.'
     );
@@ -259,14 +259,15 @@ export const build = async ({
     console.log('normalized package.json result: ', packageJson);
     await writePackageJson(entryPath, packageJson);
   } else if (!pkg.scripts || !pkg.scripts['now-build']) {
-    console.warn(
-      'WARNING: "now-build" script not found. Adding \'"now-build": "next build"\' to "package.json" automatically'
+    console.log(
+      'Your application is being built using `next build`. ' +
+        'If you need to define a different build step, please create a `now-build` script in your `package.json` ' +
+        '(e.g. `{ "scripts": { "now-build": "npm run prepare && next build" } }`).'
     );
     pkg.scripts = {
       'now-build': 'next build',
       ...(pkg.scripts || {}),
     };
-    console.log('normalized package.json result: ', pkg);
     await writePackageJson(entryPath, pkg);
   }
 
