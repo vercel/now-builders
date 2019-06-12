@@ -12,6 +12,7 @@ import {
   createLambda,
   runNpmInstall,
   runPackageJsonScript,
+  hasPackageLockJson,
   PrepareLayersOptions,
   PrepareCacheOptions,
   BuildLayerConfig,
@@ -29,7 +30,8 @@ interface DownloadOptions {
   entrypoint: string;
   workPath: string;
   meta: Meta;
-  npmArguments?: string[];
+  packageManagerArgs: string[];
+  packageManagerCmd: string;
 }
 
 const watchers: Map<string, NccWatcher> = new Map();
@@ -55,14 +57,19 @@ async function downloadInstallAndBundle({
   entrypoint,
   workPath,
   meta,
-  npmArguments = [],
+  packageManagerArgs,
+  packageManagerCmd,
 }: DownloadOptions) {
   console.log('downloading user files...');
   const downloadedFiles = await download(files, workPath, meta);
 
   console.log("installing dependencies for user's code...");
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
-  await runNpmInstall(entrypointFsDirname, npmArguments);
+  await runNpmInstall(
+    entrypointFsDirname,
+    packageManagerArgs,
+    packageManagerCmd
+  );
 
   const entrypointPath = downloadedFiles[entrypoint].fsPath;
   return { entrypointPath, entrypointFsDirname };
@@ -164,13 +171,22 @@ async function compile(
   return { preparedFiles, watch };
 }
 
+const layerPackages = {
+  node: '@now/layer-node@0.0.2',
+  npm: '@now/layer-npm@0.0.2',
+  yarn: '@now/layer-yarn@0.0.2',
+};
+
 export const version = 2;
 
 export const config = {
   maxLambdaSize: '5mb',
 };
 
-export async function prepareLayers({ files, config }: PrepareLayersOptions) {
+export async function prepareLayers({
+  entrypoint,
+  config,
+}: PrepareLayersOptions) {
   const { node = '8.10.0', npm = '5.6.0', yarn = '1.13.0' } = config;
   const { platform, arch } = process;
 
@@ -183,13 +199,13 @@ export async function prepareLayers({ files, config }: PrepareLayersOptions) {
   }
 
   const layers: { [key: string]: BuildLayerConfig } = {
-    '@now/layer-node@0.0.2': { runtimeVersion: node, platform, arch },
+    [layerPackages.node]: { runtimeVersion: node, platform, arch },
   };
 
-  if ('package-lock.json' in files) {
-    layers['@now/layer-npm@0.0.2'] = { runtimeVersion: npm, platform, arch };
+  if (await hasPackageLockJson(entrypoint)) {
+    layers[layerPackages.npm] = { runtimeVersion: npm, platform, arch };
   } else {
-    layers['@now/layer-yarn@0.0.2'] = { runtimeVersion: yarn, platform, arch };
+    layers[layerPackages.yarn] = { runtimeVersion: yarn, platform, arch };
   }
 
   return layers;
@@ -204,19 +220,10 @@ export async function build({
   meta = {},
 }: BuildOptions) {
   const shouldAddHelpers = !(config && config.helpers === false);
-  const nodePath = await layers['@now/layer-node@0.0.2'].getEntrypoint();
+  const nodeBinary = await layers[layerPackages.node].getEntrypoint();
 
-  let npmPath = '';
-
-  if ('package-lock.json' in files) {
-    npmPath = await layers['@now/layer-npm@0.0.2'].getEntrypoint();
-  } else {
-    npmPath = await layers['@now/layer-yarn@0.0.2'].getEntrypoint();
-  }
-
-  // TODO: use nodePath and npmPath below to run npm install
-  console.log('node path ' + nodePath);
-  console.log('npm path ' + npmPath);
+  const pkgLayer = layers[layerPackages.npm] || layers[layerPackages.yarn];
+  const packageManagerBinary = await pkgLayer.getEntrypoint();
 
   const {
     entrypointPath,
@@ -226,7 +233,8 @@ export async function build({
     entrypoint,
     workPath,
     meta,
-    npmArguments: ['--prefer-offline'],
+    packageManagerArgs: [packageManagerBinary, '--prefer-offline'],
+    packageManagerCmd: nodeBinary,
   });
 
   console.log('running user script...');
