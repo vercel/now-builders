@@ -171,7 +171,7 @@ async function compile(
   return { preparedFiles, watch };
 }
 
-const layerPackages = {
+const layerNames = {
   node: '@now/layer-node@0.0.2',
   npm: '@now/layer-npm@0.0.2',
   yarn: '@now/layer-yarn@0.0.2',
@@ -201,17 +201,17 @@ export async function prepareLayers({
   }
 
   const layerDefinitions: { [key: string]: BuildLayerConfig } = {
-    [layerPackages.node]: { runtimeVersion: node, platform, arch },
+    [layerNames.node]: { runtimeVersion: node, platform, arch },
   };
 
   if (await hasPackageLockJson(entrypoint)) {
-    layerDefinitions[layerPackages.npm] = {
+    layerDefinitions[layerNames.npm] = {
       runtimeVersion: npm,
       platform,
       arch,
     };
   } else {
-    layerDefinitions[layerPackages.yarn] = {
+    layerDefinitions[layerNames.yarn] = {
       runtimeVersion: yarn,
       platform,
       arch,
@@ -230,9 +230,9 @@ export async function build({
   meta = {},
 }: BuildOptions) {
   const shouldAddHelpers = !(config && config.helpers === false);
-  const nodeBinary = await layers[layerPackages.node].getEntrypoint();
+  const nodeBinary = await layers[layerNames.node].getEntrypoint();
 
-  const pkgLayer = layers[layerPackages.npm] || layers[layerPackages.yarn];
+  const pkgLayer = layers[layerNames.npm] || layers[layerNames.yarn];
   const packageManagerBinary = await pkgLayer.getEntrypoint();
 
   const {
@@ -290,10 +290,15 @@ export async function build({
   }
 
   const lambda = await createLambda({
-    files: { ...preparedFiles, ...launcherFiles },
-    layers: Object.values(layers),
+    files: {
+      ...preparedFiles,
+      ...launcherFiles,
+    },
+    layers: {
+      [layerNames.node]: layers[layerNames.node],
+    },
     handler: 'launcher.launcher',
-    runtime: 'nodejs8.10',
+    runtime: 'provided',
   });
 
   const output = { [entrypoint]: lambda };

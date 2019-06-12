@@ -16,15 +16,15 @@ interface LambdaOptions {
   handler: string;
   runtime: string;
   environment: Environment;
-  layerNames: string[];
+  layers: { [use: string]: Layer };
 }
 
 interface CreateLambdaOptions {
   files: Files;
-  layers?: Layer[];
   handler: string;
   runtime: string;
   environment?: Environment;
+  layers?: { [use: string]: Layer };
 }
 
 export class Lambda {
@@ -33,21 +33,21 @@ export class Lambda {
   public handler: string;
   public runtime: string;
   public environment: Environment;
-  public layerNames: string[];
+  public layers: { [use: string]: Layer };
 
   constructor({
     zipBuffer,
     handler,
     runtime,
     environment,
-    layerNames,
+    layers,
   }: LambdaOptions) {
     this.type = 'Lambda';
     this.zipBuffer = zipBuffer;
     this.handler = handler;
     this.runtime = runtime;
     this.environment = environment;
-    this.layerNames = layerNames;
+    this.layers = layers;
   }
 }
 
@@ -56,13 +56,13 @@ const mtime = new Date(1540000000000);
 
 export async function createLambda({
   files,
-  layers = [],
   handler,
   runtime,
   environment = {},
+  layers = {},
 }: CreateLambdaOptions): Promise<Lambda> {
   assert(typeof files === 'object', '"files" must be an object');
-  assert(Array.isArray(layers), '"layers" must be an array');
+  assert(typeof layers === 'object', '"layers" must be an object');
   assert(typeof handler === 'string', '"handler" is not a string');
   assert(typeof runtime === 'string', '"runtime" is not a string');
   assert(typeof environment === 'object', '"environment" is not an object');
@@ -71,13 +71,12 @@ export async function createLambda({
 
   try {
     const zipBuffer = await createZip(files);
-    const layerNames = layers.map(l => l.name);
     return new Lambda({
       zipBuffer,
       handler,
       runtime,
       environment,
-      layerNames,
+      layers,
     });
   } finally {
     sema.release();
