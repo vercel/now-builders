@@ -1,57 +1,88 @@
-import { parse as parseCookies } from 'cookie';
+import {
+  NowRequest,
+  NowResponse,
+  RequestCookies,
+  RequestQuery,
+  RequestBody,
+} from './types';
 import { Stream } from 'stream';
-import { URL } from 'url';
-import { parse as parseCT } from 'content-type';
-import { NowRequest, NowResponse } from './types';
-import { IncomingMessage, Server } from 'http';
+import { Server } from 'http';
 import { Bridge } from './bridge';
 
-function parseBody(req: IncomingMessage, body?: Buffer) {
-  if (!body) {
-    return null;
-  }
+function getBodyParser(req: NowRequest, body?: Buffer) {
+  return function parseBody(): RequestBody {
+    if (!body || !req.headers['content-type']) {
+      return undefined;
+    }
 
-  const { type } = parseCT(req.headers['content-type'] || 'text/plain');
+    const { parse: parseCT } = require('content-type');
+    const { type, parameters } = parseCT(req.headers['content-type']);
+    const encoding = parameters.charset || 'utf-8';
 
-  if (type === 'application/json' || type === 'application/ld+json') {
-    return parseJson(body.toString());
-  } else if (type === 'application/x-www-form-urlencoded') {
-    const qs = require('querystring');
-    return qs.decode(body.toString());
-  } else {
-    return body;
-  }
+    if (type === 'application/json') {
+      try {
+        return JSON.parse(body.toString(encoding));
+      } catch (error) {
+        throw new ApiError(400, 'Invalid JSON');
+      }
+    }
+
+    if (type === 'application/octet-stream') {
+      return body;
+    }
+
+    if (type === 'application/x-www-form-urlencoded') {
+      const { parse: parseQS } = require('querystring');
+      // remark : querystring.parse does not produce an iterable object
+      // https://nodejs.org/api/querystring.html#querystring_querystring_parse_str_sep_eq_options
+      return parseQS(body.toString(encoding));
+    }
+
+    if (type === 'text/plain') {
+      return body.toString(encoding);
+    }
+
+    return undefined;
+  };
 }
 
-// Parse `JSON` and handles invalid `JSON` strings
-function parseJson(str: string) {
-  try {
-    return JSON.parse(str);
-  } catch (e) {
-    throw new ApiError(400, 'Invalid JSON');
-  }
+function getQueryParser({ url = '/' }: NowRequest) {
+  return function parseQuery(): RequestQuery {
+    const { URL } = require('url');
+    // we provide a placeholder base url because we only want searchParams
+    const params = new URL(url, 'https://n').searchParams;
+
+    const query: { [key: string]: string | string[] } = {};
+    for (const [key, value] of params) {
+      query[key] = value;
+    }
+
+    return query;
+  };
 }
 
-function parseQuery({ url = '/' }: NowRequest) {
-  // we provide a placeholder base url because we only want searchParams
-  const params = new URL(url, 'https://n').searchParams;
+function getCookieParser(req: NowRequest) {
+  return function parseCookie(): RequestCookies {
+    const header: undefined | string | string[] = req.headers.cookie;
 
-  const obj: { [key: string]: string | string[] } = {};
-  for (const [key, value] of params) {
-    obj[key] = value;
-  }
-  return obj;
+    if (!header) {
+      return {};
+    }
+
+    const { parse } = require('cookie');
+    return parse(Array.isArray(header) ? header.join(';') : header);
+  };
 }
 
-function sendStatusCode(res: NowResponse, statusCode: number) {
+function sendStatusCode(res: NowResponse, statusCode: number): NowResponse {
   res.statusCode = statusCode;
   return res;
 }
 
-function sendData(res: NowResponse, body: any) {
+function sendData(res: NowResponse, body: any): NowResponse {
   if (body === null) {
     res.end();
-    return;
+    return res;
   }
 
   const contentType = res.getHeader('Content-Type');
@@ -62,7 +93,7 @@ function sendData(res: NowResponse, body: any) {
     }
     res.setHeader('Content-Length', body.length);
     res.end(body);
-    return;
+    return res;
   }
 
   if (body instanceof Stream) {
@@ -70,7 +101,7 @@ function sendData(res: NowResponse, body: any) {
       res.setHeader('Content-Type', 'application/octet-stream');
     }
     body.pipe(res);
-    return;
+    return res;
   }
 
   let str = body;
@@ -83,14 +114,16 @@ function sendData(res: NowResponse, body: any) {
 
   res.setHeader('Content-Length', Buffer.byteLength(str));
   res.end(str);
+
+  return res;
 }
 
-function sendJson(res: NowResponse, jsonBody: any): void {
+function sendJson(res: NowResponse, jsonBody: any): NowResponse {
   // Set header to application/json
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
   // Use send to handle request
-  res.send(jsonBody);
+  return res.send(jsonBody);
 }
 
 export class ApiError extends Error {
@@ -110,6 +143,23 @@ export function sendError(
   res.statusCode = statusCode;
   res.statusMessage = message;
   res.end();
+}
+
+function setLazyProp<T>(req: NowRequest, prop: string, getter: () => T) {
+  const opts = { configurable: true, writable: true, enumerable: true };
+
+  Object.defineProperty(req, 'query', {
+    ...opts,
+    get: () => {
+      const value = getter();
+      // we set the property on the object to avoid recalculating it
+      Object.defineProperty(req, prop, { ...opts, value });
+      return value;
+    },
+    set: value => {
+      Object.defineProperty(req, prop, { ...opts, value });
+    },
+  });
 }
 
 export function createServerWithHelpers(
@@ -132,12 +182,9 @@ export function createServerWithHelpers(
 
       const event = bridge.consumeEvent(reqId);
 
-      const c: undefined | string | string[] = req.headers.cookie;
-      const cookies = Array.isArray(c) ? c.join(';') : c;
-
-      req.cookies = parseCookies(cookies || '');
-      req.query = parseQuery(req);
-      req.body = parseBody(req, event.body);
+      setLazyProp<RequestCookies>(req, 'cookies', getCookieParser(req));
+      setLazyProp<RequestQuery>(req, 'query', getQueryParser(req));
+      setLazyProp<RequestBody>(req, 'body', getBodyParser(req, event.body));
 
       res.status = statusCode => sendStatusCode(res, statusCode);
       res.send = data => sendData(res, data);
@@ -148,7 +195,7 @@ export function createServerWithHelpers(
       if (err instanceof ApiError) {
         sendError(res, err.statusCode, err.message);
       } else {
-        throw err;
+        sendError(res, 500, 'Internal Server Error');
       }
     }
   });
