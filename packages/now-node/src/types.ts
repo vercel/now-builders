@@ -1,13 +1,13 @@
 import { ServerResponse, IncomingMessage } from 'http';
 
-export type RequestCookies = { [key: string]: string };
-export type RequestQuery = { [key: string]: string | string[] };
-export type RequestBody = any;
+export type NowRequestCookies = { [key: string]: string };
+export type NowRequestQuery = { [key: string]: string | string[] };
+export type NowRequestBody = any;
 
 export type NowRequest = IncomingMessage & {
-  query: RequestQuery;
-  cookies: RequestCookies;
-  body: RequestBody;
+  query: NowRequestQuery;
+  cookies: NowRequestCookies;
+  body: NowRequestBody;
 };
 
 export type NowResponse = ServerResponse & {

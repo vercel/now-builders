@@ -1,16 +1,16 @@
 import {
   NowRequest,
   NowResponse,
-  RequestCookies,
-  RequestQuery,
-  RequestBody,
+  NowRequestCookies,
+  NowRequestQuery,
+  NowRequestBody,
 } from './types';
 import { Stream } from 'stream';
 import { Server } from 'http';
 import { Bridge } from './bridge';
 
 function getBodyParser(req: NowRequest, body?: Buffer) {
-  return function parseBody(): RequestBody {
+  return function parseBody(): NowRequestBody {
     if (!body || !req.headers['content-type']) {
       return undefined;
     }
@@ -46,7 +46,7 @@ function getBodyParser(req: NowRequest, body?: Buffer) {
 }
 
 function getQueryParser({ url = '/' }: NowRequest) {
-  return function parseQuery(): RequestQuery {
+  return function parseQuery(): NowRequestQuery {
     const { URL } = require('url');
     // we provide a placeholder base url because we only want searchParams
     const params = new URL(url, 'https://n').searchParams;
@@ -61,7 +61,7 @@ function getQueryParser({ url = '/' }: NowRequest) {
 }
 
 function getCookieParser(req: NowRequest) {
-  return function parseCookie(): RequestCookies {
+  return function parseCookie(): NowRequestCookies {
     const header: undefined | string | string[] = req.headers.cookie;
 
     if (!header) {
@@ -182,9 +182,9 @@ export function createServerWithHelpers(
 
       const event = bridge.consumeEvent(reqId);
 
-      setLazyProp<RequestCookies>(req, 'cookies', getCookieParser(req));
-      setLazyProp<RequestQuery>(req, 'query', getQueryParser(req));
-      setLazyProp<RequestBody>(req, 'body', getBodyParser(req, event.body));
+      setLazyProp<NowRequestCookies>(req, 'cookies', getCookieParser(req));
+      setLazyProp<NowRequestQuery>(req, 'query', getQueryParser(req));
+      setLazyProp<NowRequestBody>(req, 'body', getBodyParser(req, event.body));
 
       res.status = statusCode => sendStatusCode(res, statusCode);
       res.send = data => sendData(res, data);
@@ -195,8 +195,7 @@ export function createServerWithHelpers(
       if (err instanceof ApiError) {
         sendError(res, err.statusCode, err.message);
       } else {
-        console.log(err);
-        sendError(res, 500, 'Internal Server Error');
+        throw err;
       }
     }
   });
