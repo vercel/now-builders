@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import spawn from 'cross-spawn';
 import { SpawnOptions } from 'child_process';
+import { deprecate } from 'util';
 
 function spawnAsync(
   command: string,
@@ -156,7 +157,10 @@ export async function runPackageJsonScript(
 }
 
 /**
- * this is a deprecated method
- * use runNpmInstall() instead
+ * installDependencies() is deprecated.
+ * Please use runNpmInstall() instead.
  */
-export const installDependencies = runNpmInstall;
+export const installDependencies = deprecate(
+  runNpmInstall,
+  'installDependencies() is deprecated. Please use runNpmInstall() instead.'
+);
