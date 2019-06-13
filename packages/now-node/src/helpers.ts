@@ -146,17 +146,18 @@ export function sendError(
 
 function setLazyProp<T>(req: NowRequest, prop: string, getter: () => T) {
   const opts = { configurable: true, enumerable: true };
+  const optsReset = { ...opts, writable: true };
 
   Object.defineProperty(req, prop, {
     ...opts,
     get: () => {
       const value = getter();
       // we set the property on the object to avoid recalculating it
-      Object.defineProperty(req, prop, { ...opts, writable: true, value });
+      Object.defineProperty(req, prop, { ...optsReset, value });
       return value;
     },
     set: value => {
-      Object.defineProperty(req, prop, { ...opts, writable: true, value });
+      Object.defineProperty(req, prop, { ...optsReset, value });
     },
   });
 }

@@ -14,6 +14,15 @@ const mockBridge = { consumeEvent: consumeEventMock };
 let server;
 let url;
 
+const nowProps = [
+  ['query', 0],
+  ['cookies', 0],
+  ['body', 0],
+  ['status', 1],
+  ['send', 1],
+  ['json', 1],
+];
+
 async function fetchWithProxyReq(_url, opts = {}) {
   if (opts.body) {
     // eslint-disable-next-line
@@ -172,25 +181,43 @@ it('should not recalculate req properties twice', async () => {
 });
 
 it('should be able to overwrite request properties', async () => {
-  const bodySpy = jest.fn(() => {});
+  const spy = jest.fn(() => {});
 
-  mockListener.mockImplementation((req, res) => {
-    req.body = 'ok';
-    req.query = 'ok';
-    req.cookies = 'ok';
-    bodySpy(req.body, req.query, req.cookies);
-    res.end();
+  mockListener.mockImplementation((...args) => {
+    nowProps.forEach(([prop, n]) => {
+      /* eslint-disable */
+      args[n][prop] = 'ok';
+      args[n][prop] = 'ok2';
+      spy(args[n][prop]);
+    });
+
+    args[1].end();
   });
 
-  await fetchWithProxyReq(`${url}/?who=bill`, {
-    method: 'POST',
-    body: JSON.stringify({ who: 'mike' }),
-    headers: { 'content-type': 'application/json', cookie: 'who=jim' },
+  await fetchWithProxyReq(url);
+
+  nowProps.forEach((_, i) => expect(spy.mock.calls[i][0]).toBe('ok2'));
+});
+
+// we test that properties are configurable
+// because expressjs (or some other api frameworks) needs that to work
+it('should be able to reconfig request properties', async () => {
+  const spy = jest.fn(() => {});
+
+  mockListener.mockImplementation((...args) => {
+    nowProps.forEach(([prop, n]) => {
+      // eslint-disable-next-line
+      Object.defineProperty(args[n], prop, { value: 'ok' });
+      Object.defineProperty(args[n], prop, { value: 'ok2' });
+      spy(args[n][prop]);
+    });
+
+    args[1].end();
   });
 
-  for (let i = 0; i < 3; i += 1) {
-    expect(bodySpy.mock.calls[0][i]).toBe('ok');
-  }
+  await fetchWithProxyReq(url);
+
+  nowProps.forEach((_, i) => expect(spy.mock.calls[i][0]).toBe('ok2'));
 });
 
 it('should be able to try/catch parse errors', async () => {
@@ -199,9 +226,10 @@ it('should be able to try/catch parse errors', async () => {
   mockListener.mockImplementation((req, res) => {
     try {
       if (req.body === undefined) res.status(400);
-      res.end();
     } catch (error) {
       bodySpy(error);
+    } finally {
+      res.end();
     }
   });
 
@@ -214,7 +242,7 @@ it('should be able to try/catch parse errors', async () => {
   expect(bodySpy).toHaveBeenCalled();
 
   const [error] = bodySpy.mock.calls[0];
-  expect(error.message).toBe(/invalid JSON/i);
+  expect(error.message).toMatch(/invalid json/i);
   expect(error.statusCode).toBe(400);
 });
 
