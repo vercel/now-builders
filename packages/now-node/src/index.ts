@@ -229,13 +229,12 @@ export async function build({
   layers,
   meta = {},
 }: BuildOptions) {
-  const useLayers = typeof layers !== 'undefined';
   const shouldAddHelpers = !(config && config.helpers === false);
 
   let packageManagerCmd: string | undefined;
   let packageManagerArgs = ['--prefer-offline'];
 
-  if (useLayers) {
+  if (layers) {
     console.log('using experimental layers');
     packageManagerCmd = await layers[layerNames.node].getEntrypoint();
     const pmLayer = layers[layerNames.npm] || layers[layerNames.yarn];
@@ -302,9 +301,9 @@ export async function build({
       ...preparedFiles,
       ...launcherFiles,
     },
-    layers: useLayers ? { [layerNames.node]: layers[layerNames.node] } : {},
+    layers: layers ? { [layerNames.node]: layers[layerNames.node] } : {},
     handler: 'launcher.launcher',
-    runtime: useLayers ? 'provided' : 'node8.10',
+    runtime: layers ? 'provided' : 'nodejs8.10',
   });
 
   const output = { [entrypoint]: lambda };
