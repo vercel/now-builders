@@ -31,7 +31,7 @@ interface DownloadOptions {
   workPath: string;
   meta: Meta;
   packageManagerArgs: string[];
-  packageManagerCmd: string;
+  packageManagerCmd: string | undefined;
 }
 
 const watchers: Map<string, NccWatcher> = new Map();
@@ -229,11 +229,19 @@ export async function build({
   layers = {},
   meta = {},
 }: BuildOptions) {
+  const useLayers = config.useLayers === true;
   const shouldAddHelpers = !(config && config.helpers === false);
-  const nodeBinary = await layers[layerNames.node].getEntrypoint();
 
-  const pkgLayer = layers[layerNames.npm] || layers[layerNames.yarn];
-  const packageManagerBinary = await pkgLayer.getEntrypoint();
+  let packageManagerCmd: string | undefined;
+  let packageManagerArgs = ['--prefer-offline'];
+
+  if (useLayers) {
+    console.log('using experimental layers');
+    packageManagerCmd = await layers[layerNames.node].getEntrypoint();
+    const pmLayer = layers[layerNames.npm] || layers[layerNames.yarn];
+    const packageManagerScript = await pmLayer.getEntrypoint();
+    packageManagerArgs = [packageManagerScript, '--prefer-offline'];
+  }
 
   const {
     entrypointPath,
@@ -243,8 +251,8 @@ export async function build({
     entrypoint,
     workPath,
     meta,
-    packageManagerArgs: [packageManagerBinary, '--prefer-offline'],
-    packageManagerCmd: nodeBinary,
+    packageManagerArgs,
+    packageManagerCmd,
   });
 
   console.log('running user script...');
@@ -294,11 +302,9 @@ export async function build({
       ...preparedFiles,
       ...launcherFiles,
     },
-    layers: {
-      [layerNames.node]: layers[layerNames.node],
-    },
+    layers: useLayers ? { [layerNames.node]: layers[layerNames.node] } : {},
     handler: 'launcher.launcher',
-    runtime: 'provided',
+    runtime: useLayers ? 'provided' : 'node8.10',
   });
 
   const output = { [entrypoint]: lambda };
