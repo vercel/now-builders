@@ -226,10 +226,10 @@ export async function build({
   entrypoint,
   workPath,
   config,
-  layers = {},
+  layers,
   meta = {},
 }: BuildOptions) {
-  const useLayers = config.useLayers === true;
+  const useLayers = typeof layers !== 'undefined';
   const shouldAddHelpers = !(config && config.helpers === false);
 
   let packageManagerCmd: string | undefined;
