@@ -279,6 +279,17 @@ it('res.status() should set the status code', async () => {
   expect(res.status).toBe(404);
 });
 
+it('res.status().send() should work', async () => {
+  mockListener.mockImplementation((req, res) => {
+    res.status(404).send('notfound');
+  });
+
+  const res = await fetchWithProxyReq(url);
+
+  expect(res.status).toBe(404);
+  expect(await res.text()).toBe('notfound');
+});
+
 it('res.status().json() should work', async () => {
   mockListener.mockImplementation((req, res) => {
     res.status(404).json({ error: 'not found' });
