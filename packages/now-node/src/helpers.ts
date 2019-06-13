@@ -16,12 +16,11 @@ function getBodyParser(req: NowRequest, body?: Buffer) {
     }
 
     const { parse: parseCT } = require('content-type');
-    const { type, parameters } = parseCT(req.headers['content-type']);
-    const encoding = parameters.charset || 'utf-8';
+    const { type } = parseCT(req.headers['content-type']);
 
     if (type === 'application/json') {
       try {
-        return JSON.parse(body.toString(encoding));
+        return JSON.parse(body.toString());
       } catch (error) {
         throw new ApiError(400, 'Invalid JSON');
       }
@@ -35,11 +34,11 @@ function getBodyParser(req: NowRequest, body?: Buffer) {
       const { parse: parseQS } = require('querystring');
       // remark : querystring.parse does not produce an iterable object
       // https://nodejs.org/api/querystring.html#querystring_querystring_parse_str_sep_eq_options
-      return parseQS(body.toString(encoding));
+      return parseQS(body.toString());
     }
 
     if (type === 'text/plain') {
-      return body.toString(encoding);
+      return body.toString();
     }
 
     return undefined;
@@ -146,18 +145,18 @@ export function sendError(
 }
 
 function setLazyProp<T>(req: NowRequest, prop: string, getter: () => T) {
-  const opts = { configurable: true, writable: true, enumerable: true };
+  const opts = { configurable: true, enumerable: true };
 
-  Object.defineProperty(req, 'query', {
+  Object.defineProperty(req, prop, {
     ...opts,
     get: () => {
       const value = getter();
       // we set the property on the object to avoid recalculating it
-      Object.defineProperty(req, prop, { ...opts, value });
+      Object.defineProperty(req, prop, { ...opts, writable: true, value });
       return value;
     },
     set: value => {
-      Object.defineProperty(req, prop, { ...opts, value });
+      Object.defineProperty(req, prop, { ...opts, writable: true, value });
     },
   });
 }
@@ -195,6 +194,7 @@ export function createServerWithHelpers(
       if (err instanceof ApiError) {
         sendError(res, err.statusCode, err.message);
       } else {
+        console.log(err);
         sendError(res, 500, 'Internal Server Error');
       }
     }
