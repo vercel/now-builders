@@ -207,12 +207,12 @@ export async function build({
   launcherData = launcherData.replace(
     '// PLACEHOLDER:setServer',
     [
-      `let listener = require("./${entrypoint}");`,
-      'if (listener.default) listener = listener.default;',
+      `let listener = await require("./${entrypoint}");`,
+      'if (listener.default) listener = await listener.default;',
       shouldAddHelpers
-        ? 'const server = require("./helpers").createServerWithHelpers(listener, bridge);'
-        : 'const server = require("http").createServer(listener);',
-      'bridge.setServer(server);',
+        ? 'const server = await require("./helpers").createServerWithHelpers(listener, bridge);'
+        : 'const server = await require("http").createServer(listener);',
+      'await bridge.setServer(server);',
     ].join(' ')
   );
 
