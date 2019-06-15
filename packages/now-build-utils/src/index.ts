@@ -20,7 +20,7 @@ import {
   runPackageJsonScript,
   runNpmInstall,
   runShellScript,
-  enginesSatisifes,
+  enginesMatch,
 } from './fs/run-user-scripts';
 import streamToBuffer from './fs/stream-to-buffer';
 import shouldServe from './should-serve';
@@ -43,7 +43,7 @@ export {
   runPackageJsonScript,
   runNpmInstall,
   runShellScript,
-  enginesSatisifes,
+  enginesMatch,
   streamToBuffer,
   AnalyzeOptions,
   BuildOptions,

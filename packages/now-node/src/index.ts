@@ -12,7 +12,7 @@ import {
   createLambda,
   runNpmInstall,
   runPackageJsonScript,
-  enginesSatisifes,
+  enginesMatch,
   PrepareCacheOptions,
   BuildOptions,
   shouldServe,
@@ -228,7 +228,7 @@ export async function build({
     });
   }
 
-  const useNode10 = await enginesSatisifes(entrypointFsDirname, '10.0.0');
+  const useNode10 = await enginesMatch(entrypointFsDirname, '10.0.0');
 
   const lambda = await createLambda({
     files: {

@@ -72,7 +72,7 @@ interface PackageJson {
   };
 }
 
-export async function enginesSatisifes(
+export async function enginesMatch(
   destPath: string,
   nodeVersion: string
 ): Promise<boolean> {
