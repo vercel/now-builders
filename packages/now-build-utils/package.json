@@ -9,6 +9,11 @@
     "url": "https://github.com/zeit/now-builders.git",
     "directory": "packages/now-build-utils"
   },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && jest",
+    "prepublishOnly": "tsc"
+  },
   "dependencies": {
     "async-retry": "1.2.3",
     "async-sema": "2.1.4",
@@ -21,11 +26,6 @@
     "node-fetch": "2.2.0",
     "semver": "6.1.1",
     "yazl": "2.4.3"
-  },
-  "scripts": {
-    "build": "tsc",
-    "test": "tsc && jest",
-    "prepublish": "tsc"
   },
   "devDependencies": {
     "@types/async-retry": "^1.2.1",
