@@ -12,6 +12,7 @@ import {
   createLambda,
   runNpmInstall,
   runPackageJsonScript,
+  enginesSatisifes,
   PrepareCacheOptions,
   BuildOptions,
   shouldServe,
@@ -227,13 +228,15 @@ export async function build({
     });
   }
 
+  const useNode10 = await enginesSatisifes(entrypointFsDirname, '10.0.0');
+
   const lambda = await createLambda({
     files: {
       ...preparedFiles,
       ...launcherFiles,
     },
     handler: 'launcher.launcher',
-    runtime: 'nodejs8.10',
+    runtime: useNode10 ? 'nodejs10.x' : 'nodejs8.10',
   });
 
   const output = { [entrypoint]: lambda };
