@@ -4,7 +4,7 @@ import path from 'path';
 import spawn from 'cross-spawn';
 import { SpawnOptions } from 'child_process';
 import { deprecate } from 'util';
-import { satisfies } from 'semver';
+import { intersects } from 'semver';
 
 function spawnAsync(
   command: string,
@@ -80,7 +80,7 @@ export async function enginesMatch(
 
   const engineVersion =
     packageJson && packageJson.engines && packageJson.engines.node;
-  return satisfies(nodeVersion, engineVersion || '0.0.0');
+  return intersects(nodeVersion, engineVersion || '0.0.0');
 }
 
 async function scanParentDirs(destPath: string, readPackageJson = false) {
