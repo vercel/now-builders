@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "target": "esnext",
+    "module": "commonjs",
+    "noEmit": true,
+    "declaration": false
+  },
+  "files": ["fix-version.ts"]
+}

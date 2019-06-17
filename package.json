@@ -18,6 +18,8 @@
     "build": "./.circleci/build.sh",
     "lint": "eslint .",
     "codecov": "codecov",
+    "utils:fix": "yarn run utils:fix-version",
+    "utils:fix-version": "npx ts-node --project ./utils/tsconfig.json ./utils/fix-version.ts",
     "test": "jest --runInBand --verbose",
     "test-coverage": "jest --runInBand --verbose --coverage --globals \"{\\\"coverage\\\":true}\" && codecov",
     "lint-staged": "lint-staged"
