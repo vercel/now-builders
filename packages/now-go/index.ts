@@ -203,7 +203,7 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
       const usrModName = goModContents.split('\n')[0].split(' ')[1];
 
       if (entrypointArr.length > 1 && isGoModInRootDir) {
-        let cleanPackagePath = entrypointArr;
+        let cleanPackagePath = [...entrypointArr];
         cleanPackagePath.pop();
         goPackageName = `${usrModName}/${cleanPackagePath.join('/')}`;
       } else {
