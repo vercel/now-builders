@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc",
     "test": "tsc && jest",
-    "prepublish": "tsc"
+    "prepublishOnly": "tsc"
   },
   "dependencies": {
     "execa": "^1.0.0",
