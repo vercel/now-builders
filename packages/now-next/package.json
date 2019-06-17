@@ -6,7 +6,7 @@
   "scripts": {
     "build": "./getBridgeTypes.sh && tsc",
     "test": "npm run build && jest",
-    "prepublish": "yarn run build"
+    "prepublishOnly": "yarn run build"
   },
   "repository": {
     "type": "git",

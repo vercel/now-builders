@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "best -I test/*.js",
-    "prepublish": "./build.sh"
+    "prepublishOnly": "./build.sh"
   },
   "files": [
     "index.js",

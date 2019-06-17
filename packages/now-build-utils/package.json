@@ -26,7 +26,7 @@
   "scripts": {
     "build": "tsc",
     "test": "tsc && jest",
-    "prepublish": "tsc"
+    "prepublishOnly": "tsc"
   },
   "devDependencies": {
     "@types/async-retry": "^1.2.1",
