@@ -2,7 +2,7 @@ export function makeLauncher(
   entrypoint: string,
   shouldAddHelpers: boolean
 ): string {
-  return `const Bridge = require("./bridge").Bridge;
+  return `const { Bridge } = require("./bridge");
 
 const bridge = new Bridge(undefined, ${shouldAddHelpers ? 'true' : 'false'});
 
