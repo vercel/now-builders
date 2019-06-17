@@ -31,9 +31,9 @@ interface DownloadOptions {
 
 const watchers: Map<string, NccWatcher> = new Map();
 
-const LAUNCHER_FILENAME = '___launch3r';
-const BRIDGE_FILENAME = '___bridg3';
-const HELPERS_FILENAME = '___help3rs';
+const LAUNCHER_FILENAME = '___now_launch3r';
+const BRIDGE_FILENAME = '___now_bridg3';
+const HELPERS_FILENAME = '___now_help3rs';
 
 function getWatcher(entrypoint: string, options: NccOptions): NccWatcher {
   let watcher = watchers.get(entrypoint);
