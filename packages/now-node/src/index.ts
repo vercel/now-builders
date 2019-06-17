@@ -219,7 +219,7 @@ export async function build({
   );
 
   const launcherFiles: Files = {
-    'launcher.js': new FileBlob({ data: launcherData }),
+    '___launch3r.js': new FileBlob({ data: launcherData }),
     '___bridg3.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
   };
 
@@ -234,7 +234,7 @@ export async function build({
       ...preparedFiles,
       ...launcherFiles,
     },
-    handler: 'launcher.launcher',
+    handler: '___launch3r.launcher',
     runtime: 'nodejs8.10',
   });
 
