@@ -28,7 +28,6 @@ interface DownloadOptions {
   entrypoint: string;
   workPath: string;
   meta: Meta;
-  npmArguments?: string[];
 }
 
 const watchers: Map<string, NccWatcher> = new Map();
@@ -54,14 +53,13 @@ async function downloadInstallAndBundle({
   entrypoint,
   workPath,
   meta,
-  npmArguments = [],
 }: DownloadOptions) {
   console.log('downloading user files...');
   const downloadedFiles = await download(files, workPath, meta);
 
   console.log("installing dependencies for user's code...");
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
-  await runNpmInstall(entrypointFsDirname, npmArguments);
+  await runNpmInstall(entrypointFsDirname, ['--prefer-offline']);
 
   const entrypointPath = downloadedFiles[entrypoint].fsPath;
   return { entrypointPath, entrypointFsDirname };
@@ -186,7 +184,6 @@ export async function build({
     entrypoint,
     workPath,
     meta,
-    npmArguments: ['--prefer-offline'],
   });
 
   console.log('running user script...');
@@ -215,7 +212,10 @@ export async function build({
   }
 
   const lambda = await createLambda({
-    files: { ...preparedFiles, ...launcherFiles },
+    files: {
+      ...preparedFiles,
+      ...launcherFiles,
+    },
     handler: 'launcher.launcher',
     runtime: 'nodejs8.10',
   });
