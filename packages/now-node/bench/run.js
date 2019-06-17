@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const { join } = require('path');
+const { makeLauncher } = require('../dist/launcher');
 
 const setupFiles = async (entrypoint, shouldAddHelpers) => {
   await fs.remove(join(__dirname, 'lambda'));
@@ -18,31 +19,10 @@ const setupFiles = async (entrypoint, shouldAddHelpers) => {
     join(__dirname, 'lambda/entrypoint.js'),
   );
 
-  let launcherData = await fs.readFile(
-    join(__dirname, '../dist/launcher.js'),
-    'utf-8',
-  );
+  let launcher = makeLauncher('./entrypoint', shouldAddHelpers);
+  launcher += '\nexports.bridge=bridge';
 
-  launcherData = launcherData.replace(
-    '// PLACEHOLDER:shouldStoreProxyRequests',
-    shouldAddHelpers ? 'shouldStoreProxyRequests = true;' : '',
-  );
-
-  launcherData = launcherData.replace(
-    '// PLACEHOLDER:setServer',
-    [
-      'let listener = require("./entrypoint");',
-      'if (listener.default) listener = listener.default;',
-      shouldAddHelpers
-        ? 'const server = require("./helpers").createServerWithHelpers(listener, bridge);'
-        : 'const server = require("http").createServer(listener);',
-      'bridge.setServer(server);',
-    ].join(' '),
-  );
-
-  launcherData += '\nexports.bridge=bridge';
-
-  await fs.writeFile(join(__dirname, 'lambda/launcher.js'), launcherData);
+  await fs.writeFile(join(__dirname, 'lambda/launcher.js'), launcher);
 };
 
 const createBigJSONObj = () => {

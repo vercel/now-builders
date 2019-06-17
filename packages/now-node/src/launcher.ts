@@ -1,9 +1,10 @@
-import { Bridge } from './bridge';
+export function makeLauncher(
+  entrypoint: string,
+  shouldAddHelpers: boolean
+): string {
+  return `const Bridge = require("./bridge").Bridge;
 
-let shouldStoreProxyRequests: boolean = false;
-// PLACEHOLDER:shouldStoreProxyRequests
-
-const bridge = new Bridge(undefined, shouldStoreProxyRequests);
+const bridge = new Bridge(undefined, ${shouldAddHelpers ? 'true' : 'false'});
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV =
@@ -11,12 +12,19 @@ if (!process.env.NODE_ENV) {
 }
 
 try {
-  // PLACEHOLDER:setServer
+  let listener = require("./${entrypoint}");
+  if (listener.default) listener = listener.default;
+  const server = ${
+    shouldAddHelpers
+      ? 'require("./helpers").createServerWithHelpers(listener, bridge)'
+      : 'require("http").createServer(listener)'
+  };
+  bridge.setServer(server);
 } catch (err) {
   if (err.code === 'MODULE_NOT_FOUND') {
     console.error(err.message);
     console.error(
-      'Did you forget to add it to "dependencies" in `package.json`?'
+      'Did you forget to add it to "dependencies" in \`package.json\`?'
     );
     process.exit(1);
   } else {
@@ -27,4 +35,5 @@ try {
 
 bridge.listen();
 
-exports.launcher = bridge.launcher;
+exports.launcher = bridge.launcher;`;
+}
