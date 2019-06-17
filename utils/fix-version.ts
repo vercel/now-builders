@@ -1,7 +1,3 @@
-/**
- * Created by user on 2019/6/18.
- */
-
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import globby from 'globby';
