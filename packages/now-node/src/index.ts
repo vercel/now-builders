@@ -31,6 +31,10 @@ interface DownloadOptions {
 
 const watchers: Map<string, NccWatcher> = new Map();
 
+const LAUNCHER_FILENAME = '___launch3r';
+const BRIDGE_FILENAME = '___bridg3';
+const HELPERS_FILENAME = '___help3rs';
+
 function getWatcher(entrypoint: string, options: NccOptions): NccWatcher {
   let watcher = watchers.get(entrypoint);
   if (!watcher) {
@@ -199,7 +203,7 @@ export async function build({
   const launcherPath = join(__dirname, 'launcher.js');
   let launcherData = await readFile(launcherPath, 'utf8');
 
-  launcherData = launcherData.replace('./bridge', './___bridg3.js');
+  launcherData = launcherData.replace('./bridge', `./${BRIDGE_FILENAME}`);
 
   launcherData = launcherData.replace(
     '// PLACEHOLDER:shouldStoreProxyRequests',
@@ -212,19 +216,21 @@ export async function build({
       `let listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
       shouldAddHelpers
-        ? `const server = require("./___help3rs").createServerWithHelpers(listener, bridge);`
+        ? `const server = require("./${HELPERS_FILENAME}").createServerWithHelpers(listener, bridge);`
         : 'const server = require("http").createServer(listener);',
       'bridge.setServer(server);',
     ].join(' ')
   );
 
   const launcherFiles: Files = {
-    '___launch3r.js': new FileBlob({ data: launcherData }),
-    '___bridg3.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
+    [`${LAUNCHER_FILENAME}.js`]: new FileBlob({ data: launcherData }),
+    [`${BRIDGE_FILENAME}.js`]: new FileFsRef({
+      fsPath: require('@now/node-bridge'),
+    }),
   };
 
   if (shouldAddHelpers) {
-    launcherFiles['___help3rs.js'] = new FileFsRef({
+    launcherFiles[`${HELPERS_FILENAME}.js`] = new FileFsRef({
       fsPath: join(__dirname, 'helpers.js'),
     });
   }
@@ -234,7 +240,7 @@ export async function build({
       ...preparedFiles,
       ...launcherFiles,
     },
-    handler: '___launch3r.launcher',
+    handler: `${LAUNCHER_FILENAME}.launcher`,
     runtime: 'nodejs8.10',
   });
 
