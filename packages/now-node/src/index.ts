@@ -199,6 +199,8 @@ export async function build({
   const launcherPath = join(__dirname, 'launcher.js');
   let launcherData = await readFile(launcherPath, 'utf8');
 
+  launcherData = launcherData.replace('./bridge', './___bridg3.js');
+
   launcherData = launcherData.replace(
     '// PLACEHOLDER:shouldStoreProxyRequests',
     shouldAddHelpers ? 'shouldStoreProxyRequests = true;' : ''
@@ -210,7 +212,7 @@ export async function build({
       `let listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
       shouldAddHelpers
-        ? 'const server = require("./helpers").createServerWithHelpers(listener, bridge);'
+        ? `const server = require("./___help3rs").createServerWithHelpers(listener, bridge);`
         : 'const server = require("http").createServer(listener);',
       'bridge.setServer(server);',
     ].join(' ')
@@ -218,11 +220,11 @@ export async function build({
 
   const launcherFiles: Files = {
     'launcher.js': new FileBlob({ data: launcherData }),
-    'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
+    '___bridg3.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
   };
 
   if (shouldAddHelpers) {
-    launcherFiles['helpers.js'] = new FileFsRef({
+    launcherFiles['___help3rs.js'] = new FileFsRef({
       fsPath: join(__dirname, 'helpers.js'),
     });
   }
