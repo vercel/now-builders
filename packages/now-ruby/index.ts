@@ -13,18 +13,9 @@ import {
   getWriteableDirectory,
   glob,
   createLambda,
-  Config,
   BuildOptions,
 } from '@now/build-utils';
 import { installBundler } from './install-ruby';
-
-interface RubyConfig extends Config {
-  excludeFiles?: string | string[];
-}
-
-interface RubyBuildOptions extends BuildOptions {
-  config: RubyConfig;
-}
 
 const REQUIRED_VENDOR_DIR = 'vendor/bundle/ruby/2.5.0';
 
@@ -91,7 +82,7 @@ export const build = async ({
   files,
   entrypoint,
   config,
-}: RubyBuildOptions) => {
+}: BuildOptions) => {
   console.log('downloading files...');
 
   // eslint-disable-next-line no-param-reassign
@@ -191,7 +182,10 @@ export const build = async ({
   // instead, provide `includeFiles` and `excludeFiles` config options to reduce bundle size.
   if (config && (config.includeFiles || config.excludeFiles)) {
     const includedPaths = await matchPaths(config.includeFiles, workPath);
-    const excludedPaths = await matchPaths(config.excludeFiles, workPath);
+    const excludedPaths = await matchPaths(
+      <string | string[]>config.excludeFiles,
+      workPath
+    );
 
     for (let i = 0; i < excludedPaths.length; i++) {
       // whitelist includeFiles
