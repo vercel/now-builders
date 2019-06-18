@@ -1,6 +1,6 @@
 {
   "name": "@now/node",
-  "version": "0.7.4-canary.12",
+  "version": "0.7.4-canary.13",
   "license": "MIT",
   "main": "./dist/index",
   "repository": {
@@ -31,6 +31,6 @@
     "cookie": "0.4.0",
     "node-fetch": "2.6.0",
     "test-listen": "1.1.0",
-    "typescript": "3.3.3"
+    "typescript": "3.5.2"
   }
 }
