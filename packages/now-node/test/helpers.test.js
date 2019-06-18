@@ -1,4 +1,4 @@
-/* global beforeEach, afterAll, expect, it, jest */
+/* global beforeEach, afterEach, expect, it, jest */
 const fetch = require('node-fetch');
 const listen = require('test-listen');
 const qs = require('querystring');
@@ -45,7 +45,7 @@ beforeEach(async () => {
   url = await listen(server);
 });
 
-afterAll(async () => {
+afterEach(async () => {
   await server.close();
 });
 
@@ -193,7 +193,7 @@ it('should not recalculate req properties twice', async () => {
   }
 });
 
-it('should be able to overwrite request properties', async () => {
+it('should be able to overwrite req/res properties', async () => {
   const spy = jest.fn(() => {});
 
   mockListener.mockImplementation((...args) => {
@@ -218,7 +218,7 @@ it('should be able to reconfig request properties', async () => {
   mockListener.mockImplementation((...args) => {
     nowProps.forEach(([prop, n]) => {
       // eslint-disable-next-line
-      Object.defineProperty(args[n], prop, { value: 'ok' });
+      Object.defineProperty(args[n], prop, { value: 'ok', configurable: true });
       Object.defineProperty(args[n], prop, { value: 'ok2' });
       spy(args[n][prop]);
     });
