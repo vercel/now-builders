@@ -105,7 +105,11 @@ async function compile(
       sourceMap: true,
       sourceMapRegister: true,
     });
-    code = result.code;
+
+    code = Object.values(result.files)
+      .map((file: any) => file.source)
+      .join('\n');
+
     map = result.map;
     assets = result.assets;
   }

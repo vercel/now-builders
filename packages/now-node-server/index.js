@@ -46,10 +46,14 @@ async function compile(workPath, downloadedFiles, entrypoint, config) {
   const input = downloadedFiles[entrypoint].fsPath;
   const inputDir = path.dirname(input);
   const ncc = require('@zeit/ncc');
-  const { code, map, assets } = await ncc(input, {
+  const { map, assets, ...results } = await ncc(input, {
     sourceMap: true,
     sourceMapRegister: true,
   });
+  const code = results.files
+    .values()
+    .map(file => file.source)
+    .join('\n');
 
   if (config && config.includeFiles) {
     const includeFiles = typeof config.includeFiles === 'string'
