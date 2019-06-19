@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@now/node-bridge": "1.2.0-canary.3",
-    "@zeit/ncc": "0.18.5",
+    "@zeit/ncc": "0.20.0",
     "fs-extra": "7.0.1"
   },
   "scripts": {

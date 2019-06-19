@@ -1166,7 +1166,12 @@
   dependencies:
     "@zeit/ncc" "^0.18.5"
 
-"@zeit/ncc@0.18.5", "@zeit/ncc@^0.18.5":
+"@zeit/ncc@0.20.0":
+  version "0.20.0"
+  resolved "https://registry.yarnpkg.com/@zeit/ncc/-/ncc-0.20.0.tgz#1c3c934b7c191ea225d58b735b003760e796856e"
+  integrity sha512-tc7F3mYiJZgEsPPJJwNznWIeIEKrVxW6hvwAjpLabq8+hu3sm+YuR+59CLfAvA26+yHBrVcYnsxZ6XW1g/oRmg==
+
+"@zeit/ncc@^0.18.5":
   version "0.18.5"
   resolved "https://registry.yarnpkg.com/@zeit/ncc/-/ncc-0.18.5.tgz#5687df6c32f1a2e2486aa110b3454ccebda4fb9c"
   integrity sha512-F+SbvEAh8rchiRXqQbmD1UmbePY7dCOKTbvfFtbVbK2xMH/tyri5YKfNxXKK7eL9EWkkbqB3NTVQO6nokApeBA==
