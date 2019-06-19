@@ -54,8 +54,12 @@ function getSpawnOptions(meta: Meta, useNode10: boolean): SpawnOptions {
     env: { ...process.env },
   };
 
-  if (!meta.isDev && useNode10) {
-    opts.env.PATH = '/node10/bin:' + opts.env.PATH;
+  if (!meta.isDev) {
+    if (useNode10) {
+      opts.env.PATH = '/node10/bin:' + opts.env.PATH;
+    } else {
+      opts.env.PATH = '/node8/bin:' + opts.env.PATH;
+    }
   }
 
   return opts;
