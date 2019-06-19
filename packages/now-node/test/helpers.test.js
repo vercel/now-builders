@@ -232,7 +232,7 @@ it('should be able to reconfig request properties', async () => {
 });
 
 // specific test to test that express can overwrite our helpers
-it('should be able to set req and res prototype', async () => {
+it('express should be able to override req and res helpers methods', async () => {
   const app = express();
   app.get('*', (req, res) => {
     res.send('hello world');
