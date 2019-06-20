@@ -72,7 +72,7 @@ The logs of this deployment will contain the actual error which may help you to 
 
 Either in unit or integration tests, if you suspect that the error comes from the underlying ncc execution, you can manually test the ncc compilation.
 
-For example if an error occured in now-node/test/fixtures/08-assets
+For example if an error occurred in `now-node/test/fixtures/08-assets`
 
 ```
 cd packages/now-node/test/fixtures/08-assets
