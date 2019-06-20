@@ -82,4 +82,4 @@ npx @zeit/ncc@0.20.1 build index.js --source-map
 node dist
 ```
 
-will let you compile the assets sample locally with a specific version of ncc and run the resulting file. This allows you to compare the results of running ncc manually and through the API.
+This will compile the test with the specific version of `ncc` and run the resulting file. If it fails here, then there is likely a bug in `ncc` and not the Builder.
