@@ -64,7 +64,7 @@ Integration tests create deployments to your ZEIT account using the `test` proje
       x-now-trace=iad1]
 ```
 
-In such cases you can go to your [zeit.co](https://zeit.co) account, find the project named test which will contain the deployment which appeared in the url of the error.
+In such cases you can visit the URL of the failed deployment and append `/_logs` so see the build error. In the case above, that would be https://test-8ashcdlew.now.sh/_logs
 
 The logs of this deployment will contain the actual error which may help you to understand what went wrong.
 
