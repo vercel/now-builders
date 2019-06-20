@@ -41,7 +41,9 @@ The pull request will be reviewed by the maintainers and the tests will be check
 
 ## Interpreting test errors
 
-There are 2 kinds of tests in this repository : unit tests and integration tests. The unit tests are run locally with jest, the errors should be pretty straightforward to understand and fix.
+There are 2 kinds of tests in this repository – Unit tests and Integration tests.
+ 
+Unit tests are run locally with `jest` and execute quickly because they are testing the smallest units of code.
 
 ### Integration tests
 
