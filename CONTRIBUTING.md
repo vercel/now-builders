@@ -1,6 +1,6 @@
 # Contributing
 
-When contributing to this repository, please first discuss the change you wish to make via issue or [spectrum](https://spectrum.chat/zeit) with the owners of this repository before making a change.
+When contributing to this repository, please first discuss the change you wish to make via issue or [spectrum](https://spectrum.chat/zeit) with the owners of this repository before submitting a Pull Request.
 
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
