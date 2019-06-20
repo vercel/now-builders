@@ -70,7 +70,7 @@ The logs of this deployment will contain the actual error which may help you to 
 
 ### @zeit/ncc integration
 
-Either in unit or integration tests, if you suspect that the error comes from the underlying ncc execution, you can manually test the ncc compilation.
+Some of the builders use `@zeit/ncc` to bundle files before deployment. If you suspect an error with the bundling mechanism, you can run the `ncc` CLI with a couple modifications to the test.
 
 For example if an error occurred in `now-node/test/fixtures/08-assets`
 
