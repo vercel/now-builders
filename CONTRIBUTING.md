@@ -47,7 +47,7 @@ Unit tests are run locally with `jest` and execute quickly because they are test
 
 ### Integration tests
 
-The integration tests actually deploy the result of a build on zeit, in a project named `test` under your login. Integration tests errors are usually pretty unhelpful such as:
+Integration tests create deployments to your ZEIT account using the `test` project name. After each test is deployed, the `probes` key is used to check if the response is the expected value. If the value doesn't match, you'll see a message explaining the difference. If the deployment failed to build, you'll see a more generic message like the following:
 
 ```
 [Error: Fetched page https://test-8ashcdlew.now.sh/root.js does not contain hello Root!. Instead it contains An error occurred with this application.
