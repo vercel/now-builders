@@ -11,7 +11,12 @@ This project is configured in a monorepo pattern where one repo contains multipl
 To get started, execute the following:
 
 ```
-yarn install && yarn build && yarn test
+git clone https://github.com/zeit/now-builders
+yarn install
+yarn bootstrap
+yarn build
+yarn lint
+yarn test
 ```
 
 Make sure all the tests pass before making changes.
