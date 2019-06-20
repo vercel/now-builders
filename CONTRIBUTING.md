@@ -6,7 +6,9 @@ Please read our [code of conduct](CODE_OF_CONDUCT.md) and follow it in all your 
 
 ## Local development
 
-This project is setup in a monorepo pattern and uses yarn for managing dependencies. After cloning a new project run :
+This project is configured in a monorepo pattern where one repo contains multiple npm packages. Dependencies are installed and managed with `yarn`, not `npm` CLI. 
+
+To get started, execute the following:
 
 ```
 yarn install && yarn build && yarn test
