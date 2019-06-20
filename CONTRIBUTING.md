@@ -4,7 +4,7 @@ When contributing to this repository, please first discuss the change you wish t
 
 Please read our [code of conduct](CODE_OF_CONDUCT.md) and follow it in all your interactions with the project.
 
-## Local setup
+## Local development
 
 This project is setup in a monorepo pattern and uses yarn for managing dependencies. After cloning a new project run :
 
