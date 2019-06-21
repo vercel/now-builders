@@ -4,7 +4,6 @@ import path from 'path';
 import spawn from 'cross-spawn';
 import { SpawnOptions } from 'child_process';
 import { deprecate } from 'util';
-import { intersects } from 'semver';
 import { Meta, PackageJson, NodeVersion } from '../types';
 import { getSupportedNodeVersion } from './node-version';
 
