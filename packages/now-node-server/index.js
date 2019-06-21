@@ -110,7 +110,7 @@ exports.config = {
  * @returns {Promise<Files>}
  */
 exports.build = async ({
-  files, entrypoint, config, workPath, meta,
+  files, entrypoint, config, workPath, meta = {},
 }) => {
   const {
     downloadedFiles,
