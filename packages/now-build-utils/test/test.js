@@ -75,9 +75,9 @@ async function getNodeMajor(engines) {
 
 it('should only match supported node versions or fallback to default', async () => {
   expect(await getNodeMajor('10.x')).toBe(10);
-  expect(await getNodeMajor('9.x')).toBe(defaultSelection);
   expect(await getNodeMajor('8.x')).toBe(8);
-  expect(await getNodeMajor('6.x')).toBe(defaultSelection);
+  expect(await getSupportedNodeVersion('6.x')).toBe(defaultSelection);
+  expect(await getSupportedNodeVersion('64.x')).toBe(defaultSelection);
   expect(await getSupportedNodeVersion('')).toBe(defaultSelection);
   expect(await getSupportedNodeVersion(null)).toBe(defaultSelection);
   expect(await getSupportedNodeVersion(undefined)).toBe(defaultSelection);
