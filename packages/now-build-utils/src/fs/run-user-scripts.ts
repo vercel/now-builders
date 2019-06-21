@@ -76,21 +76,6 @@ export async function getNodeVersion(destPath: string): Promise<NodeVersion> {
   return getSupportedNodeVersion(range);
 }
 
-/**
- * @deprecate enginesMatch() is deprecated.
- * Please use getNodeMajorVersion() instead.
- */
-export async function enginesMatch(
-  destPath: string,
-  nodeVersion: string
-): Promise<boolean> {
-  const { packageJson } = await scanParentDirs(destPath, true);
-
-  const engineVersion =
-    packageJson && packageJson.engines && packageJson.engines.node;
-  return intersects(nodeVersion, engineVersion || '0.0.0');
-}
-
 async function scanParentDirs(destPath: string, readPackageJson = false) {
   assert(path.isAbsolute(destPath));
 
