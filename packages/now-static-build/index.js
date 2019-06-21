@@ -1,5 +1,5 @@
 const path = require('path');
-const { spawn } = require('child_process');
+const spawn = require('cross-spawn');
 const getPort = require('get-port');
 const { timeout } = require('promise-timeout');
 const {
@@ -11,6 +11,8 @@ const {
   runNpmInstall,
   runPackageJsonScript,
   runShellScript,
+  getNodeVersion,
+  getSpawnOptions,
 } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 
 function validateDistDir(distDir, isDev) {
@@ -51,6 +53,8 @@ exports.build = async ({
 
   const mountpoint = path.dirname(entrypoint);
   const entrypointFsDirname = path.join(workPath, mountpoint);
+  const nodeVersion = await getNodeVersion(entrypointFsDirname);
+  const spawnOpts = getSpawnOptions(meta, nodeVersion);
   const distPath = path.join(
     workPath,
     path.dirname(entrypoint),
@@ -59,7 +63,7 @@ exports.build = async ({
 
   const entrypointName = path.basename(entrypoint);
   if (entrypointName === 'package.json') {
-    await runNpmInstall(entrypointFsDirname, ['--prefer-offline']);
+    await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
     const pkgPath = path.join(workPath, entrypoint);
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
@@ -80,7 +84,7 @@ exports.build = async ({
           cwd: entrypointFsDirname,
           env: { ...process.env, PORT: String(devPort) },
         };
-        const child = spawn('yarn', ['run', 'now-dev'], opts);
+        const child = spawn('npm', ['run', 'now-dev'], opts);
         child.on('exit', () => nowDevScriptPorts.delete(entrypoint));
         child.stdout.setEncoding('utf8');
         child.stdout.pipe(process.stdout);
@@ -132,7 +136,13 @@ exports.build = async ({
       // Run the `now-build` script and wait for completion to collect the build
       // outputs
       console.log('running user "now-build" script from `package.json`...');
-      if (!(await runPackageJsonScript(entrypointFsDirname, 'now-build'))) {
+      if (
+        !(await runPackageJsonScript(
+          entrypointFsDirname,
+          'now-build',
+          spawnOpts,
+        ))
+      ) {
         throw new Error(
           `An error running "now-build" script in "${entrypoint}"`,
         );
