@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.py",
+      "use": "https://github.com/nathancahill/now-builder-python.git",
+      "config": { "maxLambdaSize": "10mb" }
+    }
+  ],
+  "probes": [{ "path": "/", "mustContain": "wsgi:RANDOMNESS_PLACEHOLDER" }]
+}
