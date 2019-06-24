@@ -236,6 +236,7 @@ elif 'app' in __now_variables:
                 'http_version': '1.1',
                 'method': payload['method'],
                 'path': path,
+                'raw_path': path.encode(),
             }
 
             asgi_cycle = ASGICycle(scope)
