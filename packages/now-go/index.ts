@@ -61,6 +61,18 @@ export async function build({
     await initPrivateGit(process.env.GIT_CREDENTIALS);
   }
 
+  if (process.env.GO111MODULE) {
+    console.log(`\nManually set 'GO111MODULE' is not recommend.
+
+By default:
+  - 'GO111MODULE=on' If entrypoint package name is not 'main'
+  - 'GO111MODULE=off' If entrypoint package name is 'main'
+
+We highly recommend you leverage Go Modules in your project.
+Learn more: https://github.com/golang/go/wiki/Modules
+`);
+  }
+
   console.log('Downloading user files...');
   const entrypointArr = entrypoint.split(sep);
 
@@ -160,6 +172,10 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
   console.log(
     `Found exported function "${handlerFunctionName}" in "${entrypoint}"`
   );
+
+  if (!isGoModExist && 'vendor' in downloadedFiles) {
+    throw new Error('`go.mod` is needed to use `vendor`.');
+  }
 
   // check if package name other than main
   // using `go.mod` way building the handler
