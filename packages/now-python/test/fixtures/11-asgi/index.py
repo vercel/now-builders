@@ -5,4 +5,4 @@ app = Sanic()
 
 @app.route("/")
 async def index(request):
-    return response.text("wsgi:RANDOMNESS_PLACEHOLDER")
+    return response.text("asgi:RANDOMNESS_PLACEHOLDER")
