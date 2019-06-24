@@ -22,8 +22,9 @@ try {
     ${
       shouldAddHelpers
         ? [
+            'bridge = new Bridge(undefined, true);',
             'const server = require("./helpers").createServerWithHelpers(listener, bridge);',
-            'bridge = new Bridge(server, true);',
+            'bridge.setServer(server);',
           ].join('\n')
         : [
             'const server = require("http").createServer(listener);',
