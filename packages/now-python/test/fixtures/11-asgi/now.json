@@ -3,7 +3,7 @@
   "builds": [
     {
       "src": "index.py",
-      "use": "https://github.com/nathancahill/now-builder-python.git",
+      "use": "@now/python",
       "config": { "maxLambdaSize": "10mb" }
     }
   ],
