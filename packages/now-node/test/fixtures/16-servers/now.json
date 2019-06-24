@@ -1,10 +1,14 @@
 {
   "version": 2,
-  "builds": [{ "src": "index.js", "use": "@now/node" }],
+  "builds": [{ "src": "*.js", "use": "@now/node" }],
   "probes": [
     {
       "path": "/",
       "mustContain": "hello:RANDOMNESS_PLACEHOLDER"
+    },
+    {
+      "path": "/express",
+      "mustContain": "hello from express:RANDOMNESS_PLACEHOLDER"
     }
   ]
 }
