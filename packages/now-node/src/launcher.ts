@@ -22,7 +22,7 @@ try {
     ${
       shouldAddHelpers
         ? [
-            'const server = require("./helpers").createServerWithHelpers(listener, bridge)',
+            'const server = require("./helpers").createServerWithHelpers(listener, bridge);',
             'bridge = new Bridge(server, true);',
           ].join('\n')
         : [
