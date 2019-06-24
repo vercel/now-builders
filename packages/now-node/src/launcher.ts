@@ -4,9 +4,7 @@ export function makeLauncher(
 ): string {
   return `const { Bridge } = require("./bridge");
 
-const 
-
-let bridge
+let bridge;
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV =
