@@ -2,7 +2,6 @@
 const fetch = require('node-fetch');
 const listen = require('test-listen');
 const qs = require('querystring');
-const express = require('express');
 
 const { createServerWithHelpers } = require('../dist/helpers');
 
@@ -229,22 +228,6 @@ it('should be able to reconfig request properties', async () => {
   await fetchWithProxyReq(url);
 
   nowProps.forEach((_, i) => expect(spy.mock.calls[i][0]).toBe('ok2'));
-});
-
-// specific test to test that express can overwrite our helpers
-it('express should be able to override req and res helpers methods', async () => {
-  const app = express();
-  app.get('*', (req, res) => {
-    res.send('hello world');
-  });
-
-  mockListener.mockImplementation(app);
-
-  const res = await fetchWithProxyReq(url);
-  const text = await res.text();
-
-  expect(text).toMatch(/hello world/);
-  expect(res.headers.get('content-type')).toMatch(/html/);
 });
 
 it('should be able to try/catch parse errors', async () => {
