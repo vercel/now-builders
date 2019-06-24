@@ -20,6 +20,8 @@ import {
   runPackageJsonScript,
   runNpmInstall,
   runShellScript,
+  getNodeVersion,
+  getSpawnOptions,
 } from './fs/run-user-scripts';
 import streamToBuffer from './fs/stream-to-buffer';
 import shouldServe from './should-serve';
@@ -42,6 +44,8 @@ export {
   runPackageJsonScript,
   runNpmInstall,
   runShellScript,
+  getNodeVersion,
+  getSpawnOptions,
   streamToBuffer,
   AnalyzeOptions,
   BuildOptions,

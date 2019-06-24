@@ -1,71 +1,90 @@
-import { parse as parseCookies } from 'cookie';
+import {
+  NowRequest,
+  NowResponse,
+  NowRequestCookies,
+  NowRequestQuery,
+  NowRequestBody,
+  NowResponseJson,
+  NowResponseSend,
+  NowResponseStatus,
+} from './types';
 import { Stream } from 'stream';
-import getRawBody from 'raw-body';
-import { URL } from 'url';
-import { parse as parseCT } from 'content-type';
-import { RequestListener } from 'http';
-import { NowRequest, NowResponse } from './types';
+import { Server } from 'http';
+import { Bridge } from './bridge';
 
-type NowListener = (req: NowRequest, res: NowResponse) => void | Promise<void>;
-
-async function parseBody(req: NowRequest, limit: string = '1mb') {
-  const contentType = parseCT(req.headers['content-type'] || 'text/plain');
-  const { type, parameters } = contentType;
-  const encoding = parameters.charset || 'utf-8';
-
-  let buffer;
-
-  try {
-    buffer = await getRawBody(req, { encoding, limit });
-  } catch (e) {
-    if (e.type === 'entity.too.large') {
-      throw new ApiError(413, `Body exceeded ${limit} limit`);
-    } else {
-      throw new ApiError(400, 'Invalid body');
+function getBodyParser(req: NowRequest, body: Buffer) {
+  return function parseBody(): NowRequestBody {
+    if (!req.headers['content-type']) {
+      return undefined;
     }
-  }
 
-  const body = buffer.toString();
+    const { parse: parseCT } = require('content-type');
+    const { type } = parseCT(req.headers['content-type']);
 
-  if (type === 'application/json' || type === 'application/ld+json') {
-    return parseJson(body);
-  } else if (type === 'application/x-www-form-urlencoded') {
-    const qs = require('querystring');
-    return qs.decode(body);
-  } else {
-    return body;
-  }
+    if (type === 'application/json') {
+      try {
+        return JSON.parse(body.toString());
+      } catch (error) {
+        throw new ApiError(400, 'Invalid JSON');
+      }
+    }
+
+    if (type === 'application/octet-stream') {
+      return body;
+    }
+
+    if (type === 'application/x-www-form-urlencoded') {
+      const { parse: parseQS } = require('querystring');
+      // remark : querystring.parse does not produce an iterable object
+      // https://nodejs.org/api/querystring.html#querystring_querystring_parse_str_sep_eq_options
+      return parseQS(body.toString());
+    }
+
+    if (type === 'text/plain') {
+      return body.toString();
+    }
+
+    return undefined;
+  };
 }
 
-// Parse `JSON` and handles invalid `JSON` strings
-function parseJson(str: string) {
-  try {
-    return JSON.parse(str);
-  } catch (e) {
-    throw new ApiError(400, 'Invalid JSON');
-  }
+function getQueryParser({ url = '/' }: NowRequest) {
+  return function parseQuery(): NowRequestQuery {
+    const { URL } = require('url');
+    // we provide a placeholder base url because we only want searchParams
+    const params = new URL(url, 'https://n').searchParams;
+
+    const query: { [key: string]: string | string[] } = {};
+    for (const [key, value] of params) {
+      query[key] = value;
+    }
+
+    return query;
+  };
 }
 
-function parseQuery({ url = '/' }: NowRequest) {
-  // we provide a placeholder base url because we only want searchParams
-  const params = new URL(url, 'https://n').searchParams;
+function getCookieParser(req: NowRequest) {
+  return function parseCookie(): NowRequestCookies {
+    const header: undefined | string | string[] = req.headers.cookie;
 
-  const obj: { [key: string]: string | string[] } = {};
-  for (const [key, value] of params) {
-    obj[key] = value;
-  }
-  return obj;
+    if (!header) {
+      return {};
+    }
+
+    const { parse } = require('cookie');
+    return parse(Array.isArray(header) ? header.join(';') : header);
+  };
 }
 
-function sendStatusCode(res: NowResponse, statusCode: number) {
+function sendStatusCode(res: NowResponse, statusCode: number): NowResponse {
   res.statusCode = statusCode;
   return res;
 }
 
-function sendData(res: NowResponse, body: any) {
+function sendData(res: NowResponse, body: any): NowResponse {
   if (body === null) {
     res.end();
-    return;
+    return res;
   }
 
   const contentType = res.getHeader('Content-Type');
@@ -76,7 +95,7 @@ function sendData(res: NowResponse, body: any) {
     }
     res.setHeader('Content-Length', body.length);
     res.end(body);
-    return;
+    return res;
   }
 
   if (body instanceof Stream) {
@@ -84,7 +103,7 @@ function sendData(res: NowResponse, body: any) {
       res.setHeader('Content-Type', 'application/octet-stream');
     }
     body.pipe(res);
-    return;
+    return res;
   }
 
   let str = body;
@@ -97,14 +116,16 @@ function sendData(res: NowResponse, body: any) {
 
   res.setHeader('Content-Length', Buffer.byteLength(str));
   res.end(str);
+
+  return res;
 }
 
-function sendJson(res: NowResponse, jsonBody: any): void {
+function sendJson(res: NowResponse, jsonBody: any): NowResponse {
   // Set header to application/json
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
   // Use send to handle request
-  res.send(jsonBody);
+  return res.send(jsonBody);
 }
 
 export class ApiError extends Error {
@@ -126,21 +147,61 @@ export function sendError(
   res.end();
 }
 
-export function addHelpers(listener: NowListener): RequestListener {
-  return async function(_req, _res) {
+function setLazyProp<T>(req: NowRequest, prop: string, getter: () => T) {
+  const opts = { configurable: true, enumerable: true };
+  const optsReset = { ...opts, writable: true };
+
+  // @ts-ignore: __proto__ is always defined on an object
+  Object.defineProperty(req.__proto__, prop, {
+    ...opts,
+    get: () => {
+      const value = getter();
+      // we set the property on the object to avoid recalculating it
+      Object.defineProperty(req, prop, { ...optsReset, value });
+      return value;
+    },
+    set: value => {
+      Object.defineProperty(req, prop, { ...optsReset, value });
+    },
+  });
+}
+
+function setOnProto<T>(res: NowResponse, prop: string, fn: T) {
+  // @ts-ignore: __proto__ is always defined on an object
+  res.__proto__[prop] = fn;
+}
+
+export function createServerWithHelpers(
+  listener: (req: NowRequest, res: NowResponse) => void | Promise<void>,
+  bridge: Bridge
+) {
+  const server = new Server(async (_req, _res) => {
     const req = _req as NowRequest;
     const res = _res as NowResponse;
 
     try {
-      req.cookies = parseCookies(req.headers.cookie || '');
-      req.query = parseQuery(req);
-      req.body = await parseBody(req);
+      const reqId = req.headers['x-now-bridge-request-id'];
 
-      res.status = statusCode => sendStatusCode(res, statusCode);
-      res.send = data => sendData(res, data);
-      res.json = data => sendJson(res, data);
+      // don't expose this header to the client
+      delete req.headers['x-now-bridge-request-id'];
 
-      listener(req, res);
+      if (typeof reqId !== 'string') {
+        throw new ApiError(500, 'Internal Server Error');
+      }
+
+      const event = bridge.consumeEvent(reqId);
+
+      setLazyProp<NowRequestCookies>(req, 'cookies', getCookieParser(req));
+      setLazyProp<NowRequestQuery>(req, 'query', getQueryParser(req));
+      setLazyProp<NowRequestBody>(req, 'body', getBodyParser(req, event.body));
+
+      setOnProto<NowResponseStatus>(res, 'status', statusCode =>
+        sendStatusCode(res, statusCode)
+      );
+      setOnProto<NowResponseSend>(res, 'send', data => sendData(res, data));
+      setOnProto<NowResponseJson>(res, 'json', data => sendJson(res, data));
+
+      await listener(req, res);
     } catch (err) {
       if (err instanceof ApiError) {
         sendError(res, err.statusCode, err.message);
@@ -148,5 +209,7 @@ export function addHelpers(listener: NowListener): RequestListener {
         throw err;
       }
     }
-  };
+  });
+
+  return server;
 }

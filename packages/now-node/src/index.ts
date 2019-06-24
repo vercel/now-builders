@@ -12,6 +12,8 @@ import {
   createLambda,
   runNpmInstall,
   runPackageJsonScript,
+  getNodeVersion,
+  getSpawnOptions,
   PrepareCacheOptions,
   BuildOptions,
   shouldServe,
@@ -27,7 +29,6 @@ interface DownloadOptions {
   entrypoint: string;
   workPath: string;
   meta: Meta;
-  npmArguments?: string[];
 }
 
 const watchers: Map<string, NccWatcher> = new Map();
@@ -53,17 +54,18 @@ async function downloadInstallAndBundle({
   entrypoint,
   workPath,
   meta,
-  npmArguments = [],
 }: DownloadOptions) {
   console.log('downloading user files...');
   const downloadedFiles = await download(files, workPath, meta);
 
   console.log("installing dependencies for user's code...");
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
-  await runNpmInstall(entrypointFsDirname, npmArguments);
+  const nodeVersion = await getNodeVersion(entrypointFsDirname);
+  const spawnOpts = getSpawnOptions(meta, nodeVersion);
+  await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
   const entrypointPath = downloadedFiles[entrypoint].fsPath;
-  return { entrypointPath, entrypointFsDirname };
+  return { entrypointPath, entrypointFsDirname, nodeVersion, spawnOpts };
 }
 
 async function compile(
@@ -175,21 +177,22 @@ export async function build({
   config,
   meta = {},
 }: BuildOptions) {
-  const shouldAddHelpers = config && config.helpers;
+  const shouldAddHelpers = !(config && config.helpers === false);
 
   const {
     entrypointPath,
     entrypointFsDirname,
+    nodeVersion,
+    spawnOpts,
   } = await downloadInstallAndBundle({
     files,
     entrypoint,
     workPath,
     meta,
-    npmArguments: ['--prefer-offline'],
   });
 
   console.log('running user script...');
-  await runPackageJsonScript(entrypointFsDirname, 'now-build');
+  await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOpts);
 
   console.log('compiling entrypoint with ncc...');
   const { preparedFiles, watch } = await compile(
@@ -203,13 +206,19 @@ export async function build({
   let launcherData = await readFile(launcherPath, 'utf8');
 
   launcherData = launcherData.replace(
-    '// PLACEHOLDER',
+    '// PLACEHOLDER:shouldStoreProxyRequests',
+    shouldAddHelpers ? 'shouldStoreProxyRequests = true;' : ''
+  );
+
+  launcherData = launcherData.replace(
+    '// PLACEHOLDER:setServer',
     [
-      `listener = require("./${entrypoint}");`,
+      `let listener = require("./${entrypoint}");`,
       'if (listener.default) listener = listener.default;',
       shouldAddHelpers
-        ? 'listener = require("./helpers").addHelpers(listener)'
-        : '',
+        ? 'const server = require("./helpers").createServerWithHelpers(listener, bridge);'
+        : 'const server = require("http").createServer(listener);',
+      'bridge.setServer(server);',
     ].join(' ')
   );
 
@@ -225,9 +234,12 @@ export async function build({
   }
 
   const lambda = await createLambda({
-    files: { ...preparedFiles, ...launcherFiles },
+    files: {
+      ...preparedFiles,
+      ...launcherFiles,
+    },
     handler: 'launcher.launcher',
-    runtime: 'nodejs8.10',
+    runtime: nodeVersion.runtime,
   });
 
   const output = { [entrypoint]: lambda };

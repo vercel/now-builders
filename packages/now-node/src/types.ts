@@ -1,13 +1,20 @@
 import { ServerResponse, IncomingMessage } from 'http';
 
+export type NowRequestCookies = { [key: string]: string };
+export type NowRequestQuery = { [key: string]: string | string[] };
+export type NowRequestBody = any;
+export type NowResponseSend = (body: any) => NowResponse;
+export type NowResponseJson = (body: any) => NowResponse;
+export type NowResponseStatus = (statusCode: number) => NowResponse;
+
 export type NowRequest = IncomingMessage & {
-  query: { [key: string]: string | string[] };
-  cookies: { [key: string]: string };
-  body: any;
+  query: NowRequestQuery;
+  cookies: NowRequestCookies;
+  body: NowRequestBody;
 };
 
 export type NowResponse = ServerResponse & {
-  send: (body: any) => void;
-  json: (body: any) => void;
-  status: (statusCode: number) => void;
+  send: NowResponseSend;
+  json: NowResponseJson;
+  status: NowResponseStatus;
 };

@@ -1,21 +1,42 @@
 const path = require('path');
-const { spawn } = require('child_process');
+const spawn = require('cross-spawn');
 const getPort = require('get-port');
 const { timeout } = require('promise-timeout');
-const { existsSync, readFileSync } = require('fs');
+const {
+  existsSync, readFileSync, statSync, readdirSync,
+} = require('fs');
 const {
   glob,
   download,
   runNpmInstall,
   runPackageJsonScript,
   runShellScript,
+  getNodeVersion,
+  getSpawnOptions,
 } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 
-function validateDistDir(distDir) {
+function validateDistDir(distDir, isDev) {
+  const hash = isDev
+    ? '#local-development'
+    : '#configuring-the-build-output-directory';
+  const docsUrl = `https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build${hash}`;
   const distDirName = path.basename(distDir);
   if (!existsSync(distDir)) {
-    const message = `Build was unable to create the distDir: ${distDirName}.`
-      + '\nMake sure you mentioned the correct dist directory: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development';
+    const message = `Build was unable to create the distDir: "${distDirName}".`
+      + `\nMake sure you configure the the correct distDir: ${docsUrl}`;
+    throw new Error(message);
+  }
+  const stat = statSync(distDir);
+  if (!stat.isDirectory()) {
+    const message = `Build failed because distDir is not a directory: "${distDirName}".`
+      + `\nMake sure you configure the the correct distDir: ${docsUrl}`;
+    throw new Error(message);
+  }
+
+  const contents = readdirSync(distDir);
+  if (contents.length === 0) {
+    const message = `Build failed because distDir is empty: "${distDirName}".`
+      + `\nMake sure you configure the the correct distDir: ${docsUrl}`;
     throw new Error(message);
   }
 }
@@ -32,6 +53,8 @@ exports.build = async ({
 
   const mountpoint = path.dirname(entrypoint);
   const entrypointFsDirname = path.join(workPath, mountpoint);
+  const nodeVersion = await getNodeVersion(entrypointFsDirname);
+  const spawnOpts = getSpawnOptions(meta, nodeVersion);
   const distPath = path.join(
     workPath,
     path.dirname(entrypoint),
@@ -40,7 +63,7 @@ exports.build = async ({
 
   const entrypointName = path.basename(entrypoint);
   if (entrypointName === 'package.json') {
-    await runNpmInstall(entrypointFsDirname, ['--prefer-offline']);
+    await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
     const pkgPath = path.join(workPath, entrypoint);
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
@@ -61,7 +84,7 @@ exports.build = async ({
           cwd: entrypointFsDirname,
           env: { ...process.env, PORT: String(devPort) },
         };
-        const child = spawn('yarn', ['run', 'now-dev'], opts);
+        const child = spawn('npm', ['run', 'now-dev'], opts);
         child.on('exit', () => nowDevScriptPorts.delete(entrypoint));
         child.stdout.setEncoding('utf8');
         child.stdout.pipe(process.stdout);
@@ -113,7 +136,13 @@ exports.build = async ({
       // Run the `now-build` script and wait for completion to collect the build
       // outputs
       console.log('running user "now-build" script from `package.json`...');
-      if (!(await runPackageJsonScript(entrypointFsDirname, 'now-build'))) {
+      if (
+        !(await runPackageJsonScript(
+          entrypointFsDirname,
+          'now-build',
+          spawnOpts,
+        ))
+      ) {
         throw new Error(
           `An error running "now-build" script in "${entrypoint}"`,
         );
