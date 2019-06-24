@@ -74,6 +74,7 @@ it('should only match supported node versions', () => {
   expect(getSupportedNodeVersion('8.11.x')).rejects.toThrow();
   expect(getSupportedNodeVersion('6.x')).rejects.toThrow();
   expect(getSupportedNodeVersion('999.x')).rejects.toThrow();
+  expect(getSupportedNodeVersion('foo')).rejects.toThrow();
   expect(getSupportedNodeVersion('')).resolves.toBe(defaultSelection);
   expect(getSupportedNodeVersion(null)).resolves.toBe(defaultSelection);
   expect(getSupportedNodeVersion(undefined)).resolves.toBe(defaultSelection);
