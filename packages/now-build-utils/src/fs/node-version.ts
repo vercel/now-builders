@@ -19,8 +19,8 @@ export async function getSupportedNodeVersion(
 
   if (!engineRange) {
     console.log(
-      'missing `engines` in `package.json`, using default runtime ' +
-        selection.runtime
+      'missing `engines` in `package.json`, using default range: ' +
+        selection.range
     );
   } else {
     const found = supportedOptions.some(o => {
@@ -31,8 +31,7 @@ export async function getSupportedNodeVersion(
     });
     if (found) {
       console.log(
-        'found `engines` in `package.json`, selecting runtime' +
-          selection.runtime
+        'found `engines` in `package.json`, selecting range: ' + selection.range
       );
     } else {
       throw new Error(
