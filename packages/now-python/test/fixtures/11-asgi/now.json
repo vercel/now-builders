@@ -7,5 +7,5 @@
       "config": { "maxLambdaSize": "10mb" }
     }
   ],
-  "probes": [{ "path": "/", "mustContain": "wsgi:RANDOMNESS_PLACEHOLDER" }]
+  "probes": [{ "path": "/", "mustContain": "asgi:RANDOMNESS_PLACEHOLDER" }]
 }
