@@ -118,16 +118,6 @@ export class Bridge {
 
   setServer(server: Server) {
     this.server = server;
-    server.once('listening', () => {
-      const addr = server.address();
-      if (typeof addr === 'string') {
-        throw new Error(`Unexpected string for \`server.address()\`: ${addr}`);
-      } else if (!addr) {
-        throw new Error('`server.address()` returned `null`');
-      } else {
-        this.resolveListening(addr);
-      }
-    });
   }
 
   listen() {
@@ -135,10 +125,27 @@ export class Bridge {
       throw new Error('Server has not been set!');
     }
 
-    return this.server.listen({
-      host: '127.0.0.1',
-      port: 0,
-    });
+    const resolveListening = this.resolveListening;
+
+    return this.server.listen(
+      {
+        host: '127.0.0.1',
+        port: 0,
+      },
+      function() {
+        // @ts-ignore: this is a server object
+        const addr = this.address();
+        if (typeof addr === 'string') {
+          throw new Error(
+            `Unexpected string for \`server.address()\`: ${addr}`
+          );
+        } else if (!addr) {
+          throw new Error('`server.address()` returned `null`');
+        } else {
+          resolveListening(addr);
+        }
+      }
+    );
   }
 
   async launcher(
