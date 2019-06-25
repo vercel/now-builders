@@ -38,7 +38,7 @@ action "3. Canary yarn run publish" {
 
 
 workflow "Master publish" {
-  on = "push"
+  on = "release"
   resolves = ["3. Master yarn run publish"]
 }
 
