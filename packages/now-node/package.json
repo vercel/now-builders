@@ -1,6 +1,6 @@
 {
   "name": "@now/node",
-  "version": "0.7.4-canary.17",
+  "version": "0.7.4-canary.18",
   "license": "MIT",
   "main": "./dist/index",
   "repository": {
