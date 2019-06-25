@@ -11,25 +11,17 @@ const changed = diff
   .filter(item => Boolean(item) && item.includes('packages/'))
   .map(item => relative('packages', item).split('/')[0]);
 
-const matches = [];
+const matches = Array.from(new Set(changed));
 
-if (changed.length > 0) {
-  console.log('The following packages have changed:');
-
-  changed.map((item) => {
-    matches.push(item);
-    console.log(item);
-
-    return null;
-  });
-} else {
+if (matches.length === 0) {
   matches.push('now-node');
   console.log(`No packages changed, defaulting to ${matches[0]}`);
+} else {
+  console.log('The following packages have changed:');
+  console.log(matches.join('\n'));
 }
 
-const testMatch = Array.from(new Set(matches)).map(
-  item => `**/${item}/**/?(*.)+(spec|test).[jt]s?(x)`,
-);
+const testMatch = matches.map(item => `**/${item}/**/?(*.)+(spec|test).[jt]s?(x)`);
 
 module.exports = {
   testEnvironment: 'node',
