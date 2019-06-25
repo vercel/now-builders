@@ -1,5 +1,5 @@
 workflow "Canary publish" {
-  on = "push"
+  on = "release"
   resolves = ["3. Canary yarn run publish"]
 }
 
