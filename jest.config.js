@@ -14,7 +14,8 @@ const changed = diff
 const matches = Array.from(new Set(changed));
 
 if (matches.length === 0) {
-  console.log(`No packages changed, not running tests.`);
+  matches.push('now-node');
+  console.log(`No packages changed, defaulting to ${matches[0]}`);
 } else {
   console.log('The following packages have changed:');
   console.log(matches.join('\n'));
