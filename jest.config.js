@@ -3,8 +3,8 @@ const { relative } = require('path');
 
 const branch = execSync('git branch | grep "*" | cut -d " " -f2').toString();
 console.log(`Running tests on branch "${branch}"`);
-const base = branch === 'master' ? 'HEAD~1' : 'origin/canary';
-const diff = execSync(`git diff ${base} --name-only`).toString();
+const gitPath = branch === 'master' ? 'HEAD~1' : 'origin/canary...';
+const diff = execSync(`git diff ${gitPath} --name-only`).toString();
 
 const changed = diff
   .split('\n')
