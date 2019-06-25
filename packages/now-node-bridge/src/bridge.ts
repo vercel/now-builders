@@ -27,6 +27,16 @@ export interface NowProxyResponse {
   encoding: string;
 }
 
+interface ServerLike {
+  listen: (
+    opts: {
+      host?: string;
+      port?: number;
+    },
+    callback: (this: Server | null) => void
+  ) => Server | void;
+}
+
 /**
  * If the `http.Server` handler function throws an error asynchronously,
  * then it ends up being an unhandled rejection which doesn't kill the node
@@ -92,14 +102,14 @@ function normalizeEvent(
 }
 
 export class Bridge {
-  private server: Server | null;
+  private server: ServerLike | null;
   private listening: Promise<AddressInfo>;
   private resolveListening: (info: AddressInfo) => void;
   private events: { [key: string]: NowProxyRequest } = {};
   private reqIdSeed: number = 1;
   private shouldStoreEvents: boolean = false;
 
-  constructor(server?: Server, shouldStoreEvents: boolean = false) {
+  constructor(server?: ServerLike, shouldStoreEvents: boolean = false) {
     this.server = null;
     this.shouldStoreEvents = shouldStoreEvents;
     if (server) {
@@ -116,7 +126,7 @@ export class Bridge {
     });
   }
 
-  setServer(server: Server) {
+  setServer(server: ServerLike) {
     this.server = server;
   }
 
@@ -132,18 +142,26 @@ export class Bridge {
         host: '127.0.0.1',
         port: 0,
       },
-      function() {
-        // @ts-ignore: this is a server object
+      function listeningCallback() {
+        if (!this || typeof this.address !== 'function') {
+          throw new Error(
+            'Missing server.address() function on `this` in server.listen()'
+          );
+        }
+
         const addr = this.address();
+
+        if (!addr) {
+          throw new Error('`server.address()` returned `null`');
+        }
+
         if (typeof addr === 'string') {
           throw new Error(
             `Unexpected string for \`server.address()\`: ${addr}`
           );
-        } else if (!addr) {
-          throw new Error('`server.address()` returned `null`');
-        } else {
-          resolveListening(addr);
         }
+
+        resolveListening(addr);
       }
     );
   }
