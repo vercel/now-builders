@@ -19,7 +19,7 @@
       "mustContain": "hello from hapi:RANDOMNESS_PLACEHOLDER"
     },
     {
-      "path": "/hapi",
+      "path": "/fastify",
       "mustContain": "hello from fastify:RANDOMNESS_PLACEHOLDER"
     }
   ]
