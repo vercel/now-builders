@@ -58,6 +58,7 @@ async function compile(workPath, downloadedFiles, entrypoint, config) {
   const { code, map, assets } = await ncc(input, {
     sourceMap: true,
     sourceMapRegister: true,
+    filterAssetBase: path.resolve(workPath),
   });
 
   if (config && config.includeFiles) {

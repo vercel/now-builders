@@ -1,6 +1,6 @@
 import { readFile } from 'fs-extra';
 import { Assets, NccOptions } from '@zeit/ncc';
-import { join, dirname, relative, sep } from 'path';
+import { join, dirname, relative, sep, resolve } from 'path';
 import { NccWatcher, WatcherResult } from '@zeit/ncc-watcher';
 import {
   glob,
@@ -81,6 +81,7 @@ async function compile(
   const options: NccOptions = {
     sourceMap: true,
     sourceMapRegister: true,
+    filterAssetBase: resolve(workPath),
   };
   let code: string;
   let map: string | undefined;
@@ -104,10 +105,7 @@ async function compile(
       .map(f => relative(workPath, f));
   } else {
     const ncc = require('@zeit/ncc');
-    const result = await ncc(input, {
-      sourceMap: true,
-      sourceMapRegister: true,
-    });
+    const result = await ncc(input, options);
     code = result.code;
     map = result.map;
     assets = result.assets;
