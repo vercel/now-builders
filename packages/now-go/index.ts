@@ -62,7 +62,7 @@ export async function build({
   }
 
   if (process.env.GO111MODULE) {
-    console.log(`\nManually set 'GO111MODULE' is not recommend.
+    console.log(`\nManually assigning 'GO111MODULE' is not recommended.
 
 By default:
   - 'GO111MODULE=on' If entrypoint package name is not 'main'
@@ -147,7 +147,7 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
       isGoModExist = true;
       isGoModInRootDir = true;
       goModPath = fileDirname;
-    } else if (file.includes('go.mod') && !file.includes('vendor')) {
+    } else if (file.endsWith('go.mod') && !file.endsWith('vendor')) {
       if (entrypointDirname === fileDirname) {
         isGoModExist = true;
         goModPath = fileDirname;
@@ -174,7 +174,7 @@ Learn more: https://zeit.co/docs/v2/deployments/official-builders/go-now-go/#ent
   );
 
   if (!isGoModExist && 'vendor' in downloadedFiles) {
-    throw new Error('`go.mod` is needed to use `vendor`.');
+    throw new Error('`go.mod` is required to use a `vendor` directory.');
   }
 
   // check if package name other than main
