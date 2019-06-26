@@ -9,6 +9,18 @@
     {
       "path": "/express",
       "mustContain": "hello from express:RANDOMNESS_PLACEHOLDER"
+    },
+    {
+      "path": "/koa",
+      "mustContain": "hello from koa:RANDOMNESS_PLACEHOLDER"
+    },
+    {
+      "path": "/hapi",
+      "mustContain": "hello from hapi:RANDOMNESS_PLACEHOLDER"
+    },
+    {
+      "path": "/hapi",
+      "mustContain": "hello from fastify:RANDOMNESS_PLACEHOLDER"
     }
   ]
 }
