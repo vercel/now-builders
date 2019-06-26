@@ -11,7 +11,7 @@
   "dependencies": {
     "@now/node-bridge": "1.2.0-canary.3",
     "@types/node": "*",
-    "@zeit/ncc": "0.20.0",
+    "@zeit/ncc": "0.20.2",
     "@zeit/ncc-watcher": "1.0.3",
     "fs-extra": "7.0.1"
   },
