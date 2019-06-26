@@ -1,6 +1,6 @@
 {
   "name": "@now/node",
-  "version": "0.7.4-canary.17",
+  "version": "0.7.4-canary.19",
   "license": "MIT",
   "main": "./dist/index",
   "repository": {
@@ -9,7 +9,7 @@
     "directory": "packages/now-node"
   },
   "dependencies": {
-    "@now/node-bridge": "^1.2.0-canary.2",
+    "@now/node-bridge": "1.2.0-canary.3",
     "@types/node": "*",
     "@zeit/ncc": "0.18.5",
     "@zeit/ncc-watcher": "1.0.3",
@@ -29,7 +29,6 @@
     "@types/test-listen": "1.1.0",
     "content-type": "1.0.4",
     "cookie": "0.4.0",
-    "express": "4.17.1",
     "node-fetch": "2.6.0",
     "test-listen": "1.1.0",
     "typescript": "3.5.2"
