@@ -97,6 +97,12 @@ function send(req: NowRequest, res: NowResponse, body: any) {
         if (!res.getHeader('content-type')) {
           res.setHeader('content-type', 'application/octet-stream');
         }
+      } else if (chunk instanceof Stream) {
+        if (!res.getHeader('content-type')) {
+          res.setHeader('content-type', 'application/octet-stream');
+        }
+        chunk.pipe(res);
+        return res;
       } else {
         return json(req, res, chunk);
       }
