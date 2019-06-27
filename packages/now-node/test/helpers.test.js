@@ -303,27 +303,38 @@ describe('res.send()', () => {
     expect(await res.text()).toBe('');
   });
 
-  test('res.send(String) should send as plain', async () => {
+  test('res.send(String) should send as text/plain', async () => {
     mockListener.mockImplementation((req, res) => {
-      res.send('<p>hey</p>');
-    });
-
-    const res = await fetchWithProxyReq(url);
-    expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe('text/plain; charset=utf-8');
-    expect(await res.text()).toBe('<p>hey</p>');
-  });
-
-  test('res.send(String) should not override Content-Type', async () => {
-    mockListener.mockImplementation((req, res) => {
-      res.setHeader('Content-Type', 'text/plain');
       res.send('hey');
     });
 
     const res = await fetchWithProxyReq(url);
     expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe('text/plain');
+    expect(res.headers.get('content-type')).toBe('text/plain; charset=utf-8');
     expect(await res.text()).toBe('hey');
+  });
+
+  test('res.send(String) should not override Content-Type', async () => {
+    mockListener.mockImplementation((req, res) => {
+      res.setHeader('Content-Type', 'text/html');
+      res.send('hey');
+    });
+
+    const res = await fetchWithProxyReq(url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('text/html');
+    expect(await res.text()).toBe('hey');
+  });
+
+  test('res.send(String) should set Content-Length', async () => {
+    mockListener.mockImplementation((req, res) => {
+      res.send('½ + ¼ = ¾');
+    });
+
+    const res = await fetchWithProxyReq(url);
+    expect(res.status).toBe(200);
+    expect(Number(res.headers.get('content-length'))).toBe(12);
+    expect(await res.text()).toBe('½ + ¼ = ¾');
   });
 
   test('res.send(Buffer) should send as octet-stream', async () => {
@@ -349,18 +360,15 @@ describe('res.send()', () => {
     expect(await res.text()).toBe('hello');
   });
 
-  test('res.send(Buffer) should keep charset in Content-Type', async () => {
+  test('res.send(Buffer) should set Content-Length', async () => {
     mockListener.mockImplementation((req, res) => {
-      res.setHeader('Content-Type', 'text/plain; charset=iso-8859-1');
-      res.send(Buffer.from('hi'));
+      res.send(Buffer.from('½ + ¼ = ¾'));
     });
 
     const res = await fetchWithProxyReq(url);
     expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe(
-      'text/plain; charset=iso-8859-1'
-    );
-    expect(await res.text()).toBe('hi');
+    expect(Number(res.headers.get('content-length'))).toBe(12);
+    expect(await res.text()).toBe('½ + ¼ = ¾');
   });
 
   test('res.send(Object) should send as application/json', async () => {
@@ -419,6 +427,33 @@ describe('res.json()', () => {
     expect(await res.text()).toBe('{"hello":"world"}');
   });
 
+  test('res.json() should send as application/json', async () => {
+    mockListener.mockImplementation((req, res) => {
+      res.json({ hello: 'world' });
+    });
+
+    const res = await fetchWithProxyReq(url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe(
+      'application/json; charset=utf-8'
+    );
+    expect(await res.text()).toBe('{"hello":"world"}');
+  });
+
+  test('res.json() should set Content-Length and Content-Type', async () => {
+    mockListener.mockImplementation((req, res) => {
+      res.json({ hello: '½ + ¼ = ¾' });
+    });
+
+    const res = await fetchWithProxyReq(url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe(
+      'application/json; charset=utf-8'
+    );
+    expect(Number(res.headers.get('content-length'))).toBe(24);
+    expect(await res.text()).toBe('{"hello":"½ + ¼ = ¾"}');
+  });
+
   test('res.json(null) should respond with json for null', async () => {
     mockListener.mockImplementation((req, res) => {
       res.json(null);
@@ -446,7 +481,7 @@ describe('res.json()', () => {
 
     await fetchWithProxyReq(url);
     expect(_err).toBeDefined();
-    expect(_err.message).toMatch(/not a valid json object/);
+    expect(_err.message).toMatch(/not a valid object/);
   });
 
   test('res.json(undefined) should throw an error', async () => {
@@ -463,7 +498,7 @@ describe('res.json()', () => {
 
     await fetchWithProxyReq(url);
     expect(_err).toBeDefined();
-    expect(_err.message).toMatch(/not a valid json object/);
+    expect(_err.message).toMatch(/not a valid object/);
   });
 
   test('res.json(Number) should respond with json for number', async () => {

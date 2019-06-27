@@ -101,7 +101,11 @@ function send(res: NowResponse, body: any) {
   }
 
   if (t === 'string') {
-    setContentHeaders(res, 'text/plain; charset=utf-8', body.length);
+    setContentHeaders(
+      res,
+      'text/plain; charset=utf-8',
+      Buffer.byteLength(body)
+    );
     res.end(body);
     return res;
   }
@@ -139,7 +143,11 @@ function json(res: NowResponse, jsonBody: any): NowResponse {
     case 'bigint':
     case 'string':
       const body = JSON.stringify(jsonBody);
-      setContentHeaders(res, 'application/json; charset=utf-8', body.length);
+      setContentHeaders(
+        res,
+        'application/json; charset=utf-8',
+        Buffer.byteLength(body)
+      );
       res.end(body);
       return res;
   }
