@@ -384,12 +384,14 @@ describe('res.send()', () => {
     expect(await res.text()).toBe('{"name":"tobi"}');
   });
 
-  test('res.send(Stream) should send as application/octet-stream', async () => {
-    const fs = require('fs');
-    const { join } = require('path');
+  test.only('res.send(Stream) should send as application/octet-stream', async () => {
+    const { PassThrough } = require('stream');
 
     mockListener.mockImplementation((req, res) => {
-      res.send(fs.createReadStream(join(__dirname, 'fixtures-helpers/hello')));
+      const stream = new PassThrough();
+      res.send(stream);
+      stream.push('hello');
+      stream.end();
     });
 
     const res = await fetchWithProxyReq(url);
