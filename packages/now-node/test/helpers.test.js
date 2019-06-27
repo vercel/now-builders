@@ -303,14 +303,14 @@ describe('res.send()', () => {
     expect(await res.text()).toBe('');
   });
 
-  test('res.send(String) should send as text/plain', async () => {
+  test('res.send(String) should send as text/html', async () => {
     mockListener.mockImplementation((req, res) => {
       res.send('hey');
     });
 
     const res = await fetchWithProxyReq(url);
     expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe('text/plain; charset=utf-8');
+    expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
     expect(await res.text()).toBe('hey');
   });
 

@@ -100,11 +100,7 @@ function send(res: NowResponse, body: any) {
   }
 
   if (t === 'string') {
-    setContentHeaders(
-      res,
-      'text/plain; charset=utf-8',
-      Buffer.byteLength(body)
-    );
+    setContentHeaders(res, 'text/html; charset=utf-8', Buffer.byteLength(body));
     res.end(body);
     return res;
   }
