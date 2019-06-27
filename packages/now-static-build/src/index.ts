@@ -44,6 +44,34 @@ function validateDistDir(distDir: string, isDev: boolean | undefined) {
   }
 }
 
+function getDevCommand(pkg) {
+  const scripts = (pkg && pkg.scripts) || {};
+
+  if (scripts['now-dev']) {
+    return 'now-dev';
+  }
+
+  if (scripts['dev']) {
+    return 'dev';
+  }
+
+  return 'now-dev';
+}
+
+function getBuildCommand(pkg) {
+  const scripts = (pkg && pkg.scripts) || {};
+
+  if (scripts['now-build']) {
+    return 'now-build';
+  }
+
+  if (scripts['build']) {
+    return 'build';
+  }
+
+  return 'now-build';
+}
+
 export const version = 2;
 
 const nowDevScriptPorts = new Map();
@@ -91,9 +119,7 @@ export async function build({
           cwd: entrypointFsDirname,
           env: { ...process.env, PORT: String(devPort) },
         };
-        const devScript =
-          (pkg.scripts && (pkg.scripts['now-dev'] || pkg.scripts['dev'])) ||
-          'now-dev';
+        const devScript = getDevCommand(pkg);
         const child = spawn('npm', ['run', devScript], opts);
         child.on('exit', () => nowDevScriptPorts.delete(entrypoint));
         child.stdout.setEncoding('utf8');
@@ -146,9 +172,7 @@ export async function build({
       // Run the `now-build` script and wait for completion to collect the build
       // outputs
       console.log('running user "now-build" script from `package.json`...');
-      const buildScript =
-        (pkg.scripts && (pkg.scripts['now-build'] || pkg.scripts['build'])) ||
-        'now-build';
+      const buildScript = getBuildCommand(pkg);
       if (
         !(await runPackageJsonScript(
           entrypointFsDirname,
