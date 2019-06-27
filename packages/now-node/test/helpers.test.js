@@ -283,6 +283,16 @@ describe('res.send()', () => {
     expect(await res.text()).toBe('');
   });
 
+  test('res.send() should not set ETag', async () => {
+    mockListener.mockImplementation((req, res) => {
+      res.send();
+    });
+
+    const res = await fetchWithProxyReq(url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('ETag')).toBe(null);
+  });
+
   test('res.send(null) should set body to ""', async () => {
     mockListener.mockImplementation((req, res) => {
       res.send(null);
@@ -337,6 +347,26 @@ describe('res.send()', () => {
     expect(await res.text()).toBe('½ + ¼ = ¾');
   });
 
+  test('res.send(String) should set ETag', async () => {
+    mockListener.mockImplementation((req, res) => {
+      res.send(Array(1000).join('-'));
+    });
+
+    const res = await fetchWithProxyReq(url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('ETag')).toBe('W/"3e7-qPnkJ3CVdVhFJQvUBfF10TmVA7g"');
+  });
+
+  test('res.send("") should set ETag', async () => {
+    mockListener.mockImplementation((req, res) => {
+      res.send('');
+    });
+
+    const res = await fetchWithProxyReq(url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('ETag')).toBe('W/"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"');
+  });
+
   test('res.send(Buffer) should send as octet-stream', async () => {
     mockListener.mockImplementation((req, res) => {
       res.send(Buffer.from('hello'));
@@ -369,6 +399,27 @@ describe('res.send()', () => {
     expect(res.status).toBe(200);
     expect(Number(res.headers.get('content-length'))).toBe(12);
     expect(await res.text()).toBe('½ + ¼ = ¾');
+  });
+
+  test('res.send(Buffer) should set ETag', async () => {
+    mockListener.mockImplementation((req, res) => {
+      res.send(Buffer.alloc(999, '-'));
+    });
+
+    const res = await fetchWithProxyReq(url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('ETag')).toBe('W/"3e7-qPnkJ3CVdVhFJQvUBfF10TmVA7g"');
+  });
+
+  test('res.send(Buffer) should not override ETag', async () => {
+    mockListener.mockImplementation((req, res) => {
+      res.setHeader('ETag', '"foo"');
+      res.send(Buffer.from('hey'));
+    });
+
+    const res = await fetchWithProxyReq(url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('ETag')).toBe('"foo"');
   });
 
   test('res.send(Object) should send as application/json', async () => {

@@ -7,6 +7,7 @@ import {
 } from './types';
 import { Server } from 'http';
 import { Bridge } from './bridge';
+import etag from 'etag';
 
 function getBodyParser(req: NowRequest, body: Buffer) {
   return function parseBody(): NowRequestBody {
@@ -77,21 +78,22 @@ function status(res: NowResponse, statusCode: number): NowResponse {
   return res;
 }
 
-function setContentHeaders(
-  res: NowResponse,
-  type: string,
-  length?: number
-): void {
+function setContentHeaders(res: NowResponse, type: string): void {
   if (!res.getHeader('content-type')) {
     res.setHeader('content-type', type);
   }
-
-  if (length !== undefined) {
-    res.setHeader('content-length', length);
-  }
 }
 
-function send(res: NowResponse, body: any) {
+function sendBuffer(res: NowResponse, buf: Buffer): NowResponse {
+  if (!res.getHeader('etag')) {
+    res.setHeader('etag', etag(buf, { weak: true }));
+  }
+  res.setHeader('content-length', buf.length);
+  res.end(buf);
+  return res;
+}
+
+function send(res: NowResponse, body: any): NowResponse {
   const t = typeof body;
 
   if (body === null || t === 'undefined') {
@@ -100,15 +102,14 @@ function send(res: NowResponse, body: any) {
   }
 
   if (t === 'string') {
-    setContentHeaders(res, 'text/html; charset=utf-8', Buffer.byteLength(body));
-    res.end(body);
-    return res;
+    const buf = Buffer.from(body, 'utf8');
+    setContentHeaders(res, 'text/html; charset=utf-8');
+    return sendBuffer(res, buf);
   }
 
   if (Buffer.isBuffer(body)) {
-    setContentHeaders(res, 'application/octet-stream', body.length);
-    res.end(body);
-    return res;
+    setContentHeaders(res, 'application/octet-stream');
+    return sendBuffer(res, body);
   }
 
   switch (t) {
@@ -131,14 +132,9 @@ function json(res: NowResponse, jsonBody: any): NowResponse {
     case 'number':
     case 'bigint':
     case 'string':
-      const body = JSON.stringify(jsonBody);
-      setContentHeaders(
-        res,
-        'application/json; charset=utf-8',
-        Buffer.byteLength(body)
-      );
-      res.end(body);
-      return res;
+      const buf = Buffer.from(JSON.stringify(jsonBody), 'utf8');
+      setContentHeaders(res, 'application/json; charset=utf-8');
+      return sendBuffer(res, buf);
   }
 
   throw new Error(
