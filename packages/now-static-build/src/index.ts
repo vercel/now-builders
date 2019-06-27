@@ -91,7 +91,10 @@ export async function build({
           cwd: entrypointFsDirname,
           env: { ...process.env, PORT: String(devPort) },
         };
-        const child = spawn('npm', ['run', 'now-dev'], opts);
+        const devScript =
+          (pkg.scripts && (pkg.scripts['now-dev'] || pkg.scripts['dev'])) ||
+          'now-build';
+        const child = spawn('npm', ['run', devScript], opts);
         child.on('exit', () => nowDevScriptPorts.delete(entrypoint));
         child.stdout.setEncoding('utf8');
         child.stdout.pipe(process.stdout);
@@ -143,15 +146,18 @@ export async function build({
       // Run the `now-build` script and wait for completion to collect the build
       // outputs
       console.log('running user "now-build" script from `package.json`...');
+      const buildScript =
+        (pkg.scripts && (pkg.scripts['now-build'] || pkg.scripts['build'])) ||
+        'now-build';
       if (
         !(await runPackageJsonScript(
           entrypointFsDirname,
-          'now-build',
+          buildScript,
           spawnOpts
         ))
       ) {
         throw new Error(
-          `An error running "now-build" script in "${entrypoint}"`
+          `An error running "${buildScript}" script in "${entrypoint}"`
         );
       }
       validateDistDir(distPath, meta.isDev);
