@@ -69,6 +69,13 @@ export async function build({
   );
 
   const entrypointName = path.basename(entrypoint);
+
+  if (entrypointName.endsWith('.sh')) {
+    await runShellScript(path.join(workPath, entrypoint));
+    validateDistDir(distPath, meta.isDev);
+    return glob('**', distPath, mountpoint);
+  }
+
   if (entrypointName === 'package.json') {
     await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
@@ -140,18 +147,15 @@ export async function build({
           'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development'
         );
       }
-      // Run the `now-build` script and wait for completion to collect the build
-      // outputs
       console.log('running user "now-build" script from `package.json`...');
-      if (
-        !(await runPackageJsonScript(
-          entrypointFsDirname,
-          'now-build',
-          spawnOpts
-        ))
-      ) {
+      const found = await runPackageJsonScript(
+        entrypointFsDirname,
+        'now-build',
+        spawnOpts
+      );
+      if (!found) {
         throw new Error(
-          `An error running "now-build" script in "${entrypoint}"`
+          `missing required "now-build" script in "${entrypoint}"`
         );
       }
       validateDistDir(distPath, meta.isDev);
@@ -161,11 +165,7 @@ export async function build({
     return { routes, watch, output };
   }
 
-  if (path.extname(entrypoint) === '.sh') {
-    await runShellScript(path.join(workPath, entrypoint));
-    validateDistDir(distPath, meta.isDev);
-    return glob('**', distPath, mountpoint);
-  }
-
-  throw new Error('Proper build script must be specified as entrypoint');
+  throw new Error(
+    `build src is "${entrypoint}" but expected "package.json" or "script.sh"`
+  );
 }
