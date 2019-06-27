@@ -17,10 +17,6 @@
     {
       "path": "/hapi",
       "mustContain": "hello from hapi:RANDOMNESS_PLACEHOLDER"
-    },
-    {
-      "path": "/fastify",
-      "mustContain": "hello from fastify:RANDOMNESS_PLACEHOLDER"
     }
   ]
 }
