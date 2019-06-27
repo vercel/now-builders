@@ -4,6 +4,6 @@
   },
   "scripts": {
     "build": "mkdir dist && yodasay yoda:RANDOMNESS_PLACEHOLDER > dist/index.txt",
-    "now-build": "echo 'This is wrong' && exit 1"
+    "now-build": "echo 'called now-build command instead of build' && exit 1"
   }
 }
