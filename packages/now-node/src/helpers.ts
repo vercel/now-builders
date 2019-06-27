@@ -78,7 +78,7 @@ function status(res: NowResponse, statusCode: number): NowResponse {
   return res;
 }
 
-function setDefaultCT(res: NowResponse, value: string): void {
+function setContentType(res: NowResponse, value: string): void {
   if (!res.getHeader('content-type')) {
     res.setHeader('content-type', value);
   }
@@ -93,21 +93,21 @@ function send(res: NowResponse, body: any) {
   }
 
   if (t === 'string') {
-    setDefaultCT(res, 'text/plain; charset=utf-8');
+    setContentType(res, 'text/plain; charset=utf-8');
     res.setHeader('content-length', body.length);
     res.end(body);
     return res;
   }
 
   if (Buffer.isBuffer(body)) {
-    setDefaultCT(res, 'application/octet-stream');
+    setContentType(res, 'application/octet-stream');
     res.setHeader('content-length', body.length);
     res.end(body);
     return res;
   }
 
   if (body instanceof Stream) {
-    setDefaultCT(res, 'application/octet-stream');
+    setContentType(res, 'application/octet-stream');
     body.pipe(res);
     return res;
   }
@@ -132,7 +132,7 @@ function json(res: NowResponse, jsonBody: any): NowResponse {
     case 'number':
     case 'bigint':
     case 'string':
-      setDefaultCT(res, 'application/json; charset=utf-8');
+      setContentType(res, 'application/json; charset=utf-8');
       const body = JSON.stringify(jsonBody);
       res.setHeader('content-length', body.length);
       res.end(body);
