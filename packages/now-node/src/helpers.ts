@@ -148,8 +148,9 @@ function send(req: NowRequest, res: NowResponse, body: any) {
 
 function json(req: NowRequest, res: NowResponse, jsonBody: any): NowResponse {
   if (jsonBody === undefined) {
-    console.warn('warning: did you run res.json() or res.json(undefined)?');
-    throw new Error('undefined is not a valid json object');
+    throw new Error(
+      'undefined is not a valid json object. Did you run res.json() or res.json(undefined)?'
+    );
   }
 
   if (!res.getHeader('content-type')) {
