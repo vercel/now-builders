@@ -89,7 +89,7 @@ export async function build({
   config,
   meta = {},
 }: BuildOptions) {
-  console.log('downloading user files...');
+  console.log('Downloading user files...');
   await download(files, workPath, meta);
 
   const mountpoint = path.dirname(entrypoint);
@@ -103,6 +103,14 @@ export async function build({
   );
 
   const entrypointName = path.basename(entrypoint);
+
+  if (entrypointName.endsWith('.sh')) {
+    console.log(`Running build script "${entrypoint}"`);
+    await runShellScript(path.join(workPath, entrypoint));
+    validateDistDir(distPath, meta.isDev);
+    return glob('**', distPath, mountpoint);
+  }
+
   if (entrypointName === 'package.json') {
     await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
@@ -175,19 +183,16 @@ export async function build({
           'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development'
         );
       }
-      // Run the `now-build` script and wait for completion to collect the build
-      // outputs
-      console.log('running user "now-build" script from `package.json`...');
       const buildScript = getBuildCommand(pkg);
-      if (
-        !(await runPackageJsonScript(
-          entrypointFsDirname,
-          buildScript,
-          spawnOpts
-        ))
-      ) {
+      console.log(`Running "${buildScript}" script in "${entrypoint}"`);
+      const found = await runPackageJsonScript(
+        entrypointFsDirname,
+        buildScript,
+        spawnOpts
+      );
+      if (!found) {
         throw new Error(
-          `An error running "${buildScript}" script in "${entrypoint}"`
+          `Missing required "now-build" script in "${entrypoint}"`
         );
       }
       validateDistDir(distPath, meta.isDev);
@@ -197,11 +202,7 @@ export async function build({
     return { routes, watch, output };
   }
 
-  if (path.extname(entrypoint) === '.sh') {
-    await runShellScript(path.join(workPath, entrypoint));
-    validateDistDir(distPath, meta.isDev);
-    return glob('**', distPath, mountpoint);
-  }
-
-  throw new Error('Proper build script must be specified as entrypoint');
+  throw new Error(
+    `Build "src" is "${entrypoint}" but expected "package.json" or "build.sh"`
+  );
 }
