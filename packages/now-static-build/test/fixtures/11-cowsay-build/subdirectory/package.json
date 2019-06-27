@@ -3,7 +3,6 @@
     "yodasay": "^1.1.6"
   },
   "scripts": {
-    "build": "mkdir dist && yodasay yoda:RANDOMNESS_PLACEHOLDER > dist/index.txt",
-    "now-build": "echo 'called now-build command instead of build' && exit 1"
+    "build": "mkdir dist && yodasay yoda:RANDOMNESS_PLACEHOLDER > dist/index.txt"
   }
 }
