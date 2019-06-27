@@ -121,7 +121,7 @@ function send(res: NowResponse, body: any) {
   }
 
   throw new Error(
-    '`body` is not valid (hint: res.send(body) accepts string, object, boolean, number, Stream or Buffer)'
+    '`body` is not a valid string, object, boolean, number, Stream, or Buffer'
   );
 }
 
@@ -140,7 +140,7 @@ function json(res: NowResponse, jsonBody: any): NowResponse {
   }
 
   throw new Error(
-    '`jsonBody` is not a valid json object (hint: res.json(jsonBody) accepts object, boolean, string, number or null as body)'
+    '`jsonBody` is not a valid object, boolean, string, number, or null'
   );
 }
 
