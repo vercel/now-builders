@@ -93,7 +93,7 @@ export async function build({
         };
         const devScript =
           (pkg.scripts && (pkg.scripts['now-dev'] || pkg.scripts['dev'])) ||
-          'now-build';
+          'now-dev';
         const child = spawn('npm', ['run', devScript], opts);
         child.on('exit', () => nowDevScriptPorts.delete(entrypoint));
         child.stdout.setEncoding('utf8');
