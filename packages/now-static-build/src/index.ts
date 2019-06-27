@@ -52,7 +52,7 @@ function validateDistDir(distDir: string, isDev: boolean | undefined) {
 
 function getCommand(pkg: PackageJson, cmd: string) {
   const scripts = (pkg && pkg.scripts) || {};
-  const nowCmd = `now-${name}`;
+  const nowCmd = `now-${cmd}`;
 
   if (scripts[nowCmd]) {
     return nowCmd;
