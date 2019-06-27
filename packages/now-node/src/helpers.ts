@@ -78,9 +78,17 @@ function status(res: NowResponse, statusCode: number): NowResponse {
   return res;
 }
 
-function setContentType(res: NowResponse, value: string): void {
+function setContentHeaders(
+  res: NowResponse,
+  type: string,
+  length?: number
+): void {
   if (!res.getHeader('content-type')) {
-    res.setHeader('content-type', value);
+    res.setHeader('content-type', type);
+  }
+
+  if (length !== undefined) {
+    res.setHeader('content-length', length);
   }
 }
 
@@ -93,21 +101,19 @@ function send(res: NowResponse, body: any) {
   }
 
   if (t === 'string') {
-    setContentType(res, 'text/plain; charset=utf-8');
-    res.setHeader('content-length', body.length);
+    setContentHeaders(res, 'text/plain; charset=utf-8', body.length);
     res.end(body);
     return res;
   }
 
   if (Buffer.isBuffer(body)) {
-    setContentType(res, 'application/octet-stream');
-    res.setHeader('content-length', body.length);
+    setContentHeaders(res, 'application/octet-stream', body.length);
     res.end(body);
     return res;
   }
 
   if (body instanceof Stream) {
-    setContentType(res, 'application/octet-stream');
+    setContentHeaders(res, 'application/octet-stream');
     body.pipe(res);
     return res;
   }
@@ -132,9 +138,8 @@ function json(res: NowResponse, jsonBody: any): NowResponse {
     case 'number':
     case 'bigint':
     case 'string':
-      setContentType(res, 'application/json; charset=utf-8');
       const body = JSON.stringify(jsonBody);
-      res.setHeader('content-length', body.length);
+      setContentHeaders(res, 'application/json; charset=utf-8', body.length);
       res.end(body);
       return res;
   }
