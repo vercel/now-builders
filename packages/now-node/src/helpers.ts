@@ -78,86 +78,70 @@ function status(res: NowResponse, statusCode: number): NowResponse {
   return res;
 }
 
-function send(req: NowRequest, res: NowResponse, body: any) {
-  let chunk = body;
-  let encoding;
-
-  switch (typeof chunk) {
-    case 'string':
-      if (!res.getHeader('content-type')) {
-        res.setHeader('content-type', 'text/plain');
-      }
-      break;
-    case 'boolean':
-    case 'number':
-    case 'object':
-      if (chunk === null) {
-        chunk = '';
-      } else if (Buffer.isBuffer(chunk)) {
-        if (!res.getHeader('content-type')) {
-          res.setHeader('content-type', 'application/octet-stream');
-        }
-      } else if (chunk instanceof Stream) {
-        if (!res.getHeader('content-type')) {
-          res.setHeader('content-type', 'application/octet-stream');
-        }
-        chunk.pipe(res);
-        return res;
-      } else {
-        return json(req, res, chunk);
-      }
-      break;
+function setDefaultCT(res: NowResponse, value: string): void {
+  if (!res.getHeader('content-type')) {
+    res.setHeader('content-type', value);
   }
-
-  // write strings in utf-8
-  if (typeof chunk === 'string') {
-    encoding = 'utf8';
-
-    // add utf-8 charset to header
-    if (typeof res.getHeader('content-type') === 'string') {
-      const contentType = require('content-type');
-      const parsedCT = contentType.parse(res.getHeader('content-type'));
-      parsedCT.parameters.charset = 'utf-8';
-      res.setHeader('content-type', contentType.format(parsedCT));
-    }
-  }
-
-  // populate Content-Length
-  if (chunk !== undefined) {
-    let len;
-    if (Buffer.isBuffer(chunk)) {
-      // get length of Buffer
-      len = chunk.length;
-    } else if (chunk.length < 1000) {
-      // just calculate length when small chunk
-      len = Buffer.byteLength(chunk, encoding);
-    } else {
-      // convert chunk to Buffer and calculate
-      chunk = Buffer.from(chunk, encoding);
-      encoding = undefined;
-      len = chunk.length;
-    }
-
-    res.setHeader('Content-Length', len);
-  }
-
-  res.end(chunk, encoding);
-
-  return res;
 }
 
-function json(req: NowRequest, res: NowResponse, jsonBody: any): NowResponse {
-  if (jsonBody === undefined) {
-    throw new Error(
-      'undefined is not a valid json object. Did you run res.json() or res.json(undefined)?'
-    );
+function send(res: NowResponse, body: any) {
+  const t = typeof body;
+
+  if (body === null || t === 'undefined') {
+    res.end();
+    return res;
   }
 
-  if (!res.getHeader('content-type')) {
-    res.setHeader('content-type', 'application/json');
+  if (t === 'string') {
+    setDefaultCT(res, 'text/plain; charset=utf-8');
+    res.setHeader('content-length', body.length);
+    res.end(body);
+    return res;
   }
 
-  return send(req, res, JSON.stringify(jsonBody));
+  if (Buffer.isBuffer(body)) {
+    setDefaultCT(res, 'application/octet-stream');
+    res.setHeader('content-length', body.length);
+    res.end(body);
+    return res;
+  }
+
+  if (body instanceof Stream) {
+    setDefaultCT(res, 'application/octet-stream');
+    body.pipe(res);
+    return res;
+  }
+
+  switch (t) {
+    case 'boolean':
+    case 'number':
+    case 'bigint':
+    case 'object':
+      return json(res, body);
+  }
+
+  throw new Error(
+    '`body` is not valid (hint: res.send(body) accepts string, object, boolean, number, Stream or Buffer)'
+  );
+}
+
+function json(res: NowResponse, jsonBody: any): NowResponse {
+  switch (typeof jsonBody) {
+    case 'object':
+    case 'boolean':
+    case 'number':
+    case 'bigint':
+    case 'string':
+      setDefaultCT(res, 'application/json; charset=utf-8');
+      const body = JSON.stringify(jsonBody);
+      res.setHeader('content-length', body.length);
+      res.end(body);
+      return res;
+  }
+
+  throw new Error(
+    '`jsonBody` is not a valid json object (hint: res.json(jsonBody) accepts object, boolean, string, number or null as body)'
+  );
 }
 
 export class ApiError extends Error {
@@ -222,8 +206,8 @@ export function createServerWithHelpers(
       setLazyProp<NowRequestBody>(req, 'body', getBodyParser(req, event.body));
 
       res.status = statusCode => status(res, statusCode);
-      res.send = body => send(req, res, body);
-      res.json = jsonBody => json(req, res, jsonBody);
+      res.send = body => send(res, body);
+      res.json = jsonBody => json(res, jsonBody);
 
       await listener(req, res);
     } catch (err) {

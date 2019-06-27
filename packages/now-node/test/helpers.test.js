@@ -322,19 +322,7 @@ describe('res.send()', () => {
 
     const res = await fetchWithProxyReq(url);
     expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe('text/plain; charset=utf-8');
-    expect(await res.text()).toBe('hey');
-  });
-
-  test('res.send(String) should override charset in Content-Type', async () => {
-    mockListener.mockImplementation((req, res) => {
-      res.setHeader('Content-Type', 'text/plain; charset=iso-8859-1');
-      res.send('hey');
-    });
-
-    const res = await fetchWithProxyReq(url);
-    expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe('text/plain; charset=utf-8');
+    expect(res.headers.get('content-type')).toBe('text/plain');
     expect(await res.text()).toBe('hey');
   });
 
@@ -428,7 +416,7 @@ describe('res.json()', () => {
     const res = await fetchWithProxyReq(url);
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toBe(
-      'application/vnd.example+json; charset=utf-8'
+      'application/vnd.example+json'
     );
     expect(await res.text()).toBe('{"hello":"world"}');
   });
