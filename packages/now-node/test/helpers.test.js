@@ -430,6 +430,40 @@ describe('res.json()', () => {
     expect(await res.text()).toBe('null');
   });
 
+  test('res.json() should throw an error', async () => {
+    let _err;
+    mockListener.mockImplementation((req, res) => {
+      try {
+        res.json();
+      } catch (err) {
+        _err = err;
+      } finally {
+        res.end();
+      }
+    });
+
+    await fetchWithProxyReq(url);
+    expect(_err).toBeDefined();
+    expect(_err.message).toMatch(/not a valid json object/);
+  });
+
+  test('res.json(undefined) should throw an error', async () => {
+    let _err;
+    mockListener.mockImplementation((req, res) => {
+      try {
+        res.json(undefined);
+      } catch (err) {
+        _err = err;
+      } finally {
+        res.end();
+      }
+    });
+
+    await fetchWithProxyReq(url);
+    expect(_err).toBeDefined();
+    expect(_err.message).toMatch(/not a valid json object/);
+  });
+
   test('res.json(Number) should respond with json for number', async () => {
     mockListener.mockImplementation((req, res) => {
       res.json(300);
