@@ -384,22 +384,6 @@ describe('res.send()', () => {
     expect(await res.text()).toBe('{"name":"tobi"}');
   });
 
-  test('res.send(Stream) should send as application/octet-stream', async () => {
-    const { PassThrough } = require('stream');
-
-    mockListener.mockImplementation((req, res) => {
-      const stream = new PassThrough();
-      res.send(stream);
-      stream.push('hello');
-      stream.end();
-    });
-
-    const res = await fetchWithProxyReq(url);
-    expect(res.status).toBe(200);
-    expect(res.headers.get('content-type')).toBe('application/octet-stream');
-    expect(await res.text()).toBe('hello');
-  });
-
   test('res.send() should send be chainable', async () => {
     const spy = jest.fn();
 

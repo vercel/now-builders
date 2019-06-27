@@ -5,7 +5,6 @@ import {
   NowRequestQuery,
   NowRequestBody,
 } from './types';
-import { Stream } from 'stream';
 import { Server } from 'http';
 import { Bridge } from './bridge';
 
@@ -113,12 +112,6 @@ function send(res: NowResponse, body: any) {
   if (Buffer.isBuffer(body)) {
     setContentHeaders(res, 'application/octet-stream', body.length);
     res.end(body);
-    return res;
-  }
-
-  if (body instanceof Stream) {
-    setContentHeaders(res, 'application/octet-stream');
-    body.pipe(res);
     return res;
   }
 
