@@ -15,6 +15,12 @@ import {
   BuildOptions,
 } from '@now/build-utils';
 
+interface PackageJson {
+  scripts?: {
+    [key: string]: string;
+  };
+}
+
 function validateDistDir(distDir: string, isDev: boolean | undefined) {
   const hash = isDev
     ? '#local-development'
@@ -44,7 +50,7 @@ function validateDistDir(distDir: string, isDev: boolean | undefined) {
   }
 }
 
-function getDevCommand(pkg) {
+function getDevCommand(pkg: PackageJson) {
   const scripts = (pkg && pkg.scripts) || {};
 
   if (scripts['now-dev']) {
@@ -58,7 +64,7 @@ function getDevCommand(pkg) {
   return 'now-dev';
 }
 
-function getBuildCommand(pkg) {
+function getBuildCommand(pkg: PackageJson) {
   const scripts = (pkg && pkg.scripts) || {};
 
   if (scripts['now-build']) {
