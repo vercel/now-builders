@@ -393,7 +393,9 @@ describe('res.send()', () => {
     const { join } = require('path');
 
     mockListener.mockImplementation((req, res) => {
-      res.send(fs.createReadStream(join(__dirname, 'fixtures', 'hello')));
+      res.send(
+        fs.createReadStream(join(__dirname, 'fixtures-helpers', 'hello'))
+      );
     });
 
     const res = await fetchWithProxyReq(url);
