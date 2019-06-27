@@ -11,9 +11,11 @@ import {
   runShellScript,
   getNodeVersion,
   getSpawnOptions,
+  Files,
+  BuildOptions,
 } from '@now/build-utils';
 
-function validateDistDir(distDir, isDev) {
+function validateDistDir(distDir: string, isDev: boolean | undefined) {
   const hash = isDev
     ? '#local-development'
     : '#configuring-the-build-output-directory';
@@ -42,11 +44,17 @@ function validateDistDir(distDir, isDev) {
   }
 }
 
-exports.version = 2;
+export const version = 2;
 
 const nowDevScriptPorts = new Map();
 
-exports.build = async ({ files, entrypoint, workPath, config, meta = {} }) => {
+export async function build({
+  files,
+  entrypoint,
+  workPath,
+  config,
+  meta = {},
+}: BuildOptions) {
   console.log('downloading user files...');
   await download(files, workPath, meta);
 
@@ -67,8 +75,8 @@ exports.build = async ({ files, entrypoint, workPath, config, meta = {} }) => {
     const pkgPath = path.join(workPath, entrypoint);
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 
-    let output = {};
-    const routes = [];
+    let output: Files = {};
+    const routes: { src: string; dest: string }[] = [];
 
     if (meta.isDev && pkg.scripts && pkg.scripts['now-dev']) {
       let devPort = nowDevScriptPorts.get(entrypoint);
@@ -96,7 +104,7 @@ exports.build = async ({ files, entrypoint, workPath, config, meta = {} }) => {
         try {
           await timeout(
             new Promise(resolve => {
-              const checkForPort = data => {
+              const checkForPort = (data: string) => {
                 // Check the logs for the URL being printed with the port number
                 // (i.e. `http://localhost:47521`).
                 if (data.indexOf(`:${devPort}`) !== -1) {
@@ -160,4 +168,4 @@ exports.build = async ({ files, entrypoint, workPath, config, meta = {} }) => {
   }
 
   throw new Error('Proper build script must be specified as entrypoint');
-};
+}
