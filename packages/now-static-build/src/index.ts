@@ -65,7 +65,7 @@ export async function build({
   const distPath = path.join(
     workPath,
     path.dirname(entrypoint),
-    (config && config.distDir) || 'dist'
+    (config && (config.distDir as string)) || 'dist'
   );
 
   const entrypointName = path.basename(entrypoint);
