@@ -384,7 +384,7 @@ describe('res.send()', () => {
     expect(await res.text()).toBe('{"name":"tobi"}');
   });
 
-  test.only('res.send(Stream) should send as application/octet-stream', async () => {
+  test('res.send(Stream) should send as application/octet-stream', async () => {
     const { PassThrough } = require('stream');
 
     mockListener.mockImplementation((req, res) => {
