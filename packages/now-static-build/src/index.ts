@@ -55,7 +55,7 @@ export async function build({
   config,
   meta = {},
 }: BuildOptions) {
-  console.log('downloading user files...');
+  console.log('Downloading user files...');
   await download(files, workPath, meta);
 
   const mountpoint = path.dirname(entrypoint);
@@ -147,7 +147,7 @@ export async function build({
           'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development'
         );
       }
-      console.log('running user "now-build" script from `package.json`...');
+      console.log('Running user "now-build" script from `package.json`...');
       const found = await runPackageJsonScript(
         entrypointFsDirname,
         'now-build',
@@ -155,7 +155,7 @@ export async function build({
       );
       if (!found) {
         throw new Error(
-          `missing required "now-build" script in "${entrypoint}"`
+          `Missing required "now-build" script in "${entrypoint}"`
         );
       }
       validateDistDir(distPath, meta.isDev);
@@ -166,6 +166,6 @@ export async function build({
   }
 
   throw new Error(
-    `build src is "${entrypoint}" but expected "package.json" or "script.sh"`
+    `Build src is "${entrypoint}" but expected "package.json" or "script.sh"`
   );
 }
