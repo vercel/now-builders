@@ -1,8 +1,10 @@
 const { execSync } = require('child_process');
 const { relative } = require('path');
 
-const branch = execSync('git branch | grep "*" | cut -d " " -f2').toString();
-console.log(`Running tests on branch "${branch.trim()}"`);
+const branch = execSync('git branch | grep "*" | cut -d " " -f2')
+  .toString()
+  .trim();
+console.log(`Running tests on branch "${branch}"`);
 const gitPath = branch === 'master' ? 'HEAD~1' : 'origin/canary...HEAD';
 const diff = execSync(`git diff ${gitPath} --name-only`).toString();
 
@@ -22,7 +24,7 @@ if (matches.length === 0) {
 }
 
 const testMatch = matches.map(
-  item => `**/${item}/**/?(*.)+(spec|test).[jt]s?(x)`
+  item => `**/${item}/**/?(*.)+(spec|test).[jt]s?(x)`,
 );
 
 module.exports = {
