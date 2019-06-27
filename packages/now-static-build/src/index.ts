@@ -71,6 +71,7 @@ export async function build({
   const entrypointName = path.basename(entrypoint);
 
   if (entrypointName.endsWith('.sh')) {
+    console.log(`Running build script "${entrypoint}"`);
     await runShellScript(path.join(workPath, entrypoint));
     validateDistDir(distPath, meta.isDev);
     return glob('**', distPath, mountpoint);
@@ -147,7 +148,7 @@ export async function build({
           'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development'
         );
       }
-      console.log('Running user "now-build" script from `package.json`...');
+      console.log(`Running "now-build" script in "${entrypoint}"`);
       const found = await runPackageJsonScript(
         entrypointFsDirname,
         'now-build',
@@ -166,6 +167,6 @@ export async function build({
   }
 
   throw new Error(
-    `Build src is "${entrypoint}" but expected "package.json" or "script.sh"`
+    `Build "src" is "${entrypoint}" but expected "package.json" or "build.sh"`
   );
 }
