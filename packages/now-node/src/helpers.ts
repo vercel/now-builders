@@ -96,6 +96,16 @@ function sendBuffer(res: NowResponse, buf: Buffer): NowResponse {
 function send(res: NowResponse, body: any): NowResponse {
   const t = typeof body;
 
+  switch (res.statusCode) {
+    case 204:
+    case 304:
+      res.removeHeader('content-type');
+      res.removeHeader('content-length');
+      res.removeHeader('transfer-encoding');
+      res.end();
+      return res;
+  }
+
   if (body === null || t === 'undefined') {
     res.end();
     return res;
@@ -132,9 +142,9 @@ function json(res: NowResponse, jsonBody: any): NowResponse {
     case 'number':
     case 'bigint':
     case 'string':
-      const buf = Buffer.from(JSON.stringify(jsonBody), 'utf8');
+      const body = JSON.stringify(jsonBody);
       setContentHeaders(res, 'application/json; charset=utf-8');
-      return sendBuffer(res, buf);
+      return send(res, body);
   }
 
   throw new Error(
