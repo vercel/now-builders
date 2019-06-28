@@ -7,11 +7,7 @@ import {
   AnalyzeOptions,
   BuildOptions,
   PrepareCacheOptions,
-  PrepareLayersOptions,
-  BuildLayerConfig,
-  BuildLayerResult,
   ShouldServeOptions,
-  Layer,
   Meta,
 } from './types';
 import { Lambda, createLambda } from './lambda';
@@ -24,7 +20,8 @@ import {
   runPackageJsonScript,
   runNpmInstall,
   runShellScript,
-  hasPackageLockJson,
+  getNodeVersion,
+  getSpawnOptions,
 } from './fs/run-user-scripts';
 import streamToBuffer from './fs/stream-to-buffer';
 import shouldServe from './should-serve';
@@ -47,15 +44,12 @@ export {
   runPackageJsonScript,
   runNpmInstall,
   runShellScript,
-  hasPackageLockJson,
+  getNodeVersion,
+  getSpawnOptions,
   streamToBuffer,
   AnalyzeOptions,
   BuildOptions,
   PrepareCacheOptions,
-  PrepareLayersOptions,
-  BuildLayerConfig,
-  BuildLayerResult,
-  Layer,
   ShouldServeOptions,
   shouldServe,
 };

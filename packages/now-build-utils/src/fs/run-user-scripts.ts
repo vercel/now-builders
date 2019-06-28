@@ -4,6 +4,8 @@ import path from 'path';
 import spawn from 'cross-spawn';
 import { SpawnOptions } from 'child_process';
 import { deprecate } from 'util';
+import { Meta, PackageJson, NodeVersion } from '../types';
+import { getSupportedNodeVersion } from './node-version';
 
 function spawnAsync(
   command: string,
@@ -52,16 +54,32 @@ export async function runShellScript(fsPath: string) {
   return true;
 }
 
-export async function hasPackageLockJson(destPath: string) {
-  const { hasPackageLockJson } = await scanParentDirs(destPath);
-  return hasPackageLockJson;
+export function getSpawnOptions(
+  meta: Meta,
+  nodeVersion: NodeVersion
+): SpawnOptions {
+  const opts = {
+    env: { ...process.env },
+  };
+
+  if (!meta.isDev) {
+    opts.env.PATH = `/node${nodeVersion.major}/bin:${opts.env.PATH}`;
+  }
+
+  return opts;
 }
 
-async function scanParentDirs(destPath: string, scriptName?: string) {
+export async function getNodeVersion(destPath: string): Promise<NodeVersion> {
+  const { packageJson } = await scanParentDirs(destPath, true);
+  const range = packageJson && packageJson.engines && packageJson.engines.node;
+  return getSupportedNodeVersion(range);
+}
+
+async function scanParentDirs(destPath: string, readPackageJson = false) {
   assert(path.isAbsolute(destPath));
 
-  let hasScript = false;
   let hasPackageLockJson = false;
+  let packageJson: PackageJson | undefined;
   let currentDestPath = destPath;
 
   // eslint-disable-next-line no-constant-condition
@@ -70,13 +88,8 @@ async function scanParentDirs(destPath: string, scriptName?: string) {
     // eslint-disable-next-line no-await-in-loop
     if (await fs.pathExists(packageJsonPath)) {
       // eslint-disable-next-line no-await-in-loop
-      if (scriptName) {
-        const packageJson = JSON.parse(
-          await fs.readFile(packageJsonPath, 'utf8')
-        );
-        hasScript = Boolean(
-          packageJson.scripts && scriptName && packageJson.scripts[scriptName]
-        );
+      if (readPackageJson) {
+        packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
       }
       // eslint-disable-next-line no-await-in-loop
       hasPackageLockJson = await fs.pathExists(
@@ -90,13 +103,13 @@ async function scanParentDirs(destPath: string, scriptName?: string) {
     currentDestPath = newDestPath;
   }
 
-  return { hasScript, hasPackageLockJson };
+  return { hasPackageLockJson, packageJson };
 }
 
 export async function runNpmInstall(
   destPath: string,
   args: string[] = [],
-  cmd?: string
+  spawnOpts?: SpawnOptions
 ) {
   assert(path.isAbsolute(destPath));
 
@@ -104,23 +117,19 @@ export async function runNpmInstall(
   console.log(`installing to ${destPath}`);
   const { hasPackageLockJson } = await scanParentDirs(destPath);
 
-  const opts: SpawnOptions = {
-    env: {
-      ...process.env,
-    },
-  };
+  const opts = spawnOpts || { env: process.env };
 
   if (hasPackageLockJson) {
     commandArgs = args.filter(a => a !== '--prefer-offline');
     await spawnAsync(
-      cmd || 'npm',
+      'npm',
       commandArgs.concat(['install', '--unsafe-perm']),
       destPath,
       opts
     );
   } else {
     await spawnAsync(
-      cmd || 'yarn',
+      'yarn',
       commandArgs.concat(['--ignore-engines', '--cwd', destPath]),
       destPath,
       opts
@@ -134,9 +143,15 @@ export async function runPackageJsonScript(
   opts?: SpawnOptions
 ) {
   assert(path.isAbsolute(destPath));
-  const { hasScript, hasPackageLockJson } = await scanParentDirs(
+  const { packageJson, hasPackageLockJson } = await scanParentDirs(
     destPath,
-    scriptName
+    true
+  );
+  const hasScript = Boolean(
+    packageJson &&
+      packageJson.scripts &&
+      scriptName &&
+      packageJson.scripts[scriptName]
   );
   if (!hasScript) return false;
 
@@ -157,7 +172,7 @@ export async function runPackageJsonScript(
 }
 
 /**
- * installDependencies() is deprecated.
+ * @deprecate installDependencies() is deprecated.
  * Please use runNpmInstall() instead.
  */
 export const installDependencies = deprecate(

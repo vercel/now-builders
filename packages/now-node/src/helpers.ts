@@ -5,13 +5,12 @@ import {
   NowRequestQuery,
   NowRequestBody,
 } from './types';
-import { Stream } from 'stream';
 import { Server } from 'http';
 import { Bridge } from './bridge';
 
-function getBodyParser(req: NowRequest, body?: Buffer) {
+function getBodyParser(req: NowRequest, body: Buffer) {
   return function parseBody(): NowRequestBody {
-    if (!body || !req.headers['content-type']) {
+    if (!req.headers['content-type']) {
       return undefined;
     }
 
@@ -73,56 +72,127 @@ function getCookieParser(req: NowRequest) {
   };
 }
 
-function sendStatusCode(res: NowResponse, statusCode: number): NowResponse {
+function status(res: NowResponse, statusCode: number): NowResponse {
   res.statusCode = statusCode;
   return res;
 }
 
-function sendData(res: NowResponse, body: any): NowResponse {
-  if (body === null) {
+function setCharset(type: string, charset: string) {
+  const { parse, format } = require('content-type');
+  const parsed = parse(type);
+  parsed.parameters.charset = charset;
+  return format(parsed);
+}
+
+function createETag(body: any, encoding: string | undefined) {
+  const etag = require('etag');
+  const buf = !Buffer.isBuffer(body) ? Buffer.from(body, encoding) : body;
+  return etag(buf, { weak: true });
+}
+
+function send(req: NowRequest, res: NowResponse, body: any): NowResponse {
+  let chunk: unknown = body;
+  let encoding: string | undefined;
+
+  switch (typeof chunk) {
+    // string defaulting to html
+    case 'string':
+      if (!res.getHeader('content-type')) {
+        res.setHeader('content-type', 'text/html');
+      }
+      break;
+    case 'boolean':
+    case 'number':
+    case 'object':
+      if (chunk === null) {
+        chunk = '';
+      } else if (Buffer.isBuffer(chunk)) {
+        if (!res.getHeader('content-type')) {
+          res.setHeader('content-type', 'application/octet-stream');
+        }
+      } else {
+        return json(req, res, chunk);
+      }
+      break;
+  }
+
+  // write strings in utf-8
+  if (typeof chunk === 'string') {
+    encoding = 'utf8';
+
+    // reflect this in content-type
+    const type = res.getHeader('content-type');
+    if (typeof type === 'string') {
+      res.setHeader('content-type', setCharset(type, 'utf-8'));
+    }
+  }
+
+  // populate Content-Length
+  let len: number | undefined;
+  if (chunk !== undefined) {
+    if (Buffer.isBuffer(chunk)) {
+      // get length of Buffer
+      len = chunk.length;
+    } else if (typeof chunk === 'string') {
+      if (chunk.length < 1000) {
+        // just calculate length small chunk
+        len = Buffer.byteLength(chunk, encoding);
+      } else {
+        // convert chunk to Buffer and calculate
+        const buf = Buffer.from(chunk, encoding);
+        len = buf.length;
+        chunk = buf;
+        encoding = undefined;
+      }
+    } else {
+      throw new Error(
+        '`body` is not a valid string, object, boolean, number, Stream, or Buffer'
+      );
+    }
+
+    if (len !== undefined) {
+      res.setHeader('content-length', len);
+    }
+  }
+
+  // populate ETag
+  let etag: string | undefined;
+  if (
+    !res.getHeader('etag') &&
+    len !== undefined &&
+    (etag = createETag(chunk, encoding))
+  ) {
+    res.setHeader('etag', etag);
+  }
+
+  // strip irrelevant headers
+  if (204 === res.statusCode || 304 === res.statusCode) {
+    res.removeHeader('Content-Type');
+    res.removeHeader('Content-Length');
+    res.removeHeader('Transfer-Encoding');
+    chunk = '';
+  }
+
+  if (req.method === 'HEAD') {
+    // skip body for HEAD
     res.end();
-    return res;
+  } else {
+    // respond
+    res.end(chunk, encoding);
   }
-
-  const contentType = res.getHeader('Content-Type');
-
-  if (Buffer.isBuffer(body)) {
-    if (!contentType) {
-      res.setHeader('Content-Type', 'application/octet-stream');
-    }
-    res.setHeader('Content-Length', body.length);
-    res.end(body);
-    return res;
-  }
-
-  if (body instanceof Stream) {
-    if (!contentType) {
-      res.setHeader('Content-Type', 'application/octet-stream');
-    }
-    body.pipe(res);
-    return res;
-  }
-
-  let str = body;
-
-  // Stringify JSON body
-  if (typeof body === 'object' || typeof body === 'number') {
-    str = JSON.stringify(body);
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  }
-
-  res.setHeader('Content-Length', Buffer.byteLength(str));
-  res.end(str);
 
   return res;
 }
 
-function sendJson(res: NowResponse, jsonBody: any): NowResponse {
-  // Set header to application/json
-  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+function json(req: NowRequest, res: NowResponse, jsonBody: any): NowResponse {
+  const body = JSON.stringify(jsonBody);
 
-  // Use send to handle request
-  return res.send(jsonBody);
+  // content-type
+  if (!res.getHeader('content-type')) {
+    res.setHeader('content-type', 'application/json; charset=utf-8');
+  }
+
+  return send(req, res, body);
 }
 
 export class ApiError extends Error {
@@ -186,9 +256,9 @@ export function createServerWithHelpers(
       setLazyProp<NowRequestQuery>(req, 'query', getQueryParser(req));
       setLazyProp<NowRequestBody>(req, 'body', getBodyParser(req, event.body));
 
-      res.status = statusCode => sendStatusCode(res, statusCode);
-      res.send = data => sendData(res, data);
-      res.json = data => sendJson(res, data);
+      res.status = statusCode => status(res, statusCode);
+      res.send = body => send(req, res, body);
+      res.json = jsonBody => json(req, res, jsonBody);
 
       await listener(req, res);
     } catch (err) {

@@ -1,6 +1,6 @@
 {
   "name": "@now/optipng",
-  "version": "0.6.2-canary.0",
+  "version": "0.6.2-canary.1",
   "license": "MIT",
   "main": "./dist/index",
   "files": [
@@ -21,6 +21,6 @@
   },
   "devDependencies": {
     "@types/node": "11.9.4",
-    "typescript": "3.3.3"
+    "typescript": "3.5.2"
   }
 }

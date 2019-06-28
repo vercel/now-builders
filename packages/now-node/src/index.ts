@@ -1,4 +1,3 @@
-import { readFile } from 'fs-extra';
 import { Assets, NccOptions } from '@zeit/ncc';
 import { join, dirname, relative, sep } from 'path';
 import { NccWatcher, WatcherResult } from '@zeit/ncc-watcher';
@@ -12,14 +11,14 @@ import {
   createLambda,
   runNpmInstall,
   runPackageJsonScript,
-  hasPackageLockJson,
-  PrepareLayersOptions,
+  getNodeVersion,
+  getSpawnOptions,
   PrepareCacheOptions,
-  BuildLayerConfig,
   BuildOptions,
   shouldServe,
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
+import { makeLauncher } from './launcher';
 
 interface CompilerConfig {
   includeFiles?: string | string[];
@@ -30,8 +29,6 @@ interface DownloadOptions {
   entrypoint: string;
   workPath: string;
   meta: Meta;
-  packageManagerArgs: string[];
-  packageManagerCmd: string | undefined;
 }
 
 const watchers: Map<string, NccWatcher> = new Map();
@@ -57,22 +54,18 @@ async function downloadInstallAndBundle({
   entrypoint,
   workPath,
   meta,
-  packageManagerArgs,
-  packageManagerCmd,
 }: DownloadOptions) {
   console.log('downloading user files...');
   const downloadedFiles = await download(files, workPath, meta);
 
   console.log("installing dependencies for user's code...");
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
-  await runNpmInstall(
-    entrypointFsDirname,
-    packageManagerArgs,
-    packageManagerCmd
-  );
+  const nodeVersion = await getNodeVersion(entrypointFsDirname);
+  const spawnOpts = getSpawnOptions(meta, nodeVersion);
+  await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
   const entrypointPath = downloadedFiles[entrypoint].fsPath;
-  return { entrypointPath, entrypointFsDirname };
+  return { entrypointPath, entrypointFsDirname, nodeVersion, spawnOpts };
 }
 
 async function compile(
@@ -172,91 +165,35 @@ async function compile(
   return { preparedFiles, watch };
 }
 
-const layerNames = {
-  node: '@now/layer-node@0.0.2-canary.4',
-  npm: '@now/layer-npm@0.0.2-canary.3',
-  yarn: '@now/layer-yarn@0.0.2-canary.3',
-};
-
 export const version = 2;
 
 export const config = {
   maxLambdaSize: '5mb',
 };
 
-export async function prepareLayers({
-  entrypoint,
-  config,
-}: PrepareLayersOptions) {
-  const { node = '8.10.0', npm = '5.6.0', yarn = '1.13.0' } = config;
-  const { platform, arch } = process;
-
-  if (typeof node !== 'string') {
-    throw new Error(`Expected a string for \`config.node\`, but found ${node}`);
-  }
-  if (typeof npm !== 'string') {
-    throw new Error(`Expected a string for \`config.npm\`, but found ${npm}`);
-  }
-  if (typeof yarn !== 'string') {
-    throw new Error(`Expected a string for \`config.yarn\`, but found ${yarn}`);
-  }
-
-  const layerDefinitions: { [key: string]: BuildLayerConfig } = {
-    [layerNames.node]: { runtimeVersion: node, platform, arch },
-  };
-
-  if (await hasPackageLockJson(entrypoint)) {
-    layerDefinitions[layerNames.npm] = {
-      runtimeVersion: npm,
-      platform,
-      arch,
-    };
-  } else {
-    layerDefinitions[layerNames.yarn] = {
-      runtimeVersion: yarn,
-      platform,
-      arch,
-    };
-  }
-
-  return layerDefinitions;
-}
-
 export async function build({
   files,
   entrypoint,
   workPath,
   config,
-  layers,
   meta = {},
 }: BuildOptions) {
   const shouldAddHelpers = !(config && config.helpers === false);
 
-  let packageManagerCmd: string | undefined;
-  let packageManagerArgs = ['--prefer-offline'];
-
-  if (layers) {
-    console.log('using experimental layers');
-    packageManagerCmd = await layers[layerNames.node].getEntrypoint();
-    const pmLayer = layers[layerNames.npm] || layers[layerNames.yarn];
-    const packageManagerScript = await pmLayer.getEntrypoint();
-    packageManagerArgs = [packageManagerScript, '--prefer-offline'];
-  }
-
   const {
     entrypointPath,
     entrypointFsDirname,
+    nodeVersion,
+    spawnOpts,
   } = await downloadInstallAndBundle({
     files,
     entrypoint,
     workPath,
     meta,
-    packageManagerArgs,
-    packageManagerCmd,
   });
 
   console.log('running user script...');
-  await runPackageJsonScript(entrypointFsDirname, 'now-build');
+  await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOpts);
 
   console.log('compiling entrypoint with ncc...');
   const { preparedFiles, watch } = await compile(
@@ -266,28 +203,11 @@ export async function build({
     config,
     meta
   );
-  const launcherPath = join(__dirname, 'launcher.js');
-  let launcherData = await readFile(launcherPath, 'utf8');
-
-  launcherData = launcherData.replace(
-    '// PLACEHOLDER:shouldStoreProxyRequests',
-    shouldAddHelpers ? 'shouldStoreProxyRequests = true;' : ''
-  );
-
-  launcherData = launcherData.replace(
-    '// PLACEHOLDER:setServer',
-    [
-      `let listener = require("./${entrypoint}");`,
-      'if (listener.default) listener = listener.default;',
-      shouldAddHelpers
-        ? 'const server = require("./helpers").createServerWithHelpers(listener, bridge);'
-        : 'const server = require("http").createServer(listener);',
-      'bridge.setServer(server);',
-    ].join(' ')
-  );
 
   const launcherFiles: Files = {
-    'launcher.js': new FileBlob({ data: launcherData }),
+    'launcher.js': new FileBlob({
+      data: makeLauncher(entrypoint, shouldAddHelpers),
+    }),
     'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
   };
 
@@ -302,9 +222,8 @@ export async function build({
       ...preparedFiles,
       ...launcherFiles,
     },
-    layers: layers ? { [layerNames.node]: layers[layerNames.node] } : {},
     handler: 'launcher.launcher',
-    runtime: layers ? 'provided' : 'nodejs8.10',
+    runtime: nodeVersion.runtime,
   });
 
   const output = { [entrypoint]: lambda };
