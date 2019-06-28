@@ -7,7 +7,6 @@ import {
 } from './types';
 import { Server } from 'http';
 import { Bridge } from './bridge';
-import etag from 'etag';
 
 function getBodyParser(req: NowRequest, body: Buffer) {
   return function parseBody(): NowRequestBody {
@@ -86,6 +85,7 @@ function setCharset(type: string, charset: string) {
 }
 
 function createETag(body: any, encoding: string | undefined) {
+  const etag = require('etag');
   const buf = !Buffer.isBuffer(body) ? Buffer.from(body, encoding) : body;
   return etag(buf, { weak: true });
 }
