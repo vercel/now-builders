@@ -139,8 +139,9 @@ function send(req: NowRequest, res: NowResponse, body: any): NowResponse {
         len = Buffer.byteLength(chunk, encoding);
       } else {
         // convert chunk to Buffer and calculate
-        chunk = Buffer.from(chunk, encoding);
-        len = (chunk as Buffer).length;
+        const buf = Buffer.from(chunk, encoding);
+        len = buf.length;
+        chunk = buf;
         encoding = undefined;
       }
     } else {
