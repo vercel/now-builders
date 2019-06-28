@@ -78,83 +78,113 @@ function status(res: NowResponse, statusCode: number): NowResponse {
   return res;
 }
 
-function setContentHeaders(res: NowResponse, type: string): void {
-  if (!res.getHeader('content-type')) {
-    res.setHeader('content-type', type);
-  }
+function setCharset(type: string, charset: string) {
+  const { parse, format } = require('content-type');
+  const parsed = parse(type);
+  parsed.parameters.charset = charset;
+  return format(parsed);
 }
 
-function sendBuffer(res: NowResponse, buf: Buffer): NowResponse {
-  if (!res.getHeader('etag')) {
-    res.setHeader('etag', etag(buf, { weak: true }));
-  }
-  res.setHeader('content-length', buf.length);
-  res.end(buf);
-  return res;
+function createETag(body: any, encoding: string | undefined) {
+  const buf = !Buffer.isBuffer(body) ? Buffer.from(body, encoding) : body;
+  return etag(buf, { weak: true });
 }
 
 function send(req: NowRequest, res: NowResponse, body: any): NowResponse {
-  const t = typeof body;
+  let chunk = body;
+  let encoding;
+  let type;
 
-  if (req.method === 'HEAD') {
-    res.end();
-    return res;
-  }
-
-  switch (res.statusCode) {
-    case 204:
-    case 304:
-      res.removeHeader('content-type');
-      res.removeHeader('content-length');
-      res.removeHeader('transfer-encoding');
-      res.end();
-      return res;
-  }
-
-  if (body === null || t === 'undefined') {
-    res.end();
-    return res;
-  }
-
-  if (t === 'string') {
-    const buf = Buffer.from(body, 'utf8');
-    setContentHeaders(res, 'text/html; charset=utf-8');
-    return sendBuffer(res, buf);
-  }
-
-  if (Buffer.isBuffer(body)) {
-    setContentHeaders(res, 'application/octet-stream');
-    return sendBuffer(res, body);
-  }
-
-  switch (t) {
+  switch (typeof chunk) {
+    // string defaulting to html
+    case 'string':
+      if (!res.getHeader('content-type')) {
+        res.setHeader('content-type', 'text/html');
+      }
+      break;
     case 'boolean':
     case 'number':
-    case 'bigint':
     case 'object':
-      return json(req, res, body);
+      if (chunk === null) {
+        chunk = '';
+      } else if (Buffer.isBuffer(chunk)) {
+        if (!res.getHeader('content-type')) {
+          res.setHeader('content-type', 'application/octet-stream');
+        }
+      } else {
+        return json(req, res, chunk);
+      }
+      break;
   }
 
-  throw new Error(
-    '`body` is not a valid string, object, boolean, number, Stream, or Buffer'
-  );
+  // write strings in utf-8
+  if (typeof chunk === 'string') {
+    encoding = 'utf8';
+    type = res.getHeader('content-type');
+
+    // reflect this in content-type
+    if (typeof type === 'string') {
+      res.setHeader('content-type', setCharset(type, 'utf-8'));
+    }
+  }
+
+  // populate Content-Length
+  let len;
+  if (chunk !== undefined) {
+    if (Buffer.isBuffer(chunk)) {
+      // get length of Buffer
+      len = chunk.length;
+    } else if (chunk.length < 1000) {
+      // just calculate length when no ETag + small chunk
+      len = Buffer.byteLength(chunk, encoding);
+    } else {
+      // convert chunk to Buffer and calculate
+      chunk = Buffer.from(chunk, encoding);
+      encoding = undefined;
+      len = chunk.length;
+    }
+
+    res.setHeader('content-length', len);
+  }
+
+  // populate ETag
+  let etag;
+  if (
+    !res.getHeader('etag') &&
+    len !== undefined &&
+    (etag = createETag(chunk, encoding))
+  ) {
+    res.setHeader('etag', etag);
+  }
+
+  // strip irrelevant headers
+  if (204 === res.statusCode || 304 === res.statusCode) {
+    res.removeHeader('Content-Type');
+    res.removeHeader('Content-Length');
+    res.removeHeader('Transfer-Encoding');
+    chunk = '';
+  }
+
+  if (req.method === 'HEAD') {
+    // skip body for HEAD
+    res.end();
+  } else {
+    // respond
+    res.end(chunk, encoding);
+  }
+
+  return res;
 }
 
 function json(req: NowRequest, res: NowResponse, jsonBody: any): NowResponse {
-  switch (typeof jsonBody) {
-    case 'object':
-    case 'boolean':
-    case 'number':
-    case 'bigint':
-    case 'string':
-      const body = JSON.stringify(jsonBody);
-      setContentHeaders(res, 'application/json; charset=utf-8');
-      return send(req, res, body);
+  const body = JSON.stringify(jsonBody);
+
+  // content-type
+  if (!res.getHeader('content-type')) {
+    res.setHeader('content-type', 'application/json; charset=utf-8');
   }
 
-  throw new Error(
-    '`jsonBody` is not a valid object, boolean, string, number, or null'
-  );
+  return send(req, res, body);
 }
 
 export class ApiError extends Error {

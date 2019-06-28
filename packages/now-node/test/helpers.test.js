@@ -464,7 +464,7 @@ describe('res.send', () => {
 
     test('should not override Content-Type', async () => {
       mockListener.mockImplementation((req, res) => {
-        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
         res.send(Buffer.from('hey'));
       });
 
