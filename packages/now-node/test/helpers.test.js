@@ -508,9 +508,11 @@ describe('res.send', () => {
         res.send('yay');
       });
 
+      // TODO: fix this test
+      // node-fetch is automatically ignoring the body so this test will never fail
       const res = await fetchWithProxyReq(url, { method: 'HEAD' });
       expect(res.status).toBe(200);
-      expect(await res.text()).toBe('');
+      expect((await res.buffer()).toString()).toBe('');
     });
   });
 
