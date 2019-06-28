@@ -93,8 +93,13 @@ function sendBuffer(res: NowResponse, buf: Buffer): NowResponse {
   return res;
 }
 
-function send(res: NowResponse, body: any): NowResponse {
+function send(req: NowRequest, res: NowResponse, body: any): NowResponse {
   const t = typeof body;
+
+  if (req.method === 'HEAD') {
+    res.end();
+    return res;
+  }
 
   switch (res.statusCode) {
     case 204:
@@ -127,7 +132,7 @@ function send(res: NowResponse, body: any): NowResponse {
     case 'number':
     case 'bigint':
     case 'object':
-      return json(res, body);
+      return json(req, res, body);
   }
 
   throw new Error(
@@ -135,7 +140,7 @@ function send(res: NowResponse, body: any): NowResponse {
   );
 }
 
-function json(res: NowResponse, jsonBody: any): NowResponse {
+function json(req: NowRequest, res: NowResponse, jsonBody: any): NowResponse {
   switch (typeof jsonBody) {
     case 'object':
     case 'boolean':
@@ -144,7 +149,7 @@ function json(res: NowResponse, jsonBody: any): NowResponse {
     case 'string':
       const body = JSON.stringify(jsonBody);
       setContentHeaders(res, 'application/json; charset=utf-8');
-      return send(res, body);
+      return send(req, res, body);
   }
 
   throw new Error(
@@ -214,8 +219,8 @@ export function createServerWithHelpers(
       setLazyProp<NowRequestBody>(req, 'body', getBodyParser(req, event.body));
 
       res.status = statusCode => status(res, statusCode);
-      res.send = body => send(res, body);
-      res.json = jsonBody => json(res, jsonBody);
+      res.send = body => send(req, res, body);
+      res.json = jsonBody => json(req, res, jsonBody);
 
       await listener(req, res);
     } catch (err) {
