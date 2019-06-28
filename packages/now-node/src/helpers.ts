@@ -91,9 +91,8 @@ function createETag(body: any, encoding: string | undefined) {
 }
 
 function send(req: NowRequest, res: NowResponse, body: any): NowResponse {
-  let chunk = body;
-  let encoding;
-  let type;
+  let chunk: unknown = body;
+  let encoding: string | undefined;
 
   switch (typeof chunk) {
     // string defaulting to html
@@ -120,35 +119,43 @@ function send(req: NowRequest, res: NowResponse, body: any): NowResponse {
   // write strings in utf-8
   if (typeof chunk === 'string') {
     encoding = 'utf8';
-    type = res.getHeader('content-type');
 
     // reflect this in content-type
+    const type = res.getHeader('content-type');
     if (typeof type === 'string') {
       res.setHeader('content-type', setCharset(type, 'utf-8'));
     }
   }
 
   // populate Content-Length
-  let len;
+  let len: number | undefined;
   if (chunk !== undefined) {
     if (Buffer.isBuffer(chunk)) {
       // get length of Buffer
       len = chunk.length;
-    } else if (chunk.length < 1000) {
-      // just calculate length when no ETag + small chunk
-      len = Buffer.byteLength(chunk, encoding);
+    } else if (typeof chunk === 'string') {
+      if (chunk.length < 1000) {
+        // just calculate length small chunk
+        len = Buffer.byteLength(chunk, encoding);
+      } else {
+        // convert chunk to Buffer and calculate
+        chunk = Buffer.from(chunk, encoding);
+        len = (chunk as Buffer).length;
+        encoding = undefined;
+      }
     } else {
-      // convert chunk to Buffer and calculate
-      chunk = Buffer.from(chunk, encoding);
-      encoding = undefined;
-      len = chunk.length;
+      throw new Error(
+        '`body` is not a valid string, object, boolean, number, Stream, or Buffer'
+      );
     }
 
-    res.setHeader('content-length', len);
+    if (len !== undefined) {
+      res.setHeader('content-length', len);
+    }
   }
 
   // populate ETag
-  let etag;
+  let etag: string | undefined;
   if (
     !res.getHeader('etag') &&
     len !== undefined &&
