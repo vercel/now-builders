@@ -1,11 +1,9 @@
-const path = require('path');
-const spawn = require('cross-spawn');
-const getPort = require('get-port');
-const { timeout } = require('promise-timeout');
-const {
-  existsSync, readFileSync, statSync, readdirSync,
-} = require('fs');
-const {
+import path from 'path';
+import spawn from 'cross-spawn';
+import getPort from 'get-port';
+import { timeout } from 'promise-timeout';
+import { existsSync, readFileSync, statSync, readdirSync } from 'fs';
+import {
   glob,
   download,
   runNpmInstall,
@@ -13,42 +11,72 @@ const {
   runShellScript,
   getNodeVersion,
   getSpawnOptions,
-} = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
+  Files,
+  BuildOptions,
+} from '@now/build-utils';
 
-function validateDistDir(distDir, isDev) {
+interface PackageJson {
+  scripts?: {
+    [key: string]: string;
+  };
+}
+
+function validateDistDir(distDir: string, isDev: boolean | undefined) {
   const hash = isDev
     ? '#local-development'
     : '#configuring-the-build-output-directory';
   const docsUrl = `https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build${hash}`;
   const distDirName = path.basename(distDir);
   if (!existsSync(distDir)) {
-    const message = `Build was unable to create the distDir: "${distDirName}".`
-      + `\nMake sure you configure the the correct distDir: ${docsUrl}`;
+    const message =
+      `Build was unable to create the distDir: "${distDirName}".` +
+      `\nMake sure you configure the the correct distDir: ${docsUrl}`;
     throw new Error(message);
   }
   const stat = statSync(distDir);
   if (!stat.isDirectory()) {
-    const message = `Build failed because distDir is not a directory: "${distDirName}".`
-      + `\nMake sure you configure the the correct distDir: ${docsUrl}`;
+    const message =
+      `Build failed because distDir is not a directory: "${distDirName}".` +
+      `\nMake sure you configure the the correct distDir: ${docsUrl}`;
     throw new Error(message);
   }
 
   const contents = readdirSync(distDir);
   if (contents.length === 0) {
-    const message = `Build failed because distDir is empty: "${distDirName}".`
-      + `\nMake sure you configure the the correct distDir: ${docsUrl}`;
+    const message =
+      `Build failed because distDir is empty: "${distDirName}".` +
+      `\nMake sure you configure the the correct distDir: ${docsUrl}`;
     throw new Error(message);
   }
 }
 
-exports.version = 2;
+function getCommand(pkg: PackageJson, cmd: string) {
+  const scripts = (pkg && pkg.scripts) || {};
+  const nowCmd = `now-${cmd}`;
+
+  if (scripts[nowCmd]) {
+    return nowCmd;
+  }
+
+  if (scripts[cmd]) {
+    return cmd;
+  }
+
+  return nowCmd;
+}
+
+export const version = 2;
 
 const nowDevScriptPorts = new Map();
 
-exports.build = async ({
-  files, entrypoint, workPath, config, meta = {},
-}) => {
-  console.log('downloading user files...');
+export async function build({
+  files,
+  entrypoint,
+  workPath,
+  config,
+  meta = {},
+}: BuildOptions) {
+  console.log('Downloading user files...');
   await download(files, workPath, meta);
 
   const mountpoint = path.dirname(entrypoint);
@@ -58,25 +86,38 @@ exports.build = async ({
   const distPath = path.join(
     workPath,
     path.dirname(entrypoint),
-    (config && config.distDir) || 'dist',
+    (config && (config.distDir as string)) || 'dist'
   );
 
   const entrypointName = path.basename(entrypoint);
+
+  if (entrypointName.endsWith('.sh')) {
+    console.log(`Running build script "${entrypoint}"`);
+    await runShellScript(path.join(workPath, entrypoint));
+    validateDistDir(distPath, meta.isDev);
+    return glob('**', distPath, mountpoint);
+  }
+
   if (entrypointName === 'package.json') {
     await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
     const pkgPath = path.join(workPath, entrypoint);
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 
-    let output = {};
-    const routes = [];
+    let output: Files = {};
+    const routes: { src: string; dest: string }[] = [];
+    const devScript = getCommand(pkg, 'dev');
 
-    if (meta.isDev && pkg.scripts && pkg.scripts['now-dev']) {
+    if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
       let devPort = nowDevScriptPorts.get(entrypoint);
       if (typeof devPort === 'number') {
-        console.log('`now-dev` server already running for %j', entrypoint);
+        console.log(
+          '`%s` server already running for %j',
+          devScript,
+          entrypoint
+        );
       } else {
-        // Run the `now-dev` script out-of-bounds, since it is assumed that
+        // Run the `now-dev` or `dev` script out-of-bounds, since it is assumed that
         // it will launch a dev server that never "completes"
         devPort = await getPort();
         nowDevScriptPorts.set(entrypoint, devPort);
@@ -84,7 +125,7 @@ exports.build = async ({
           cwd: entrypointFsDirname,
           env: { ...process.env, PORT: String(devPort) },
         };
-        const child = spawn('npm', ['run', 'now-dev'], opts);
+        const child = spawn('npm', ['run', devScript], opts);
         child.on('exit', () => nowDevScriptPorts.delete(entrypoint));
         child.stdout.setEncoding('utf8');
         child.stdout.pipe(process.stdout);
@@ -96,8 +137,8 @@ exports.build = async ({
         // for this builder.
         try {
           await timeout(
-            new Promise((resolve) => {
-              const checkForPort = (data) => {
+            new Promise(resolve => {
+              const checkForPort = (data: string) => {
                 // Check the logs for the URL being printed with the port number
                 // (i.e. `http://localhost:47521`).
                 if (data.indexOf(`:${devPort}`) !== -1) {
@@ -107,11 +148,11 @@ exports.build = async ({
               child.stdout.on('data', checkForPort);
               child.stderr.on('data', checkForPort);
             }),
-            5 * 60 * 1000,
+            5 * 60 * 1000
           );
         } catch (err) {
           throw new Error(
-            `Failed to detect a server running on port ${devPort}.\nDetails: https://err.sh/zeit/now-builders/now-static-build-failed-to-detect-a-server`,
+            `Failed to detect a server running on port ${devPort}.\nDetails: https://err.sh/zeit/now-builders/now-static-build-failed-to-detect-a-server`
           );
         }
 
@@ -128,37 +169,31 @@ exports.build = async ({
       });
     } else {
       if (meta.isDev) {
-        console.log('WARN: "now-dev" script is missing from package.json');
+        console.log('WARN: "${devScript}" script is missing from package.json');
         console.log(
-          'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development',
+          'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development'
         );
       }
-      // Run the `now-build` script and wait for completion to collect the build
-      // outputs
-      console.log('running user "now-build" script from `package.json`...');
-      if (
-        !(await runPackageJsonScript(
-          entrypointFsDirname,
-          'now-build',
-          spawnOpts,
-        ))
-      ) {
+      const buildScript = getCommand(pkg, 'build');
+      console.log(`Running "${buildScript}" script in "${entrypoint}"`);
+      const found = await runPackageJsonScript(
+        entrypointFsDirname,
+        buildScript,
+        spawnOpts
+      );
+      if (!found) {
         throw new Error(
-          `An error running "now-build" script in "${entrypoint}"`,
+          `Missing required "${buildScript}" script in "${entrypoint}"`
         );
       }
-      validateDistDir(distPath);
+      validateDistDir(distPath, meta.isDev);
       output = await glob('**', distPath, mountpoint);
     }
     const watch = [path.join(mountpoint.replace(/^\.\/?/, ''), '**/*')];
     return { routes, watch, output };
   }
 
-  if (path.extname(entrypoint) === '.sh') {
-    await runShellScript(path.join(workPath, entrypoint));
-    validateDistDir(distPath);
-    return glob('**', distPath, mountpoint);
-  }
-
-  throw new Error('Proper build script must be specified as entrypoint');
-};
+  throw new Error(
+    `Build "src" is "${entrypoint}" but expected "package.json" or "build.sh"`
+  );
+}
