@@ -185,7 +185,7 @@ export async function build({
           'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development'
         );
       }
-      const buildScript = getCommand(pkg, 'build');
+      const buildScript = getCommand(pkg, 'build', config);
       console.log(`Running "${buildScript}" script in "${entrypoint}"`);
       const found = await runPackageJsonScript(
         entrypointFsDirname,
