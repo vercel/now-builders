@@ -56,14 +56,14 @@ function getCommand(
   config: { zeroConfig: boolean }
 ) {
   // The `dev` script can be `now dev`
+  const nowCmd = `now-${cmd}`;
   const { zeroConfig } = config;
 
   if (!zeroConfig && cmd === 'dev') {
-    return 'now-dev';
+    return nowCmd;
   }
 
   const scripts = (pkg && pkg.scripts) || {};
-  const nowCmd = `now-${cmd}`;
 
   if (scripts[nowCmd]) {
     return nowCmd;
