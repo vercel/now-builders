@@ -50,7 +50,18 @@ function validateDistDir(distDir: string, isDev: boolean | undefined) {
   }
 }
 
-function getCommand(pkg: PackageJson, cmd: string) {
+function getCommand(
+  pkg: PackageJson,
+  cmd: string,
+  config: { zeroConfig: boolean }
+) {
+  // The `dev` script can be `now dev`
+  const { zeroConfig } = config;
+
+  if (!zeroConfig && cmd === 'dev') {
+    return 'now-dev';
+  }
+
   const scripts = (pkg && pkg.scripts) || {};
   const nowCmd = `now-${cmd}`;
 
@@ -106,7 +117,7 @@ export async function build({
 
     let output: Files = {};
     const routes: { src: string; dest: string }[] = [];
-    const devScript = getCommand(pkg, 'dev');
+    const devScript = getCommand(pkg, 'dev', config);
 
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
       let devPort = nowDevScriptPorts.get(entrypoint);
