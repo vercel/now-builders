@@ -13,7 +13,6 @@ import {
   getSpawnOptions,
   Files,
   BuildOptions,
-  Config,
 } from '@now/build-utils';
 
 interface PackageJson {
@@ -51,7 +50,7 @@ function validateDistDir(distDir: string, isDev: boolean | undefined) {
   }
 }
 
-function getCommand(pkg: PackageJson, cmd: string, config: Config) {
+function getCommand(pkg: PackageJson, cmd: string, config) {
   // The `dev` script can be `now dev`
   const nowCmd = `now-${cmd}`;
   const { zeroConfig } = config;
