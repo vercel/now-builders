@@ -308,7 +308,7 @@ export const build = async ({
   const dynamicPages: string[] = [];
 
   // Use the system-installed version of `node` when running via `now dev`
-  const runtime = meta.isDev ? 'nodejs' : 'nodejs8.10';
+  const runtime = meta.isDev ? 'nodejs' : nodeVersion.runtime;
 
   if (isLegacy) {
     const filesAfterBuild = await glob('**', entryPath);
