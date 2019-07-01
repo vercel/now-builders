@@ -25,6 +25,7 @@ export interface Config {
   rust?: string;
   debug?: boolean;
   zeroConfig?: boolean;
+  imports?: { [key: string]: string };
 }
 
 export interface Meta {
