@@ -16,7 +16,13 @@ export interface Files {
 }
 
 export interface Config {
-  [key: string]: string | string[] | boolean | number | undefined;
+  [key: string]:
+    | string
+    | string[]
+    | boolean
+    | number
+    | { [key: string]: string }
+    | undefined;
   maxLambdaSize?: string;
   includeFiles?: string | string[];
   bundle?: boolean;

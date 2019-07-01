@@ -43,7 +43,7 @@ exports.build = async ({
   }, {});
 
   if (config && config.imports) {
-    Object.keys(config).forEach((key) => {
+    Object.keys(config.imports).forEach((key) => {
       const name = snakeCase(key).toUpperCase();
       // eslint-disable-next-line no-param-reassign
       configEnv[`IMPORT_${name}`] = config.imports[key];
