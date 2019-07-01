@@ -285,10 +285,9 @@ export const build = async ({
 
   console.log('running user script...');
   const memoryToConsume = Math.floor(os.totalmem() / 1024 ** 2) - 128;
-  const buildSpawnOptions = { ...spawnOpts };
-  const env = { ...buildSpawnOptions.env } as any;
+  const env = { ...spawnOpts.env } as any;
   env.NODE_OPTIONS = `--max_old_space_size=${memoryToConsume}`;
-  await runPackageJsonScript(entryPath, 'now-build', buildSpawnOptions);
+  await runPackageJsonScript(entryPath, 'now-build', { ...spawnOpts, env });
 
   if (isLegacy) {
     console.log('running npm install --production...');
