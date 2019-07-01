@@ -42,11 +42,11 @@ exports.build = async ({
     return o;
   }, {});
 
-  if (config && config.imports) {
-    Object.keys(config.imports).forEach((key) => {
+  if (config && config.import) {
+    Object.keys(config.import).forEach((key) => {
       const name = snakeCase(key).toUpperCase();
       // eslint-disable-next-line no-param-reassign
-      configEnv[`IMPORT_${name}`] = config.imports[key];
+      configEnv[`IMPORT_${name}`] = config.import[key];
     });
   }
 
