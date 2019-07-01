@@ -165,6 +165,8 @@ export const build = async ({
   watch?: string[];
   childProcesses: ChildProcess[];
 }> => {
+  process.env.__NEXT_BUILDER_EXPERIMENTAL_TARGET = 'serverless';
+
   validateEntrypoint(entrypoint);
 
   const entryDirectory = path.dirname(entrypoint);
@@ -186,11 +188,7 @@ export const build = async ({
     );
   }
 
-  process.env.__NEXT_BUILDER_EXPERIMENTAL_TARGET = 'serverless';
-
   if (meta.isDev) {
-    // eslint-disable-next-line no-underscore-dangle
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
     let childProcess: ChildProcess | undefined;
 
     // If this is the initial build, we want to start the server
