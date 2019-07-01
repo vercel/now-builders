@@ -307,9 +307,6 @@ export const build = async ({
   const staticPages: { [key: string]: FileFsRef } = {};
   const dynamicPages: string[] = [];
 
-  // Use the system-installed version of `node` when running via `now dev`
-  const runtime = meta.isDev ? 'nodejs' : nodeVersion.runtime;
-
   if (isLegacy) {
     const filesAfterBuild = await glob('**', entryPath);
 
@@ -389,7 +386,7 @@ export const build = async ({
             'now__launcher.js': new FileBlob({ data: launcher }),
           },
           handler: 'now__launcher.launcher',
-          runtime,
+          runtime: nodeVersion.runtime,
         });
         console.log(`Created lambda for page: "${page}"`);
       })
@@ -474,7 +471,7 @@ export const build = async ({
             'page.js': pages[page],
           },
           handler: 'now__launcher.launcher',
-          runtime,
+          runtime: nodeVersion.runtime,
         });
         console.log(`Created lambda for page: "${page}"`);
       })
