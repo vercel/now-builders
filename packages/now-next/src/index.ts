@@ -26,7 +26,9 @@ import {
   getSpawnOptions,
 } from '@now/build-utils';
 
-import nextLegacyVersions from './legacy-versions';
+import nextLegacyVersions, {
+  FIRST_SUPPORT_FOR_TARGET_ENV,
+} from './legacy-versions';
 import {
   EnvConfig,
   excludeFiles,
@@ -43,7 +45,6 @@ import {
   getDynamicRoutes,
   isDynamicRoute,
 } from './utils';
-
 import createServerlessConfig from './create-serverless-config';
 
 interface BuildParamsMeta {
@@ -177,15 +178,22 @@ export const build = async ({
   console.log(`${name} Downloading user files...`);
   await download(files, workPath, meta);
 
-  if (!meta.isDev) {
+  const pkg = await readPackageJson(entryPath);
+  const nextVersion = getNextVersion(pkg);
+  const nextSemVersion = nextVersion && semver.coerce(nextVersion);
+
+  if (
+    meta.isDev ||
+    (nextSemVersion &&
+      semver.gte(nextSemVersion.version, FIRST_SUPPORT_FOR_TARGET_ENV))
+  ) {
+    process.env.__NEXT_BUILDER_EXPERIMENTAL_TARGET = 'serverless';
+  } else {
     await createServerlessConfig(workPath);
   }
 
   const nodeVersion = await getNodeVersion(entryPath);
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
-
-  const pkg = await readPackageJson(entryPath);
-  const nextVersion = getNextVersion(pkg);
 
   if (!nextVersion) {
     throw new Error(
