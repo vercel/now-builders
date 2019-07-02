@@ -9,7 +9,7 @@ module.exports = function(...args) {
   const finalConfig = {};
 
   if (typeof original === 'function' && original.constructor.name === 'AsyncFunction') {
-    // Special case if it should be a promise
+    // Special case for promises
     return original(...args)
       .then((orignalConfig) => Object.assign(finalConfig, orignalConfig))
       .then((config) => Object.assign(config, { target: 'serverless' }));
@@ -19,7 +19,9 @@ module.exports = function(...args) {
     Object.assign(finalConfig, original);
   }
 
-  return Object.assign(finalConfig, { target: 'serverless' });
+  Object.assign(finalConfig, { target: 'serverless' });
+
+  return finalConfig;
 }
   `.trim();
 }

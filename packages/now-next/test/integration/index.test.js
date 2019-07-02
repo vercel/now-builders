@@ -1,5 +1,6 @@
 /* global it, expect */
 const path = require('path');
+const fs = require('fs-extra');
 const runBuildLambda = require('../../../../test/lib/run-build-lambda');
 
 const FOUR_MINUTES = 240000;
@@ -108,6 +109,62 @@ it(
       buildResult: { output },
     } = await runBuildLambda(path.join(__dirname, 'public-files'));
     expect(output['robots.txt']).toBeDefined();
+  },
+  FOUR_MINUTES,
+);
+
+it(
+  'Should build the serverless-config example',
+  async () => {
+    const {
+      workPath,
+      buildResult: { output },
+    } = await runBuildLambda(path.join(__dirname, 'serverless-config'));
+
+    expect(output['index.html']).toBeDefined();
+    expect(output.goodbye).toBeDefined();
+    const filePaths = Object.keys(output);
+    const serverlessError = filePaths.some(filePath => filePath.match(/_error/));
+    const hasUnderScoreAppStaticFile = filePaths.some(filePath => filePath.match(/static.*\/pages\/_app\.js$/));
+    const hasUnderScoreErrorStaticFile = filePaths.some(filePath => filePath.match(/static.*\/pages\/_error\.js$/));
+    expect(hasUnderScoreAppStaticFile).toBeTruthy();
+    expect(hasUnderScoreErrorStaticFile).toBeTruthy();
+    expect(serverlessError).toBeTruthy();
+
+    const contents = await fs.readdir(workPath);
+
+    expect(contents.some(name => name === 'next.config.js')).toBeTruthy();
+    expect(
+      contents.some(name => name.includes('next.config.original.')),
+    ).toBeTruthy();
+  },
+  FOUR_MINUTES,
+);
+
+it(
+  'Should build the serverless-no-config example',
+  async () => {
+    const {
+      workPath,
+      buildResult: { output },
+    } = await runBuildLambda(path.join(__dirname, 'serverless-no-config'));
+
+    expect(output['index.html']).toBeDefined();
+    expect(output.goodbye).toBeDefined();
+    const filePaths = Object.keys(output);
+    const serverlessError = filePaths.some(filePath => filePath.match(/_error/));
+    const hasUnderScoreAppStaticFile = filePaths.some(filePath => filePath.match(/static.*\/pages\/_app\.js$/));
+    const hasUnderScoreErrorStaticFile = filePaths.some(filePath => filePath.match(/static.*\/pages\/_error\.js$/));
+    expect(hasUnderScoreAppStaticFile).toBeTruthy();
+    expect(hasUnderScoreErrorStaticFile).toBeTruthy();
+    expect(serverlessError).toBeTruthy();
+
+    const contents = await fs.readdir(workPath);
+
+    expect(contents.some(name => name === 'next.config.js')).toBeTruthy();
+    expect(
+      contents.some(name => name.includes('next.config.original.')),
+    ).toBeFalsy();
   },
   FOUR_MINUTES,
 );

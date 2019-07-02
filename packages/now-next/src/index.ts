@@ -4,6 +4,7 @@ import {
   readFile,
   unlink as unlinkFile,
   writeFile,
+  readdir,
 } from 'fs-extra';
 import os from 'os';
 import path from 'path';
@@ -169,14 +170,16 @@ export const build = async ({
 }> => {
   validateEntrypoint(entrypoint);
 
-  await createServerlessConfig(workPath);
-
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
   const dotNextStatic = path.join(entryPath, '.next/static');
 
   console.log(`${name} Downloading user files...`);
   await download(files, workPath, meta);
+
+  if (!meta.isDev) {
+    await createServerlessConfig(workPath);
+  }
 
   const nodeVersion = await getNodeVersion(entryPath);
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
