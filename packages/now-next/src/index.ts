@@ -43,6 +43,8 @@ import {
   isDynamicRoute,
 } from './utils';
 
+import createServerlessConfig from './create-serverless-config';
+
 interface BuildParamsMeta {
   isDev: boolean | undefined;
   env?: EnvConfig;
@@ -165,9 +167,9 @@ export const build = async ({
   watch?: string[];
   childProcesses: ChildProcess[];
 }> => {
-  process.env.__NEXT_BUILDER_EXPERIMENTAL_TARGET = 'serverless';
-
   validateEntrypoint(entrypoint);
+
+  await createServerlessConfig(workPath);
 
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
