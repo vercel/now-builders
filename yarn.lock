@@ -1171,10 +1171,10 @@
     globby "8.0.0"
     signal-exit "3.0.2"
 
-"@zeit/ncc-watcher@1.0.4-canary.3":
-  version "1.0.4-canary.3"
-  resolved "https://registry.yarnpkg.com/@zeit/ncc-watcher/-/ncc-watcher-1.0.4-canary.3.tgz#b49f6adb80ba4a226151a91a8426e71a8cf65216"
-  integrity sha512-bV0Hrg1jVLBgNMscAvgGFgZdCsxkMcZF5lmVSVkM9WJA9Hg7TLnB0+bLgoe/LTPv2KgQkr7RuFYikcat8VL9sw==
+"@zeit/ncc-watcher@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@zeit/ncc-watcher/-/ncc-watcher-1.1.0.tgz#9055915cf58988a9d94acf41e9facb17d2cc1c04"
+  integrity sha512-r9dk37TxQmmbC045nqD3poEeyyYDSjqB5WfbL+/AN687nCEscRQHSSjNRkAOLZf0I8g+y5aU9HPSTDKyd2hXHQ==
   dependencies:
     "@zeit/ncc" "0.20.3"
 
