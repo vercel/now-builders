@@ -15,10 +15,11 @@ try {
   let listener = require("./${entrypoint}");
   if (listener.default) listener = listener.default;
 
-  if(typeof listener.listen === 'function') {
+  if (typeof listener.listen === 'function') {
     const server = listener;
     bridge = new Bridge(server);
-  } else if(typeof listener === 'function') {
+    bridge.listen();
+  } else if (typeof listener === 'function') {
     ${
       shouldAddHelpers
         ? [
@@ -31,12 +32,18 @@ try {
             'bridge = new Bridge(server);',
           ].join('\n')
     }
+    bridge.listen();
   } else {
-    console.error('Export in entrypoint is not valid');
-    console.error('Did you forget to export a function or a server?');
-    process.exit(1);
+    console.log('Assuming server listener. Type of imported listener is: ' + typeof listener);
+    const { Server } = require("http");
+    const saveListen = Server.prototype.listen;
+    Server.prototype.listen = function listen() {
+      console.log('Server.listen() called, setting up bridge');
+      bridge.setServer(this);
+      Server.prototype.listen = saveListen;
+      return bridge.listen();
+    };
   }
-
 } catch (err) {
   if (err.code === 'MODULE_NOT_FOUND') {
     console.error(err.message);
@@ -47,8 +54,6 @@ try {
     process.exit(1);
   }
 }
-
-bridge.listen();
 
 exports.launcher = bridge.launcher;`;
 }
