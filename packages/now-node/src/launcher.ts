@@ -3,8 +3,18 @@ export function makeLauncher(
   shouldAddHelpers: boolean
 ): string {
   return `const { Bridge } = require("./bridge");
+const { Server } = require("http");
 
-let bridge;
+let isServerListening = false;
+let bridge = new Bridge();
+const saveListen = Server.prototype.listen;
+Server.prototype.listen = function listen() {
+  isServerListening = true;
+  console.log('Server.listen() called, setting up bridge');
+  bridge.setServer(this);
+  Server.prototype.listen = saveListen;
+  return bridge.listen();
+};
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV =
@@ -15,11 +25,15 @@ try {
   let listener = require("./${entrypoint}");
   if (listener.default) listener = listener.default;
 
-  if (typeof listener.listen === 'function') {
+  if (isServerListening) {
+    console.log('Server is listening');
+  } else if (typeof listener.listen === 'function') {
+    Server.prototype.listen = saveListen;
     const server = listener;
     bridge = new Bridge(server);
     bridge.listen();
   } else if (typeof listener === 'function') {
+    Server.prototype.listen = saveListen;
     ${
       shouldAddHelpers
         ? [
@@ -34,15 +48,8 @@ try {
     }
     bridge.listen();
   } else {
-    console.log('Assuming server listener. Type of imported listener is: ' + typeof listener);
-    const { Server } = require("http");
-    const saveListen = Server.prototype.listen;
-    Server.prototype.listen = function listen() {
-      console.log('Server.listen() called, setting up bridge');
-      bridge.setServer(this);
-      Server.prototype.listen = saveListen;
-      return bridge.listen();
-    };
+    console.error('Export is invalid. Did you forget to export a function or a server?');
+    process.exit(1);
   }
 } catch (err) {
   if (err.code === 'MODULE_NOT_FOUND') {
