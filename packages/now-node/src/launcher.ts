@@ -10,7 +10,7 @@ let bridge = new Bridge();
 const saveListen = Server.prototype.listen;
 Server.prototype.listen = function listen() {
   isServerListening = true;
-  console.log('Server.listen() called, setting up bridge');
+  console.log('Legacy server listening...');
   bridge.setServer(this);
   Server.prototype.listen = saveListen;
   return bridge.listen();
@@ -28,35 +28,34 @@ try {
   if (typeof listener.listen === 'function') {
     Server.prototype.listen = saveListen;
     const server = listener;
-    bridge = new Bridge(server);
+    bridge.setServer(server);
     bridge.listen();
   } else if (typeof listener === 'function') {
     Server.prototype.listen = saveListen;
+    let server;
     ${
       shouldAddHelpers
         ? [
             'bridge = new Bridge(undefined, true);',
-            'const server = require("./helpers").createServerWithHelpers(listener, bridge);',
-            'bridge.setServer(server);',
+            'server = require("./helpers").createServerWithHelpers(listener, bridge);',
           ].join('\n')
-        : [
-            'const server = require("http").createServer(listener);',
-            'bridge = new Bridge(server);',
-          ].join('\n')
+        : ['server = require("http").createServer(listener);'].join('\n')
     }
+    bridge.setServer(server);
     bridge.listen();
-  } else {
-    console.log('WARN: No serverless export detected, falling back to server listening...');
+  } else if (typeof listener === 'object' && Object.keys(listener).length === 0) {
     if (!isServerListening) {
       setTimeout(() => {
         if (!isServerListening) {
-          console.error('Export is invalid.');
+          console.error('No export detected.');
           console.error('Did you forget to export a function or a server?');
           process.exit(1);
         }
       }, 1000);
     }
-
+  } else {
+    console.error('Export is invalid.');
+    console.error('The default export must be a function or server.');
   }
 } catch (err) {
   if (err.code === 'MODULE_NOT_FOUND') {
