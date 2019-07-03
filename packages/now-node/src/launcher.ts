@@ -44,17 +44,15 @@ try {
     bridge.setServer(server);
     bridge.listen();
   } else if (typeof listener === 'object' && Object.keys(listener).length === 0) {
-    if (!isServerListening) {
-      setTimeout(() => {
-        if (!isServerListening) {
-          console.error('No export detected.');
-          console.error('Did you forget to export a function or a server?');
-          process.exit(1);
-        }
-      }, 1000);
-    }
+    setTimeout(() => {
+      if (!isServerListening) {
+        console.error('No exports found in module "${entrypoint}".');
+        console.error('Did you forget to export a function or a server?');
+        process.exit(1);
+      }
+    }, 5000);
   } else {
-    console.error('Export is invalid.');
+    console.error('Invalid export found in module "${entrypoint}".');
     console.error('The default export must be a function or server.');
   }
 } catch (err) {
