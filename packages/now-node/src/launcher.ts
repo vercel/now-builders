@@ -25,9 +25,7 @@ try {
   let listener = require("./${entrypoint}");
   if (listener.default) listener = listener.default;
 
-  if (isServerListening) {
-    console.log('Server is listening');
-  } else if (typeof listener.listen === 'function') {
+  if (typeof listener.listen === 'function') {
     Server.prototype.listen = saveListen;
     const server = listener;
     bridge = new Bridge(server);
@@ -48,8 +46,17 @@ try {
     }
     bridge.listen();
   } else {
-    console.error('Export is invalid. Did you forget to export a function or a server?');
-    process.exit(1);
+    console.log('WARN: No serverless export detected, falling back to server listening...');
+    if (!isServerListening) {
+      setTimeout(() => {
+        if (!isServerListening) {
+          console.error('Export is invalid.');
+          console.error('Did you forget to export a function or a server?');
+          process.exit(1);
+        }
+      }, 1000);
+    }
+
   }
 } catch (err) {
   if (err.code === 'MODULE_NOT_FOUND') {
