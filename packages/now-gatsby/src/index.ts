@@ -13,14 +13,7 @@ import {
   getSpawnOptions,
   Files,
   BuildOptions,
-  Config,
 } from '@now/build-utils';
-
-interface PackageJson {
-  scripts?: {
-    [key: string]: string;
-  };
-}
 
 function validateDistDir(distDir: string, isDev: boolean | undefined) {
   const hash = isDev
@@ -59,7 +52,6 @@ export async function build({
   files,
   entrypoint,
   workPath,
-  config,
   meta = {},
 }: BuildOptions) {
   console.log('Downloading user files...');
