@@ -1,15 +1,17 @@
-const { createLambda } = require('@now/build-utils/lambda.js'); // eslint-disable-line import/no-extraneous-dependencies
-const download = require('@now/build-utils/fs/download.js'); // eslint-disable-line import/no-extraneous-dependencies
-const FileBlob = require('@now/build-utils/file-blob.js'); // eslint-disable-line import/no-extraneous-dependencies
-const FileFsRef = require('@now/build-utils/file-fs-ref.js'); // eslint-disable-line import/no-extraneous-dependencies
 const fs = require('fs-extra');
-const glob = require('@now/build-utils/fs/glob.js'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
 const {
+  FileBlob,
+  FileFsRef,
+  download,
+  createLambda,
+  glob,
   runNpmInstall,
   runPackageJsonScript,
-} = require('@now/build-utils/fs/run-user-scripts.js'); // eslint-disable-line import/no-extraneous-dependencies
-const { shouldServe } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
+  getNodeVersion,
+  getSpawnOptions,
+  shouldServe,
+} = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 
 /** @typedef { import('@now/build-utils/file-ref') } FileRef */
 /** @typedef {{[filePath: string]: FileRef}} Files */
@@ -38,17 +40,25 @@ async function downloadInstallAndBundle(
 
   console.log("installing dependencies for user's code...");
   const entrypointFsDirname = path.join(workPath, path.dirname(entrypoint));
-  await runNpmInstall(entrypointFsDirname, npmArguments);
-  return [downloadedFiles, entrypointFsDirname];
+  const nodeVersion = await getNodeVersion(entrypointFsDirname);
+  const spawnOpts = getSpawnOptions(meta, nodeVersion);
+  await runNpmInstall(entrypointFsDirname, npmArguments, spawnOpts);
+  return {
+    downloadedFiles,
+    entrypointFsDirname,
+    spawnOpts,
+    nodeVersion,
+  };
 }
 
 async function compile(workPath, downloadedFiles, entrypoint, config) {
   const input = downloadedFiles[entrypoint].fsPath;
-  const inputDir = path.dirname(input);
+
   const ncc = require('@zeit/ncc');
   const { code, map, assets } = await ncc(input, {
     sourceMap: true,
     sourceMapRegister: true,
+    filterAssetBase: path.resolve(workPath),
   });
 
   if (config && config.includeFiles) {
@@ -59,7 +69,7 @@ async function compile(workPath, downloadedFiles, entrypoint, config) {
     // eslint-disable-next-line no-restricted-syntax
     for (const pattern of includeFiles) {
       // eslint-disable-next-line no-await-in-loop
-      const files = await glob(pattern, inputDir);
+      const files = await glob(pattern, workPath);
 
       // eslint-disable-next-line no-restricted-syntax
       for (const assetName of Object.keys(files)) {
@@ -101,9 +111,14 @@ exports.config = {
  * @returns {Promise<Files>}
  */
 exports.build = async ({
-  files, entrypoint, config, workPath, meta,
+  files, entrypoint, config, workPath, meta = {},
 }) => {
-  const [downloadedFiles, entrypointFsDirname] = await downloadInstallAndBundle(
+  const {
+    downloadedFiles,
+    entrypointFsDirname,
+    spawnOptions,
+    nodeVersion,
+  } = await downloadInstallAndBundle(
     {
       files,
       entrypoint,
@@ -114,7 +129,7 @@ exports.build = async ({
   );
 
   console.log('running user script...');
-  await runPackageJsonScript(entrypointFsDirname, 'now-build');
+  await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOptions);
 
   console.log('preparing lambda files...');
   let preparedFiles;
@@ -143,10 +158,13 @@ exports.build = async ({
     'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
   };
 
+  // Use the system-installed version of `node` when running via `now dev`
+  const runtime = meta.isDev ? 'nodejs' : nodeVersion.runtime;
+
   const lambda = await createLambda({
     files: { ...preparedFiles, ...launcherFiles },
     handler: 'launcher.launcher',
-    runtime: 'nodejs8.10',
+    runtime,
   });
 
   return { [entrypoint]: lambda };

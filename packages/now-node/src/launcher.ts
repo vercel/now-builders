@@ -4,7 +4,7 @@ export function makeLauncher(
 ): string {
   return `const { Bridge } = require("./bridge");
 
-const bridge = new Bridge(undefined, ${shouldAddHelpers ? 'true' : 'false'});
+let bridge;
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV =
@@ -14,18 +14,33 @@ if (!process.env.NODE_ENV) {
 try {
   let listener = require("./${entrypoint}");
   if (listener.default) listener = listener.default;
-  const server = ${
-    shouldAddHelpers
-      ? 'require("./helpers").createServerWithHelpers(listener, bridge)'
-      : 'require("http").createServer(listener)'
-  };
-  bridge.setServer(server);
+
+  if(typeof listener.listen === 'function') {
+    const server = listener;
+    bridge = new Bridge(server);
+  } else if(typeof listener === 'function') {
+    ${
+      shouldAddHelpers
+        ? [
+            'bridge = new Bridge(undefined, true);',
+            'const server = require("./helpers").createServerWithHelpers(listener, bridge);',
+            'bridge.setServer(server);',
+          ].join('\n')
+        : [
+            'const server = require("http").createServer(listener);',
+            'bridge = new Bridge(server);',
+          ].join('\n')
+    }
+  } else {
+    console.error('Export in entrypoint is not valid');
+    console.error('Did you forget to export a function or a server?');
+    process.exit(1);
+  }
+
 } catch (err) {
   if (err.code === 'MODULE_NOT_FOUND') {
     console.error(err.message);
-    console.error(
-      'Did you forget to add it to "dependencies" in \`package.json\`?'
-    );
+    console.error('Did you forget to add it to "dependencies" in \`package.json\`?');
     process.exit(1);
   } else {
     console.error(err);

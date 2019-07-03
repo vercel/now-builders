@@ -1,6 +1,5 @@
-import { readFile } from 'fs-extra';
 import { Assets, NccOptions } from '@zeit/ncc';
-import { join, dirname, relative, sep } from 'path';
+import { join, dirname, relative, sep, resolve } from 'path';
 import { NccWatcher, WatcherResult } from '@zeit/ncc-watcher';
 import {
   glob,
@@ -12,7 +11,8 @@ import {
   createLambda,
   runNpmInstall,
   runPackageJsonScript,
-  enginesMatch,
+  getNodeVersion,
+  getSpawnOptions,
   PrepareCacheOptions,
   BuildOptions,
   shouldServe,
@@ -60,10 +60,12 @@ async function downloadInstallAndBundle({
 
   console.log("installing dependencies for user's code...");
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
-  await runNpmInstall(entrypointFsDirname, ['--prefer-offline']);
+  const nodeVersion = await getNodeVersion(entrypointFsDirname);
+  const spawnOpts = getSpawnOptions(meta, nodeVersion);
+  await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
   const entrypointPath = downloadedFiles[entrypoint].fsPath;
-  return { entrypointPath, entrypointFsDirname };
+  return { entrypointPath, entrypointFsDirname, nodeVersion, spawnOpts };
 }
 
 async function compile(
@@ -74,11 +76,11 @@ async function compile(
   { isDev, filesChanged, filesRemoved }: Meta
 ): Promise<{ preparedFiles: Files; watch: string[] }> {
   const input = entrypointPath;
-  const inputDir = dirname(input);
-  const rootIncludeFiles = inputDir.split(sep).pop() || '';
+
   const options: NccOptions = {
     sourceMap: true,
     sourceMapRegister: true,
+    filterAssetBase: resolve(workPath),
   };
   let code: string;
   let map: string | undefined;
@@ -99,13 +101,11 @@ async function compile(
     assets = result.assets;
     watch = [...result.files, ...result.dirs, ...result.missing]
       .filter(f => f.startsWith(workPath))
-      .map(f => relative(workPath, f));
+      .map(f => relative(workPath, f))
+      .concat(Object.keys(assets || {}));
   } else {
     const ncc = require('@zeit/ncc');
-    const result = await ncc(input, {
-      sourceMap: true,
-      sourceMapRegister: true,
-    });
+    const result = await ncc(input, options);
     code = result.code;
     map = result.map;
     assets = result.assets;
@@ -120,21 +120,14 @@ async function compile(
         : config.includeFiles;
 
     for (const pattern of includeFiles) {
-      const files = await glob(pattern, inputDir);
+      const files = await glob(pattern, workPath);
 
       for (const assetName of Object.keys(files)) {
         const stream = files[assetName].toStream();
         const { mode } = files[assetName];
         const { data } = await FileBlob.fromStream({ stream });
-        let fullPath = join(rootIncludeFiles, assetName);
 
-        // if asset contain directory
-        // no need to use `rootIncludeFiles`
-        if (assetName.includes(sep)) {
-          fullPath = assetName;
-        }
-
-        assets[fullPath] = {
+        assets[assetName] = {
           source: toBuffer(data),
           permissions: mode,
         };
@@ -180,6 +173,8 @@ export async function build({
   const {
     entrypointPath,
     entrypointFsDirname,
+    nodeVersion,
+    spawnOpts,
   } = await downloadInstallAndBundle({
     files,
     entrypoint,
@@ -188,7 +183,7 @@ export async function build({
   });
 
   console.log('running user script...');
-  await runPackageJsonScript(entrypointFsDirname, 'now-build');
+  await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOpts);
 
   console.log('compiling entrypoint with ncc...');
   const { preparedFiles, watch } = await compile(
@@ -212,7 +207,8 @@ export async function build({
     });
   }
 
-  const useNode10 = await enginesMatch(entrypointFsDirname, '10.x');
+  // Use the system-installed version of `node` when running via `now dev`
+  const runtime = meta.isDev ? 'nodejs' : nodeVersion.runtime;
 
   const lambda = await createLambda({
     files: {
@@ -220,7 +216,7 @@ export async function build({
       ...launcherFiles,
     },
     handler: 'launcher.launcher',
-    runtime: useNode10 ? 'nodejs10.x' : 'nodejs8.10',
+    runtime,
   });
 
   const output = { [entrypoint]: lambda };

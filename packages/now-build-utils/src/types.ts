@@ -16,7 +16,13 @@ export interface Files {
 }
 
 export interface Config {
-  [key: string]: string | string[] | boolean | number | undefined;
+  [key: string]:
+    | string
+    | string[]
+    | boolean
+    | number
+    | { [key: string]: string }
+    | undefined;
   maxLambdaSize?: string;
   includeFiles?: string | string[];
   bundle?: boolean;
@@ -24,6 +30,8 @@ export interface Config {
   helpers?: boolean;
   rust?: string;
   debug?: boolean;
+  zeroConfig?: boolean;
+  import?: { [key: string]: string };
 }
 
 export interface Meta {
@@ -161,4 +169,29 @@ export interface ShouldServeOptions {
    * in `now.json`.
    */
   config: Config;
+}
+
+export interface PackageJson {
+  name: string;
+  version: string;
+  engines?: {
+    [key: string]: string;
+    node: string;
+    npm: string;
+  };
+  scripts?: {
+    [key: string]: string;
+  };
+  dependencies?: {
+    [key: string]: string;
+  };
+  devDependencies?: {
+    [key: string]: string;
+  };
+}
+
+export interface NodeVersion {
+  major: number;
+  range: string;
+  runtime: string;
 }
