@@ -9,6 +9,7 @@ import {
   PrepareCacheOptions,
   ShouldServeOptions,
   Meta,
+  Config,
 } from './types';
 import { Lambda, createLambda } from './lambda';
 import download, { DownloadedFiles } from './fs/download';
@@ -20,7 +21,8 @@ import {
   runPackageJsonScript,
   runNpmInstall,
   runShellScript,
-  enginesMatch,
+  getNodeVersion,
+  getSpawnOptions,
 } from './fs/run-user-scripts';
 import streamToBuffer from './fs/stream-to-buffer';
 import shouldServe from './should-serve';
@@ -43,11 +45,13 @@ export {
   runPackageJsonScript,
   runNpmInstall,
   runShellScript,
-  enginesMatch,
+  getNodeVersion,
+  getSpawnOptions,
   streamToBuffer,
   AnalyzeOptions,
   BuildOptions,
   PrepareCacheOptions,
   ShouldServeOptions,
   shouldServe,
+  Config,
 };

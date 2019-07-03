@@ -1,15 +1,16 @@
 {
   "name": "@now/node-server",
-  "version": "0.7.4-canary.2",
+  "version": "0.7.4-canary.8",
   "license": "MIT",
+  "homepage": "https://zeit.co/docs/v2/deployments/official-builders/node-js-server-now-node-server",
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
     "directory": "packages/now-node-server"
   },
   "dependencies": {
-    "@now/node-bridge": "1.2.0-canary.1",
-    "@zeit/ncc": "0.18.5",
+    "@now/node-bridge": "1.2.0-canary.3",
+    "@zeit/ncc": "0.20.3",
     "fs-extra": "7.0.1"
   },
   "scripts": {

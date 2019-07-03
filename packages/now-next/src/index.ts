@@ -21,6 +21,8 @@ import {
   PrepareCacheOptions,
   runNpmInstall,
   runPackageJsonScript,
+  getNodeVersion,
+  getSpawnOptions,
 } from '@now/build-utils';
 
 import nextLegacyVersions from './legacy-versions';
@@ -38,6 +40,7 @@ import {
   validateEntrypoint,
   normalizePage,
   getDynamicRoutes,
+  isDynamicRoute,
 } from './utils';
 
 interface BuildParamsMeta {
@@ -162,6 +165,8 @@ export const build = async ({
   watch?: string[];
   childProcesses: ChildProcess[];
 }> => {
+  process.env.__NEXT_BUILDER_EXPERIMENTAL_TARGET = 'serverless';
+
   validateEntrypoint(entrypoint);
 
   const entryDirectory = path.dirname(entrypoint);
@@ -170,6 +175,9 @@ export const build = async ({
 
   console.log(`${name} Downloading user files...`);
   await download(files, workPath, meta);
+
+  const nodeVersion = await getNodeVersion(entryPath);
+  const spawnOpts = getSpawnOptions(meta, nodeVersion);
 
   const pkg = await readPackageJson(entryPath);
   const nextVersion = getNextVersion(pkg);
@@ -180,17 +188,13 @@ export const build = async ({
     );
   }
 
-  process.env.__NEXT_BUILDER_EXPERIMENTAL_TARGET = 'serverless';
-
   if (meta.isDev) {
-    // eslint-disable-next-line no-underscore-dangle
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_DEBUG = 'true';
     let childProcess: ChildProcess | undefined;
 
     // If this is the initial build, we want to start the server
     if (!urls[entrypoint]) {
       console.log(`${name} Installing dependencies...`);
-      await runNpmInstall(entryPath, ['--prefer-offline']);
+      await runNpmInstall(entryPath, ['--prefer-offline'], spawnOpts);
 
       if (!process.env.NODE_ENV) {
         process.env.NODE_ENV = 'development';
@@ -277,20 +281,21 @@ export const build = async ({
   }
 
   console.log('installing dependencies...');
-  await runNpmInstall(entryPath, ['--prefer-offline']);
+  await runNpmInstall(entryPath, ['--prefer-offline'], spawnOpts);
 
   console.log('running user script...');
   const memoryToConsume = Math.floor(os.totalmem() / 1024 ** 2) - 128;
-  await runPackageJsonScript(entryPath, 'now-build', {
-    env: {
-      ...process.env,
-      NODE_OPTIONS: `--max_old_space_size=${memoryToConsume}`,
-    },
-  } as SpawnOptions);
+  const env = { ...spawnOpts.env } as any;
+  env.NODE_OPTIONS = `--max_old_space_size=${memoryToConsume}`;
+  await runPackageJsonScript(entryPath, 'now-build', { ...spawnOpts, env });
 
   if (isLegacy) {
     console.log('running npm install --production...');
-    await runNpmInstall(entryPath, ['--prefer-offline', '--production']);
+    await runNpmInstall(
+      entryPath,
+      ['--prefer-offline', '--production'],
+      spawnOpts
+    );
   }
 
   if (process.env.NPM_AUTH_TOKEN) {
@@ -381,7 +386,7 @@ export const build = async ({
             'now__launcher.js': new FileBlob({ data: launcher }),
           },
           handler: 'now__launcher.launcher',
-          runtime: 'nodejs8.10',
+          runtime: nodeVersion.runtime,
         });
         console.log(`Created lambda for page: "${page}"`);
       })
@@ -407,7 +412,7 @@ export const build = async ({
 
       const pathname = page.replace(/\.html$/, '');
 
-      if (pathname.startsWith('$') || pathname.includes('/$')) {
+      if (isDynamicRoute(pathname)) {
         dynamicPages.push(pathname);
       }
 
@@ -454,7 +459,7 @@ export const build = async ({
 
         const pathname = page.replace(/\.js$/, '');
 
-        if (pathname.startsWith('$') || pathname.includes('/$')) {
+        if (isDynamicRoute(pathname)) {
           dynamicPages.push(normalizePage(pathname));
         }
 
@@ -466,7 +471,7 @@ export const build = async ({
             'page.js': pages[page],
           },
           handler: 'now__launcher.launcher',
-          runtime: 'nodejs8.10',
+          runtime: nodeVersion.runtime,
         });
         console.log(`Created lambda for page: "${page}"`);
       })

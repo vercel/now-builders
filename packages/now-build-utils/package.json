@@ -1,9 +1,10 @@
 {
   "name": "@now/build-utils",
-  "version": "0.5.6-canary.6",
+  "version": "0.5.6-canary.14",
   "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.js",
+  "homepage": "https://zeit.co/docs/v2/deployments/builders/developer-guide",
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
