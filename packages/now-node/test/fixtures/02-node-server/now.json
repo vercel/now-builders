@@ -1,11 +1,15 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "index.js", "use": "@now/node" },
-    { "src": "subdirectory/index.js", "use": "@now/node" }
-  ],
+  "builds": [{ "src": "**/*.js", "use": "@now/node" }],
   "probes": [
     { "path": "/", "mustContain": "root:RANDOMNESS_PLACEHOLDER" },
-    { "path": "/subdirectory/", "mustContain": "subdir:RANDOMNESS_PLACEHOLDER" }
+    {
+      "path": "/subdirectory/",
+      "mustContain": "subdir:RANDOMNESS_PLACEHOLDER"
+    },
+    {
+      "path": "/hapi-async/",
+      "mustContain": "hapi-async:RANDOMNESS_PLACEHOLDER"
+    }
   ]
 }
