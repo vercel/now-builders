@@ -1,6 +1,6 @@
 import { Assets, NccOptions } from '@zeit/ncc';
-import { join, dirname, relative, sep, resolve } from 'path';
-import { NccWatcher, WatcherResult } from '@zeit/ncc-watcher';
+import { join, dirname, relative, resolve } from 'path';
+import { NccWatcher } from '@zeit/ncc-watcher';
 import {
   glob,
   download,
@@ -200,9 +200,14 @@ export async function build({
 
   const launcherFiles: Files = {
     [`${LAUNCHER_FILENAME}.js`]: new FileBlob({
-      data: makeLauncher(entrypoint, shouldAddHelpers),
+      data: makeLauncher({
+        entrypointPath: `./${entrypoint}`,
+        bridgePath: `./${BRIDGE_FILENAME}`,
+        helpersPath: `./${HELPERS_FILENAME}`,
+        shouldAddHelpers,
+      }),
     }),
-    ['${BRIDGE_FILENAME}.js']: new FileFsRef({
+    [`${BRIDGE_FILENAME}.js`]: new FileFsRef({
       fsPath: require('@now/node-bridge'),
     }),
   };
