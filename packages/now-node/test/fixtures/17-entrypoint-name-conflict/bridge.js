@@ -1,3 +1,3 @@
 module.exports = (req, res) => {
-  res.end('RANDOMNESS_PLACEHOLDER');
+  res.end('bridge:RANDOMNESS_PLACEHOLDER');
 };

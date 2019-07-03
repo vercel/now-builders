@@ -4,15 +4,15 @@
   "probes": [
     {
       "path": "/helpers.js",
-      "mustContain": "RANDOMNESS_PLACEHOLDER"
+      "mustContain": "helpers:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/bridge.js",
-      "mustContain": "RANDOMNESS_PLACEHOLDER"
+      "mustContain": "bridge:RANDOMNESS_PLACEHOLDER"
     },
     {
       "path": "/launcher.js",
-      "mustContain": "RANDOMNESS_PLACEHOLDER"
+      "mustContain": "launcher:RANDOMNESS_PLACEHOLDER"
     }
   ]
 }
