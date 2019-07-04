@@ -33,7 +33,7 @@ export async function getSupportedNodeVersion(
     if (found) {
       if (!silent) {
         console.log(
-          'found `engines` in `package.json`, selecting range: ' + selection.range
+          'Found `engines` in `package.json`, selecting range: ' + selection.range
         );
       }
     } else {
