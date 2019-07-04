@@ -5,6 +5,35 @@ export default [
     output: 'public',
   },
   {
+    name: 'Vue.js',
+    dependency: 'vue',
+    output: 'dist',
+    defaultRoutes: [
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '^/js/(.*)',
+        headers: { 'cache-control': 'max-age=31536000, immutable' },
+        dest: '/js/$1',
+      },
+      {
+        src: '^/css/(.*)',
+        headers: { 'cache-control': 'max-age=31536000, immutable' },
+        dest: '/css/$1',
+      },
+      {
+        src: '^/img/(.*)',
+        headers: { 'cache-control': 'max-age=31536000, immutable' },
+        dest: '/img/$1',
+      },
+      {
+        src: '/(.*)',
+        dest: '/index.html',
+      },
+    ],
+  },
+  {
     name: 'Svelte',
     dependency: 'svelte',
     output: 'public',
