@@ -4,7 +4,7 @@
     { "src": "package.json", "use": "@now/static-build", "config": { "zeroConfig": true } }
   ],
   "probes": [
-    { "path": "/", "mustContain": "vue-site" },
+    { "path": "/", "mustContain": "13-vue" },
     { "path": "/923h3223329ddas", "mustContain": "vue-site" }
   ]
 }
