@@ -39,6 +39,13 @@ interface Route {
   };
 }
 
+interface Framework {
+  name: string;
+  dependency: string;
+  output: string;
+  defaultRoutes?: Route[];
+}
+
 function validateDistDir(distDir: string, isDev: boolean | undefined) {
   const hash = isDev
     ? '#local-development'
@@ -137,7 +144,7 @@ export async function build({
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 
     let output: Files = {};
-    let framework = null;
+    let framework: Framework|undefined = undefined;
 
     const routes: Route[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
