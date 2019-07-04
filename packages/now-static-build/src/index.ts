@@ -30,8 +30,10 @@ interface PackageJson {
 }
 
 interface Route {
-    src: string;
-    dest: string;
+    src?: string;
+    dest?: string;
+    handle?: string;
+    type?: string;
     headers?: {
         [key: string]: string
     };
