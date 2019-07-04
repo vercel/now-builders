@@ -15,7 +15,7 @@ export interface Files {
   [filePath: string]: File;
 }
 
-interface Route {
+export interface Route {
   src?: string;
   dest?: string;
   handle?: string;
