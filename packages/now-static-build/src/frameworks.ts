@@ -13,7 +13,7 @@ export default [
         name: 'Create React App',
         dependency: 'react-scripts',
         output: 'build',
-        routes: [
+        defaultRoutes: [
             {
                 src: '/static/(.*)',
                 headers: { 'cache-control': 's-maxage=31536000, immutable' },

@@ -84,6 +84,19 @@ export const version = 2;
 
 const nowDevScriptPorts = new Map();
 
+const getDevRoute = (srcBase, devPort, route) => {
+    const basic = {
+        src: `${srcBase}${route.src}`,
+        dest: `http://localhost:${devPort}${route.dest}`
+    };
+
+    if (route.headers) {
+        basic.headers = route.headers;
+    }
+
+    return basic;
+};
+
 export async function build({
   files,
   entrypoint,
@@ -114,22 +127,24 @@ export async function build({
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 
     let output: Files = {};
+    let framework = null;
 
     const routes: { src: string; dest: string }[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
 
     if (config.zeroConfig) {
         const dependencies = Object.assign({}, pkg.dependencies, pkg.devDependencies);
-        const framework = frameworks.find(({ dependency }) => dependencies[dependency]);
+        framework = frameworks.find(({ dependency }) => dependencies[dependency]);
+    }
 
-        if (framework) {
-            console.log(`Detected ${framework.name} framework. Optimizing your deployment...`);
-            distPath = path.join(workPath, path.dirname(entrypoint), framework.output);
-        }
+    if (framework) {
+        console.log(`Detected ${framework.name} framework. Optimizing your deployment...`);
+        distPath = path.join(workPath, path.dirname(entrypoint), framework.output);
     }
 
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
       let devPort = nowDevScriptPorts.get(entrypoint);
+
       if (typeof devPort === 'number') {
         console.log(
           '`%s` server already running for %j',
@@ -180,13 +195,21 @@ export async function build({
       }
 
       let srcBase = mountpoint.replace(/^\.\/?/, '');
+
       if (srcBase.length > 0) {
         srcBase = `/${srcBase}`;
       }
-      routes.push({
-        src: `${srcBase}/(.*)`,
-        dest: `http://localhost:${devPort}/$1`,
-      });
+
+      if (framework && framework.defaultRoutes) {
+        for (const route of framework.defaultRoutes) {
+            routes.push(getDevRoute(srcBase, devPort, route));
+        }
+      }
+
+      routes.push(getDevRoutes(srcBase, devPort, {
+        src: '/(.*)',
+        dest: '/$1'
+      }));
     } else {
       if (meta.isDev) {
         console.log('WARN: "${devScript}" script is missing from package.json');
