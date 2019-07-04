@@ -8,12 +8,12 @@ export default [
   {
     name: 'Gatsby.js',
     dependency: 'gatsby',
-    getOutputDirName: () => 'public',
+    getOutputDirName: async () => 'public',
   },
   {
     name: 'Vue.js',
     dependency: 'vue',
-    getOutputDirName: () => 'dist',
+    getOutputDirName: async () => 'dist',
     defaultRoutes: [
       {
         handle: 'filesystem',
@@ -62,7 +62,7 @@ export default [
   {
     name: 'Svelte',
     dependency: 'svelte',
-    getOutputDirName: () => 'public',
+    getOutputDirName: async () => 'public',
     defaultRoutes: [
       {
         handle: 'filesystem',
@@ -76,7 +76,7 @@ export default [
   {
     name: 'Create React App',
     dependency: 'react-scripts',
-    getOutputDirName: () => 'build',
+    getOutputDirName: async () => 'build',
     defaultRoutes: [
       {
         src: '/static/(.*)',
