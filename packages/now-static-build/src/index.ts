@@ -221,7 +221,11 @@ export async function build({
     return glob('**', distPath, mountpoint);
   }
 
-  throw new Error(
-    `Build "src" is "${entrypoint}" but expected "package.json" or "build.sh"`
-  );
+  let message = `Build "src" is "${entrypoint}" but expected "package.json"`;
+
+  if (!config.zeroConfig) {
+    message += ' or "build.sh"';
+  }
+
+  throw new Error(message);
 }
