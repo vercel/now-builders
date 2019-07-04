@@ -42,7 +42,7 @@ export default [
   {
     name: 'Angular',
     dependency: '@angular/core',
-    getOutputDirName: async dirPrefix => {
+    getOutputDirName: async (dirPrefix: string) => {
       const base = 'dist';
       const location = join(dirPrefix, base);
       const content = await readirPromise(location);
