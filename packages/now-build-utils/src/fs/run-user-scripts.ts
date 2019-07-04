@@ -78,7 +78,7 @@ export async function getNodeVersion(destPath: string, minNodeVersion?: string):
   }
 
   if (minNodeVersion) {
-    return getSupportedNodeVersion(minNodeVersion);
+    return getSupportedNodeVersion(minNodeVersion, true);
   }
 
   return getSupportedNodeVersion();

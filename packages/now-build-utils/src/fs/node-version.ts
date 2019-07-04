@@ -13,7 +13,8 @@ export const defaultSelection = supportedOptions.find(
 ) as NodeVersion;
 
 export async function getSupportedNodeVersion(
-  engineRange?: string
+  engineRange?: string,
+  silent?: boolean
 ): Promise<NodeVersion> {
   let selection = defaultSelection;
 
@@ -30,9 +31,11 @@ export async function getSupportedNodeVersion(
       return intersects(o.range, engineRange);
     });
     if (found) {
-      console.log(
-        'found `engines` in `package.json`, selecting range: ' + selection.range
-      );
+      if (!silent) {
+        console.log(
+          'found `engines` in `package.json`, selecting range: ' + selection.range
+        );
+      }
     } else {
       throw new Error(
         'found `engines` in `package.json` with an unsupported node range: ' +
