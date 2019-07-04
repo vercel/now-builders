@@ -30,14 +30,14 @@ interface PackageJson {
 }
 
 interface Route {
-    src?: string;
-    dest?: string;
-    handle?: string;
-    type?: string;
-    headers?: {
-        [key: string]: string
-    };
-};
+  src?: string;
+  dest?: string;
+  handle?: string;
+  type?: string;
+  headers?: {
+    [key: string]: string;
+  };
+}
 
 function validateDistDir(distDir: string, isDev: boolean | undefined) {
   const hash = isDev
@@ -95,16 +95,16 @@ export const version = 2;
 const nowDevScriptPorts = new Map();
 
 const getDevRoute = (srcBase: string, devPort: number, route: Route) => {
-    const basic: Route = {
-        src: `${srcBase}${route.src}`,
-        dest: `http://localhost:${devPort}${route.dest}`
-    };
+  const basic: Route = {
+    src: `${srcBase}${route.src}`,
+    dest: `http://localhost:${devPort}${route.dest}`,
+  };
 
-    if (route.headers) {
-        basic.headers = route.headers;
-    }
+  if (route.headers) {
+    basic.headers = route.headers;
+  }
 
-    return basic;
+  return basic;
 };
 
 export async function build({
@@ -143,17 +143,29 @@ export async function build({
     const devScript = getCommand(pkg, 'dev', config as Config);
 
     if (config.zeroConfig) {
-        const dependencies = Object.assign({}, pkg.dependencies, pkg.devDependencies);
-        framework = frameworks.find(({ dependency }) => dependencies[dependency]);
+      const dependencies = Object.assign(
+        {},
+        pkg.dependencies,
+        pkg.devDependencies
+      );
+
+      framework = frameworks.find(({ dependency }) => dependencies[dependency]);
     }
 
     if (framework) {
-        console.log(`Detected ${framework.name} framework. Optimizing your deployment...`);
-        distPath = path.join(workPath, path.dirname(entrypoint), framework.output);
+      console.log(
+        `Detected ${framework.name} framework. Optimizing your deployment...`
+      );
+
+      distPath = path.join(
+        workPath,
+        path.dirname(entrypoint),
+        framework.output
+      );
     }
 
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
-      let devPort: number|undefined = nowDevScriptPorts.get(entrypoint);
+      let devPort: number | undefined = nowDevScriptPorts.get(entrypoint);
 
       if (typeof devPort === 'number') {
         console.log(
@@ -166,10 +178,12 @@ export async function build({
         // it will launch a dev server that never "completes"
         devPort = await getPort();
         nowDevScriptPorts.set(entrypoint, devPort);
+
         const opts = {
           cwd: entrypointFsDirname,
           env: { ...process.env, PORT: String(devPort) },
         };
+
         const child = spawn('npm', ['run', devScript], opts);
         child.on('exit', () => nowDevScriptPorts.delete(entrypoint));
         child.stdout.setEncoding('utf8');
@@ -212,14 +226,16 @@ export async function build({
 
       if (framework && framework.defaultRoutes) {
         for (const route of framework.defaultRoutes) {
-            routes.push(getDevRoute(srcBase, devPort, route));
+          routes.push(getDevRoute(srcBase, devPort, route));
         }
       }
 
-      routes.push(getDevRoute(srcBase, devPort, {
-        src: '/(.*)',
-        dest: '/$1'
-      }));
+      routes.push(
+        getDevRoute(srcBase, devPort, {
+          src: '/(.*)',
+          dest: '/$1',
+        })
+      );
     } else {
       if (meta.isDev) {
         console.log('WARN: "${devScript}" script is missing from package.json');
@@ -227,20 +243,30 @@ export async function build({
           'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development'
         );
       }
+
       const buildScript = getCommand(pkg, 'build', config as Config);
       console.log(`Running "${buildScript}" script in "${entrypoint}"`);
+
       const found = await runPackageJsonScript(
         entrypointFsDirname,
         buildScript,
         spawnOpts
       );
+
       if (!found) {
         throw new Error(
           `Missing required "${buildScript}" script in "${entrypoint}"`
         );
       }
+
       validateDistDir(distPath, meta.isDev);
       output = await glob('**', distPath, mountpoint);
+
+      if (framework && framework.defaultRoutes) {
+        for (const route of framework.defaultRoutes) {
+          routes.push(route);
+        }
+      }
     }
 
     const watch = [path.join(mountpoint.replace(/^\.\/?/, ''), '**/*')];
@@ -251,6 +277,7 @@ export async function build({
     console.log(`Running build script "${entrypoint}"`);
     await runShellScript(path.join(workPath, entrypoint));
     validateDistDir(distPath, meta.isDev);
+
     return glob('**', distPath, mountpoint);
   }
 
