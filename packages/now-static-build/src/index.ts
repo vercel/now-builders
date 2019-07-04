@@ -93,7 +93,7 @@ export const version = 2;
 const nowDevScriptPorts = new Map();
 
 const getDevRoute = (srcBase: string, devPort: number, route: Route) => {
-    const basic = {
+    const basic: Route = {
         src: `${srcBase}${route.src}`,
         dest: `http://localhost:${devPort}${route.dest}`
     };
