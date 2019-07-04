@@ -130,7 +130,7 @@ export async function runNpmInstall(
   } else {
     await spawnAsync(
       'yarn',
-      commandArgs.concat(['--ignore-engines', '--cwd', destPath]),
+      commandArgs.concat(['--ignore-engines', '--mutex', 'network', '--cwd', destPath]),
       destPath,
       opts
     );
