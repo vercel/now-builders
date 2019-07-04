@@ -214,7 +214,7 @@ export async function build({
     return { routes, watch, output };
   }
 
-  if (entrypointName.endsWith('.sh')) {
+  if (!config.zeroConfig && entrypointName.endsWith('.sh')) {
     console.log(`Running build script "${entrypoint}"`);
     await runShellScript(path.join(workPath, entrypoint));
     validateDistDir(distPath, meta.isDev);
