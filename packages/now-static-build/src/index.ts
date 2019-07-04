@@ -116,7 +116,7 @@ export async function build({
   await download(files, workPath, meta);
 
   const mountpoint = path.dirname(entrypoint);
-  const entrypointFsDirname = path.join(workPath, mountpoint);
+  const entrypointDir = path.join(workPath, mountpoint);
 
   let distPath = path.join(
     workPath,
@@ -132,7 +132,7 @@ export async function build({
 
     let output: Files = {};
     let framework: Framework | undefined = undefined;
-    let minimumNodeVersion: string | undefined = undefined;
+    let minNodeVersion: string | undefined = undefined;
 
     const routes: Route[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
@@ -152,15 +152,15 @@ export async function build({
         `Detected ${framework.name} framework. Optimizing your deployment...`
       );
 
-      if (framework.minimumNodeVersion) {
-        minimumNodeVersion = framework.minimumNodeVersion;
+      if (framework.minNodeVersion) {
+        minNodeVersion = framework.minNodeVersion;
       }
     }
 
-    const nodeVersion = await getNodeVersion(entrypointFsDirname, minimumNodeVersion);
+    const nodeVersion = await getNodeVersion(entrypointDir, minNodeVersion);
     const spawnOpts = getSpawnOptions(meta, nodeVersion);
 
-    await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
+    await runNpmInstall(entrypointDir, ['--prefer-offline'], spawnOpts);
 
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
       let devPort: number | undefined = nowDevScriptPorts.get(entrypoint);
@@ -178,7 +178,7 @@ export async function build({
         nowDevScriptPorts.set(entrypoint, devPort);
 
         const opts = {
-          cwd: entrypointFsDirname,
+          cwd: entrypointDir,
           env: { ...process.env, PORT: String(devPort) },
         };
 
@@ -246,7 +246,7 @@ export async function build({
       console.log(`Running "${buildScript}" script in "${entrypoint}"`);
 
       const found = await runPackageJsonScript(
-        entrypointFsDirname,
+        entrypointDir,
         buildScript,
         spawnOpts
       );
