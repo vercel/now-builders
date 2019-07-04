@@ -155,6 +155,9 @@ export async function build({
 
       if (framework.minNodeVersion) {
         minNodeVersion = framework.minNodeVersion;
+        console.log(`${framework.name} requires Node.js ${framework.minNodeVersion}. Switching...`);
+      } else {
+        console.log(`${framework.name} does not require a specific Node.js version. Continuing ...`);
       }
     }
 
