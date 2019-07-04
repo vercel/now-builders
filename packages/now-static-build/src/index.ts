@@ -33,7 +33,7 @@ interface PackageJson {
 interface Framework {
   name: string;
   dependency: string;
-  output: string;
+  getOutputDirName: function;
   defaultRoutes?: Route[];
 }
 
@@ -135,7 +135,7 @@ export async function build({
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 
     let output: Files = {};
-    let framework: Framework|undefined = undefined;
+    let framework: Framework | undefined = undefined;
 
     const routes: Route[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
@@ -153,12 +153,6 @@ export async function build({
     if (framework) {
       console.log(
         `Detected ${framework.name} framework. Optimizing your deployment...`
-      );
-
-      distPath = path.join(
-        workPath,
-        path.dirname(entrypoint),
-        framework.output
       );
     }
 
@@ -255,6 +249,13 @@ export async function build({
         throw new Error(
           `Missing required "${buildScript}" script in "${entrypoint}"`
         );
+      }
+
+      if (framework) {
+        const outputDirPrefix = path.join(workPath, path.dirname(entrypoint));
+        const outputDirName = await framework.getOutputDirName(outputDirPrefix);
+
+        distPath = path.join(outputDirPrefix, outputDirName);
       }
 
       validateDistDir(distPath, meta.isDev);

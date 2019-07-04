@@ -1,13 +1,19 @@
+import { readdir } from 'fs';
+import { promisify } from 'util';
+import { join } from 'path';
+
+const readirPromise = promisify(readdir);
+
 export default [
   {
     name: 'Gatsby.js',
     dependency: 'gatsby',
-    output: 'public',
+    getOutputDirName: () => 'public',
   },
   {
     name: 'Vue.js',
     dependency: 'vue',
-    output: 'dist',
+    getOutputDirName: () => 'dist',
     defaultRoutes: [
       {
         handle: 'filesystem',
@@ -34,9 +40,29 @@ export default [
     ],
   },
   {
+    name: 'Angular',
+    dependency: '@angular/core',
+    getOutputDirName: async dirPrefix => {
+      const base = 'dist';
+      const location = join(dirPrefix, base);
+      const content = await readirPromise(location);
+
+      return join(base, content[0]);
+    },
+    defaultRoutes: [
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '/(.*)',
+        dest: '/index.html',
+      },
+    ],
+  },
+  {
     name: 'Svelte',
     dependency: 'svelte',
-    output: 'public',
+    getOutputDirName: () => 'public',
     defaultRoutes: [
       {
         handle: 'filesystem',
@@ -50,7 +76,7 @@ export default [
   {
     name: 'Create React App',
     dependency: 'react-scripts',
-    output: 'build',
+    getOutputDirName: () => 'build',
     defaultRoutes: [
       {
         src: '/static/(.*)',
