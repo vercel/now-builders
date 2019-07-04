@@ -151,7 +151,7 @@ export async function build({
     }
 
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
-      let devPort: number? = nowDevScriptPorts.get(entrypoint);
+      let devPort: number|undefined = nowDevScriptPorts.get(entrypoint);
 
       if (typeof devPort === 'number') {
         console.log(
