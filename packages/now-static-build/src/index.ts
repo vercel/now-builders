@@ -129,7 +129,7 @@ export async function build({
     let output: Files = {};
     let framework = null;
 
-    const routes: { src: string; dest: string }[] = [];
+    const routes: { src: string; dest: string; headers?: { [key: string]: string }; }[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
 
     if (config.zeroConfig) {
@@ -206,7 +206,7 @@ export async function build({
         }
       }
 
-      routes.push(getDevRoutes(srcBase, devPort, {
+      routes.push(getDevRoute(srcBase, devPort, {
         src: '/(.*)',
         dest: '/$1'
       }));
