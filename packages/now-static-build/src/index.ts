@@ -29,6 +29,14 @@ interface PackageJson {
   };
 }
 
+interface Route {
+    src: string;
+    dest: string;
+    headers?: {
+        [key: string]: string
+    };
+};
+
 function validateDistDir(distDir: string, isDev: boolean | undefined) {
   const hash = isDev
     ? '#local-development'
@@ -84,7 +92,7 @@ export const version = 2;
 
 const nowDevScriptPorts = new Map();
 
-const getDevRoute = (srcBase, devPort, route) => {
+const getDevRoute = (srcBase: string, devPort: number, route: Route) => {
     const basic = {
         src: `${srcBase}${route.src}`,
         dest: `http://localhost:${devPort}${route.dest}`
@@ -129,7 +137,7 @@ export async function build({
     let output: Files = {};
     let framework = null;
 
-    const routes: { src: string; dest: string; headers?: { [key: string]: string }; }[] = [];
+    const routes: Route[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
 
     if (config.zeroConfig) {
@@ -143,7 +151,7 @@ export async function build({
     }
 
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
-      let devPort = nowDevScriptPorts.get(entrypoint);
+      let devPort: number? = nowDevScriptPorts.get(entrypoint);
 
       if (typeof devPort === 'number') {
         console.log(
