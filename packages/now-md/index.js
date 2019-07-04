@@ -17,6 +17,7 @@ exports.build = async ({ files, entrypoint, config }) => {
   const language = options.language || 'en';
   const meta = options.meta || null;
   const css = options.css || null;
+  const js = options.js || null;
 
   const processor = unified()
     .use(markdown)
@@ -26,6 +27,7 @@ exports.build = async ({ files, entrypoint, config }) => {
       language,
       meta,
       css,
+      js,
     })
     .use(format)
     .use(html);
