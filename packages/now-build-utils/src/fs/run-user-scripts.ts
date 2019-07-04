@@ -69,7 +69,7 @@ export function getSpawnOptions(
   return opts;
 }
 
-export async function getNodeVersion(destPath: string, minNodeVersion: string): Promise<NodeVersion> {
+export async function getNodeVersion(destPath: string, minNodeVersion?: string): Promise<NodeVersion> {
   const { packageJson } = await scanParentDirs(destPath, true);
   const range = packageJson && packageJson.engines && packageJson.engines.node;
 
