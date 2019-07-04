@@ -19,10 +19,12 @@ export async function getSupportedNodeVersion(
   let selection = defaultSelection;
 
   if (!engineRange) {
-    console.log(
-      'missing `engines` in `package.json`, using default range: ' +
-        selection.range
-    );
+    if (!silent) {
+      console.log(
+        'missing `engines` in `package.json`, using default range: ' +
+          selection.range
+      );
+    }
   } else {
     const found = supportedOptions.some(o => {
       // the array is already in order so return the first
@@ -33,7 +35,8 @@ export async function getSupportedNodeVersion(
     if (found) {
       if (!silent) {
         console.log(
-          'Found `engines` in `package.json`, selecting range: ' + selection.range
+          'Found `engines` in `package.json`, selecting range: ' +
+            selection.range
         );
       }
     } else {
