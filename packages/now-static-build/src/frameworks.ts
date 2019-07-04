@@ -7,7 +7,16 @@ export default [
     {
         name: 'Svelte',
         dependency: 'svelte',
-        output: 'public'
+        output: 'public',
+        defaultRoutes: [
+            {
+                handle: 'filesystem'
+            },
+            {
+                src: '/(.*)',
+                dest: '/index.html'
+            }
+        ]
     },
     {
         name: 'Create React App',
