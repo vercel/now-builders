@@ -69,10 +69,19 @@ export function getSpawnOptions(
   return opts;
 }
 
-export async function getNodeVersion(destPath: string): Promise<NodeVersion> {
+export async function getNodeVersion(destPath: string, minNodeVersion: string): Promise<NodeVersion> {
   const { packageJson } = await scanParentDirs(destPath, true);
   const range = packageJson && packageJson.engines && packageJson.engines.node;
-  return getSupportedNodeVersion(range);
+
+  if (range) {
+    return getSupportedNodeVersion(range);
+  }
+
+  if (minNodeVersion) {
+    return getSupportedNodeVersion(minNodeVersion);
+  }
+
+  return getSupportedNodeVersion();
 }
 
 async function scanParentDirs(destPath: string, readPackageJson = false) {
