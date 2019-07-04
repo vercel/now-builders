@@ -1,6 +1,6 @@
 import { Assets, NccOptions } from '@zeit/ncc';
-import { join, dirname, relative, sep } from 'path';
-import { NccWatcher, WatcherResult } from '@zeit/ncc-watcher';
+import { join, dirname, relative, resolve } from 'path';
+import { NccWatcher } from '@zeit/ncc-watcher';
 import {
   glob,
   download,
@@ -32,6 +32,10 @@ interface DownloadOptions {
 }
 
 const watchers: Map<string, NccWatcher> = new Map();
+
+const LAUNCHER_FILENAME = '___now_launcher';
+const BRIDGE_FILENAME = '___now_bridge';
+const HELPERS_FILENAME = '___now_helpers';
 
 function getWatcher(entrypoint: string, options: NccOptions): NccWatcher {
   let watcher = watchers.get(entrypoint);
@@ -76,11 +80,11 @@ async function compile(
   { isDev, filesChanged, filesRemoved }: Meta
 ): Promise<{ preparedFiles: Files; watch: string[] }> {
   const input = entrypointPath;
-  const inputDir = dirname(input);
-  const rootIncludeFiles = inputDir.split(sep).pop() || '';
+
   const options: NccOptions = {
     sourceMap: true,
     sourceMapRegister: true,
+    filterAssetBase: resolve(workPath),
   };
   let code: string;
   let map: string | undefined;
@@ -105,10 +109,7 @@ async function compile(
       .concat(Object.keys(assets || {}));
   } else {
     const ncc = require('@zeit/ncc');
-    const result = await ncc(input, {
-      sourceMap: true,
-      sourceMapRegister: true,
-    });
+    const result = await ncc(input, options);
     code = result.code;
     map = result.map;
     assets = result.assets;
@@ -123,21 +124,14 @@ async function compile(
         : config.includeFiles;
 
     for (const pattern of includeFiles) {
-      const files = await glob(pattern, inputDir);
+      const files = await glob(pattern, workPath);
 
       for (const assetName of Object.keys(files)) {
         const stream = files[assetName].toStream();
         const { mode } = files[assetName];
         const { data } = await FileBlob.fromStream({ stream });
-        let fullPath = join(rootIncludeFiles, assetName);
 
-        // if asset contain directory
-        // no need to use `rootIncludeFiles`
-        if (assetName.includes(sep)) {
-          fullPath = assetName;
-        }
-
-        assets[fullPath] = {
+        assets[assetName] = {
           source: toBuffer(data),
           permissions: mode,
         };
@@ -205,14 +199,21 @@ export async function build({
   );
 
   const launcherFiles: Files = {
-    'launcher.js': new FileBlob({
-      data: makeLauncher(entrypoint, shouldAddHelpers),
+    [`${LAUNCHER_FILENAME}.js`]: new FileBlob({
+      data: makeLauncher({
+        entrypointPath: `./${entrypoint}`,
+        bridgePath: `./${BRIDGE_FILENAME}`,
+        helpersPath: `./${HELPERS_FILENAME}`,
+        shouldAddHelpers,
+      }),
     }),
-    'bridge.js': new FileFsRef({ fsPath: require('@now/node-bridge') }),
+    [`${BRIDGE_FILENAME}.js`]: new FileFsRef({
+      fsPath: require('@now/node-bridge'),
+    }),
   };
 
   if (shouldAddHelpers) {
-    launcherFiles['helpers.js'] = new FileFsRef({
+    launcherFiles[`${HELPERS_FILENAME}.js`] = new FileFsRef({
       fsPath: join(__dirname, 'helpers.js'),
     });
   }
@@ -225,7 +226,7 @@ export async function build({
       ...preparedFiles,
       ...launcherFiles,
     },
-    handler: 'launcher.launcher',
+    handler: `${LAUNCHER_FILENAME}.launcher`,
     runtime,
   });
 
