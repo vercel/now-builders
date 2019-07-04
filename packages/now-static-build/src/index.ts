@@ -117,8 +117,6 @@ export async function build({
 
   const mountpoint = path.dirname(entrypoint);
   const entrypointFsDirname = path.join(workPath, mountpoint);
-  const nodeVersion = await getNodeVersion(entrypointFsDirname);
-  const spawnOpts = getSpawnOptions(meta, nodeVersion);
 
   let distPath = path.join(
     workPath,
@@ -129,13 +127,12 @@ export async function build({
   const entrypointName = path.basename(entrypoint);
 
   if (entrypointName === 'package.json') {
-    await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
-
     const pkgPath = path.join(workPath, entrypoint);
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 
     let output: Files = {};
     let framework: Framework | undefined = undefined;
+    let minimumNodeVersion: string | undefined = undefined;
 
     const routes: Route[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
@@ -154,7 +151,16 @@ export async function build({
       console.log(
         `Detected ${framework.name} framework. Optimizing your deployment...`
       );
+
+      if (framework.minimumNodeVersion) {
+        minimumNodeVersion = framework.minimumNodeVersion;
+      }
     }
+
+    const nodeVersion = await getNodeVersion(entrypointFsDirname, minimumNodeVersion);
+    const spawnOpts = getSpawnOptions(meta, nodeVersion);
+
+    await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
       let devPort: number | undefined = nowDevScriptPorts.get(entrypoint);
