@@ -37,7 +37,7 @@ export default [
             },
             {
                 src: '/service-worker.js',
-                headers: { 'cache-control': 's-maxage=0' }
+                headers: { 'cache-control': 's-maxage=0' },
                 dest: '/service-worker.js'
             },
             {
