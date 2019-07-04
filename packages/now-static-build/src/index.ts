@@ -33,7 +33,7 @@ interface PackageJson {
 interface Framework {
   name: string;
   dependency: string;
-  getOutputDirName: function;
+  getOutputDirName: (dirPrefix: string) => string;
   defaultRoutes?: Route[];
 }
 
