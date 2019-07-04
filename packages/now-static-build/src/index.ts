@@ -119,7 +119,7 @@ export async function build({
     const devScript = getCommand(pkg, 'dev', config as Config);
 
     if (config.zeroConfig) {
-        const dependencies = pkg.dependencies || pkg.devDependencies || {};
+        const dependencies = Object.assign({}, pkg.dependencies, pkg.devDependencies);
         const framework = frameworks.find(({ dependency }) => dependencies[dependency]);
 
         if (framework) {
