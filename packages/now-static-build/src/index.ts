@@ -35,7 +35,7 @@ interface Framework {
   dependency: string;
   getOutputDirName: (dirPrefix: string) => Promise<string>;
   defaultRoutes?: Route[];
-  minNodeVersion?: string;
+  minNodeRange?: string;
 }
 
 function validateDistDir(distDir: string, isDev: boolean | undefined) {
@@ -133,7 +133,7 @@ export async function build({
 
     let output: Files = {};
     let framework: Framework | undefined = undefined;
-    let minNodeVersion: string | undefined = undefined;
+    let minNodeRange: string | undefined = undefined;
 
     const routes: Route[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
@@ -153,15 +153,23 @@ export async function build({
         `Detected ${framework.name} framework. Optimizing your deployment...`
       );
 
-      if (framework.minNodeVersion) {
-        minNodeVersion = framework.minNodeVersion;
-        console.log(`${framework.name} requires Node.js ${framework.minNodeVersion}. Switching...`);
+      if (framework.minNodeRange) {
+        minNodeRange = framework.minNodeRange;
+        console.log(
+          `${framework.name} requires Node.js ${
+            framework.minNodeRange
+          }. Switching...`
+        );
       } else {
-        console.log(`${framework.name} does not require a specific Node.js version. Continuing ...`);
+        console.log(
+          `${
+            framework.name
+          } does not require a specific Node.js version. Continuing ...`
+        );
       }
     }
 
-    const nodeVersion = await getNodeVersion(entrypointDir, minNodeVersion);
+    const nodeVersion = await getNodeVersion(entrypointDir, minNodeRange);
     const spawnOpts = getSpawnOptions(meta, nodeVersion);
 
     await runNpmInstall(entrypointDir, ['--prefer-offline'], spawnOpts);

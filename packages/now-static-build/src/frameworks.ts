@@ -42,7 +42,7 @@ export default [
   {
     name: 'Angular',
     dependency: '@angular/core',
-    minNodeVersion: '10.x',
+    minNodeRange: '10.x',
     getOutputDirName: async (dirPrefix: string) => {
       const base = 'dist';
       const location = join(dirPrefix, base);
