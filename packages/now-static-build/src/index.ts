@@ -280,9 +280,7 @@ export async function build({
       output = await glob('**', distPath, mountpoint);
 
       if (framework && framework.defaultRoutes) {
-        for (const route of framework.defaultRoutes) {
-          routes.push(route);
-        }
+        routes.push(...framework.defaultRoutes);
       }
     }
 
