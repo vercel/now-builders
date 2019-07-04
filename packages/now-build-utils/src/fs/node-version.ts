@@ -40,11 +40,13 @@ export async function getSupportedNodeVersion(
         );
       }
     } else {
-      throw new Error(
-        'found `engines` in `package.json` with an unsupported node range: ' +
-          engineRange +
-          '\nplease use `10.x` or `8.10.x` instead'
-      );
+      if (!silent) {
+        throw new Error(
+          'found `engines` in `package.json` with an unsupported node range: ' +
+            engineRange +
+            '\nplease use `10.x` or `8.10.x` instead'
+        );
+      }
     }
   }
   return selection;
