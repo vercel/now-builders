@@ -35,6 +35,7 @@ interface Framework {
   dependency: string;
   getOutputDirName: (dirPrefix: string) => Promise<string>;
   defaultRoutes?: Route[];
+  minNodeVersion?: string;
 }
 
 function validateDistDir(distDir: string, isDev: boolean | undefined) {
