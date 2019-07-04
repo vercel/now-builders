@@ -3,6 +3,7 @@ import spawn from 'cross-spawn';
 import getPort from 'get-port';
 import { timeout } from 'promise-timeout';
 import { existsSync, readFileSync, statSync, readdirSync } from 'fs';
+import frameworks from './frameworks';
 import {
   glob,
   download,
@@ -18,6 +19,12 @@ import {
 
 interface PackageJson {
   scripts?: {
+    [key: string]: string;
+  };
+  dependencies?: {
+    [key: string]: string;
+  };
+  devDependencies?: {
     [key: string]: string;
   };
 }
@@ -91,20 +98,14 @@ export async function build({
   const entrypointFsDirname = path.join(workPath, mountpoint);
   const nodeVersion = await getNodeVersion(entrypointFsDirname);
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
-  const distPath = path.join(
+
+  let distPath = path.join(
     workPath,
     path.dirname(entrypoint),
     (config && (config.distDir as string)) || 'dist'
   );
 
   const entrypointName = path.basename(entrypoint);
-
-  if (entrypointName.endsWith('.sh')) {
-    console.log(`Running build script "${entrypoint}"`);
-    await runShellScript(path.join(workPath, entrypoint));
-    validateDistDir(distPath, meta.isDev);
-    return glob('**', distPath, mountpoint);
-  }
 
   if (entrypointName === 'package.json') {
     await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
@@ -113,8 +114,22 @@ export async function build({
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 
     let output: Files = {};
+
     const routes: { src: string; dest: string }[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
+
+    if (config.zeroConfig) {
+        const dependencies = pkg.dependencies || pkg.devDependencies || {};
+
+        const framework = Object.keys(dependencies).find(name => {
+            return frameworks.find(({ dependency }) => name);
+        });
+
+        if (framework) {
+            console.log(`Detected ${framework.name} framework. Optimizing your deployment...`);
+            distPath = path.join(workPath, path.dirname(entrypoint), framework.output);
+        }
+    }
 
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
       let devPort = nowDevScriptPorts.get(entrypoint);
@@ -197,8 +212,16 @@ export async function build({
       validateDistDir(distPath, meta.isDev);
       output = await glob('**', distPath, mountpoint);
     }
+
     const watch = [path.join(mountpoint.replace(/^\.\/?/, ''), '**/*')];
     return { routes, watch, output };
+  }
+
+  if (entrypointName.endsWith('.sh')) {
+    console.log(`Running build script "${entrypoint}"`);
+    await runShellScript(path.join(workPath, entrypoint));
+    validateDistDir(distPath, meta.isDev);
+    return glob('**', distPath, mountpoint);
   }
 
   throw new Error(
