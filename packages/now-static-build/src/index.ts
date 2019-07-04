@@ -13,6 +13,7 @@ import {
   getNodeVersion,
   getSpawnOptions,
   Files,
+  Route,
   BuildOptions,
   Config,
 } from '@now/build-utils';
@@ -25,16 +26,6 @@ interface PackageJson {
     [key: string]: string;
   };
   devDependencies?: {
-    [key: string]: string;
-  };
-}
-
-interface Route {
-  src?: string;
-  dest?: string;
-  handle?: string;
-  type?: string;
-  headers?: {
     [key: string]: string;
   };
 }
