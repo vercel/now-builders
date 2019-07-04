@@ -120,10 +120,7 @@ export async function build({
 
     if (config.zeroConfig) {
         const dependencies = pkg.dependencies || pkg.devDependencies || {};
-
-        const framework = Object.keys(dependencies).find(name => {
-            return frameworks.find(({ dependency }) => name);
-        });
+        const framework = frameworks.find(({ dependency }) => dependencies[dependency]);
 
         if (framework) {
             console.log(`Detected ${framework.name} framework. Optimizing your deployment...`);
