@@ -158,4 +158,9 @@ export default [
       },
     ],
   },
+  {
+    name: 'Gridsome',
+    dependency: 'gridsome',
+    getOutputDirName: async () => 'dist',
+  },
 ];
