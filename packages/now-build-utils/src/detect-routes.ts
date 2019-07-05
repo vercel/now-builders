@@ -133,6 +133,8 @@ function getConflictingSegment(filePath: string): string | null {
     if (name !== null && segments.has(name)) {
       return name;
     }
+
+    segments.add(segment);
   }
 
   return null;
