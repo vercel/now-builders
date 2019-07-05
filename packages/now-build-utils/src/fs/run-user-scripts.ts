@@ -82,16 +82,6 @@ export async function getNodeVersion(
     (packageJson && packageJson.engines && packageJson.engines.node) ||
     minNodeVersion;
   return getSupportedNodeVersion(range, typeof minNodeVersion !== 'undefined');
-
-  if (range) {
-    return getSupportedNodeVersion(range);
-  }
-
-  if (minNodeVersion) {
-    return getSupportedNodeVersion(minNodeVersion, true);
-  }
-
-  return getSupportedNodeVersion();
 }
 
 async function scanParentDirs(destPath: string, readPackageJson = false) {
