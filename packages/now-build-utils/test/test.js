@@ -205,7 +205,7 @@ it('Test `detectApiBuilders`', async () => {
     const files = ['package.json'];
 
     const builders = await detectApiBuilders(files);
-    expect(builders).toBe(null);
+    expect(builders.use).toBe('@now/static-build');
   }
 });
 
@@ -229,6 +229,13 @@ it('Test `detectApiRoutes`', async () => {
 
     const { error } = await detectApiRoutes(files);
     expect(error.code).toBe('conflicting_file_path');
+  }
+
+  {
+    const files = ['api/[team]/[team].js'];
+
+    const { error } = await detectApiRoutes(files);
+    expect(error.code).toBe('conflicting_path_segment');
   }
 
   {
