@@ -166,20 +166,6 @@ export default [
     ],
   },
   {
-    name: 'Aurelia',
-    dependency: 'aurelia-cli',
-    getOutputDirName: async () => 'dist',
-    defaultRoutes: [
-      {
-        handle: 'filesystem',
-      },
-      {
-        src: '/(.*)',
-        dest: '/index.html',
-      },
-    ],
-  },
-  {
     name: 'Gridsome',
     dependency: 'gridsome',
     getOutputDirName: async () => 'dist',
