@@ -181,7 +181,7 @@ it('Test `detectBuilder`', async () => {
   {
     const pkg = {};
     const builder = await detectBuilder(pkg);
-    expect(builder).toBe(null);
+    expect(builder.use).toBe('@now/static-build');
   }
 });
 
@@ -205,7 +205,7 @@ it('Test `detectApiBuilders`', async () => {
     const files = ['package.json'];
 
     const builders = await detectApiBuilders(files);
-    expect(builders.use).toBe('@now/static-build');
+    expect(builders).toBe(null);
   }
 });
 
