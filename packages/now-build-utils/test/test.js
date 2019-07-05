@@ -169,13 +169,13 @@ it('Test `detectBuilder`', async () => {
   {
     const pkg = { dependencies: { next: '1.0.0' } };
     const builder = await detectBuilder(pkg);
-    expect(builder.src).toBe('@now/next');
+    expect(builder.use).toBe('@now/next');
   }
 
   {
     const pkg = { devDependencies: { next: '1.0.0' } };
     const builder = await detectBuilder(pkg);
-    expect(builder.src).toBe('@now/next');
+    expect(builder.use).toBe('@now/next');
   }
 
   {
@@ -221,7 +221,7 @@ it('Test `detectApiRoutes`', async () => {
     const files = ['api/user.go', 'api/user.js'];
 
     const { error } = await detectApiRoutes(files);
-    expect(error.code).toBe('conflicting_path_segment');
+    expect(error.code).toBe('conflicting_file_path');
   }
 
   {
