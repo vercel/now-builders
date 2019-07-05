@@ -11,6 +11,20 @@ export default [
     getOutputDirName: async () => 'public',
   },
   {
+    name: 'Preact',
+    dependency: 'preact-cli',
+    getOutputDirName: async () => 'build',
+    defaultRoutes: [
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '/(.*)',
+        dest: '/index.html',
+      },
+    ],
+  },
+  {
     name: 'Vue.js',
     dependency: 'vue',
     getOutputDirName: async () => 'dist',
