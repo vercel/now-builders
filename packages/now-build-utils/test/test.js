@@ -242,6 +242,6 @@ it('Test `detectApiRoutes`', async () => {
     const files = ['api/[endpoint].js', 'api/[endpoint]/[id].js'];
 
     const { defaultRoutes } = await detectApiRoutes(files);
-    expect(defaultRoutes.lenght).toBe(2);
+    expect(defaultRoutes.length).toBe(2);
   }
 });

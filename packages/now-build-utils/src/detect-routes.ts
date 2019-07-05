@@ -134,7 +134,9 @@ function getConflictingSegment(filePath: string): string | null {
       return name;
     }
 
-    segments.add(segment);
+    if (name) {
+      segments.add(name);
+    }
   }
 
   return null;
@@ -194,6 +196,8 @@ export async function detectApiRoutes(
     }
 
     const conflictingSegment = getConflictingSegment(file);
+
+    console.log({ file, conflictingSegment });
 
     if (conflictingSegment) {
       return {
