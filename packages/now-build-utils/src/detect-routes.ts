@@ -182,7 +182,7 @@ export async function detectApiRoutes(
   // the first ones to get handled
   const sortedFiles = files.sort(sortFilesBySegmentCount);
 
-  const defaultRoutes = [];
+  const defaultRoutes: Route[] = [];
 
   for (const file of sortedFiles) {
     // We only consider every file in the api directory
