@@ -125,7 +125,7 @@ function pathOccurrences(filePath: string, files: string[]): string[] {
 // Checks if a placeholder with the same name is used
 // multiple times inside the same path
 function getConflictingSegment(filePath: string): string | null {
-  const segments = new Set();
+  const segments = new Set<string>();
 
   for (const segment of filePath.split('/')) {
     const name = getSegmentName(segment);
