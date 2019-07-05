@@ -125,7 +125,7 @@ function pathOccurrences(filePath: string, files: string[]): string[] {
 // Checks if a placeholder with the same name is used
 // multiple times inside the same path
 function getConflictingSegment(filePath: string): string | null {
-  const segments = new Set();
+  const segments = new Set<string>();
 
   for (const segment of filePath.split('/')) {
     const name = getSegmentName(segment);
@@ -182,12 +182,12 @@ export async function detectApiRoutes(
   // the first ones to get handled
   const sortedFiles = files.sort(sortFilesBySegmentCount);
 
-  const defaultRoutes = [];
+  const defaultRoutes: Route[] = [];
 
   for (const file of sortedFiles) {
     // We only consider every file in the api directory
     // as we will strip extensions as well as resolving "[segments]"
-    if (file.startsWith('api/') === false) {
+    if (!file.startsWith('api/')) {
       continue;
     }
 
