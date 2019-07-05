@@ -4,6 +4,15 @@ import { join } from 'path';
 
 const readirPromise = promisify(readdir);
 
+// Please note that is extremely important
+// that the `dependency` property needs
+// to reference a CLI. This is needed because
+// you might want (for example) a Gatsby
+// site that is powered by Preact, so you
+// can't look for the `preact` dependency.
+// Instead, you need to look for `preact-cli`
+// when optimizing Preact CLI projects.
+
 export default [
   {
     name: 'Gatsby.js',
@@ -31,7 +40,7 @@ export default [
   },
   {
     name: 'Vue.js',
-    dependency: 'vue',
+    dependency: '@vue/cli-service',
     getOutputDirName: async () => 'dist',
     defaultRoutes: [
       {
@@ -60,7 +69,7 @@ export default [
   },
   {
     name: 'Angular',
-    dependency: '@angular/core',
+    dependency: '@angular/cli',
     minNodeRange: '10.x',
     getOutputDirName: async (dirPrefix: string) => {
       const base = 'dist';
@@ -81,7 +90,7 @@ export default [
   },
   {
     name: 'Svelte',
-    dependency: 'svelte',
+    dependency: 'sirv-cli',
     getOutputDirName: async () => 'public',
     defaultRoutes: [
       {
