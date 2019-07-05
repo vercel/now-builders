@@ -89,6 +89,27 @@ export default [
     ],
   },
   {
+    name: 'Polymer',
+    dependency: 'polymer-cli',
+    getOutputDirName: async (dirPrefix: string) => {
+      const base = 'build';
+      const location = join(dirPrefix, base);
+      const content = await readirPromise(location);
+      const paths = content.filter(item => !item.includes('.'));
+
+      return join(base, paths[0]);
+    },
+    defaultRoutes: [
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '/(.*)',
+        dest: '/index.html',
+      },
+    ],
+  },
+  {
     name: 'Svelte',
     dependency: 'sirv-cli',
     getOutputDirName: async () => 'public',
