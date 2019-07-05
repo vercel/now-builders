@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@now/static-build",
+      "config": { "zeroConfig": true }
+    }
+  ],
+  "probes": [
+    { "path": "/", "mustContain": "Hello World" },
+    { "path": "/", "mustContain": "Hexo" },
+    { "path": "/script.js", "mustContain": "mobile-nav" },
+    { "path": "/2019/07/05/hello-world/", "mustContain": "Create a new post" }
+  ]
+}

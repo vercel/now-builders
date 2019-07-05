@@ -11,6 +11,11 @@ export default [
     getOutputDirName: async () => 'public',
   },
   {
+    name: 'Hexo',
+    dependency: 'hexo',
+    getOutputDirName: async () => 'public',
+  },
+  {
     name: 'Preact',
     dependency: 'preact-cli',
     getOutputDirName: async () => 'build',
