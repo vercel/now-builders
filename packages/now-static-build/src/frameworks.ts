@@ -163,4 +163,18 @@ export default [
     dependency: 'gridsome',
     getOutputDirName: async () => 'dist',
   },
+  {
+    name: 'UmiJS',
+    dependency: 'umi',
+    getOutputDirName: async () => 'dist',
+    defaultRoutes: [
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '/(.*)',
+        dest: '/index.html',
+      },
+    ],
+  },
 ];
