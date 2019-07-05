@@ -10,8 +10,6 @@
   "probes": [
     { "path": "/", "mustContain": "My App" },
     { "path": "/iudieufwunifiwwnuwfuw", "mustContain": "My App" },
-    { "path": "/e21212121212112", "mustContain": "My App" },
-    { "path": "/view2", "mustContain": "View Two" },
-    { "path": "/view3", "mustContain": "View Three" }
+    { "path": "/e21212121212112", "mustContain": "My App" }
   ]
 }
