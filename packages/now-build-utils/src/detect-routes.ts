@@ -1,10 +1,9 @@
 import path from 'path';
 import { Route } from './types';
 
-function concatArrayOfText(texts: string[], last: string = 'and'): string {
-  return texts.length > 2
-    ? `${texts.slice(0, -1).join(',')} ${last} ${texts.slice(-1)}`
-    : texts.join(` ${last} `);
+function concatArrayOfText(texts: string[]): string {
+  const last = texts.pop();
+  return `${texts.join(', ')}, and ${last}`;
 }
 
 // Takes a filename or foldername, strips the extension
