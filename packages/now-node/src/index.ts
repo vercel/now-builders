@@ -1,5 +1,5 @@
 import { join, dirname, relative, resolve } from 'path';
-import nodeFileTrace from '@zeit/node-file-trace';
+import nodeFileTrace from '../node-file-trace/src/node-file-trace';
 import {
   glob,
   download,
