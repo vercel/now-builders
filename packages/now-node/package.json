@@ -20,7 +20,8 @@
     "prepublish": "npm run build"
   },
   "files": [
-    "dist"
+    "dist",
+    "node-file-trace"
   ],
   "devDependencies": {
     "@types/content-type": "1.1.3",
