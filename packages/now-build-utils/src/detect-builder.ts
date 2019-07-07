@@ -50,27 +50,14 @@ export function ignoreApiFilter(file: string) {
 export async function detectApiBuilders(
   files: string[]
 ): Promise<Builder[] | null> {
-  const hasIgnores = files.some(file => !ignoreApiFilter(file));
-
-  const builds = files.map(file => {
-    if (!ignoreApiFilter(file)) {
-      return null;
-    }
-
+  const builds = files.filter(ignoreApiFilter).map(file => {
     const result = API_BUILDERS.find(
       ({ src }): boolean => minimatch(file, src)
     );
 
-    if (hasIgnores) {
-      // We must overwrite the `src` property and create an own
-      // match for each file.
-      return { ...result, src: file };
-    }
-
-    return result;
+    return result ? { ...result, src: file } : null;
   });
 
-  // We can use `new Set` here since `builds` contains references to `API_BUILDERS`
-  const finishedBuilds = Array.from(new Set(builds.filter(Boolean)));
+  const finishedBuilds = builds.filter(Boolean);
   return finishedBuilds.length > 0 ? (finishedBuilds as Builder[]) : null;
 }
