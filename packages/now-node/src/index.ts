@@ -20,7 +20,6 @@ import {
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
 import { readFileSync } from 'fs';
-import { stringify } from 'querystring';
 
 interface CompilerConfig {
   includeFiles?: string | string[];
@@ -77,7 +76,9 @@ async function compile(
 
     for (const pattern of includeFiles) {
       const files = await glob(pattern, inputDir);
+      console.log(Object.keys(files));
       await Object.keys(files).map(async file => {
+        console.log(file);
         const entry: FileFsRef = files[file];
         fsCache.set(file, entry);
         const stream = entry.toStream();
@@ -88,7 +89,7 @@ async function compile(
     }
   }
 
-  console.log('Tracing input files: ' + [...inputFiles].join(', '));
+  console.log('tracing input files: ' + [...inputFiles].join(', '));
 
   const { fileList } = await nodeFileTrace([...inputFiles], {
     base: workPath,
@@ -116,8 +117,8 @@ async function compile(
     },
   });
 
-  console.log('Traced files:');
-  console.log(fileList.join('\n'));
+  console.log('traced files:');
+  console.log('\t' + fileList.join('\n\t'));
 
   const preparedFiles: Files = {};
   fileList.forEach(path => {
