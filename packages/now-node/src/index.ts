@@ -142,13 +142,20 @@ async function compile(
     const typescript = require('typescript');
     for (const path of tsPaths) {
       console.log('compiling typescript file ' + path);
+
+      const { data: source } = await FileBlob.fromStream({
+        stream: preparedFiles[path].toStream(),
+      });
     }
   }
 
   // Compile ES Modules into CommonJS
-  const esmPaths = esmFileList.filter(file => !file.match(libPathRegEx));
+  const esmPaths = esmFileList.filter(
+    file => !file.endsWith('.ts') && !file.match(libPathRegEx)
+  );
   if (esmPaths.length) {
     const babel = require('@babel/core');
+    const pluginTransformModulesCommonJs = require('@babel/plugin-transform-modules-commonjs');
 
     for (const path of esmPaths) {
       console.log('compiling es module file ' + path);
@@ -178,6 +185,7 @@ async function compile(
               'importMeta',
             ],
           },
+          plugins: [pluginTransformModulesCommonJs],
         });
         preparedFiles[path] = new FileBlob({
           data: `${code}\n//# sourceMappingURL=${filename}.map`,
