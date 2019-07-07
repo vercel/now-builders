@@ -34,10 +34,23 @@ export async function detectBuilder(pkg: PackageJson): Promise<Builder> {
   return { src, use: '@now/static-build', config };
 }
 
+// Files that match a specific pattern will get ignored
+export function ignoreApiFilter(file: string) {
+  if (file.includes('/.')) {
+    return false;
+  }
+
+  if (file.includes('/_')) {
+    return false;
+  }
+
+  return true;
+}
+
 export async function detectApiBuilders(
   files: string[]
 ): Promise<Builder[] | null> {
-  const builds = files.map(file => {
+  const builds = files.filter(ignoreApiFilter).map(file => {
     return API_BUILDERS.find(({ src }): boolean => minimatch(file, src));
   });
 
