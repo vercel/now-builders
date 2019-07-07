@@ -76,16 +76,16 @@ async function compile(
 
     for (const pattern of includeFiles) {
       const files = await glob(pattern, inputDir);
-      console.log(Object.keys(files));
-      await Object.keys(files).map(async file => {
-        console.log(file);
-        const entry: FileFsRef = files[file];
-        fsCache.set(file, entry);
-        const stream = entry.toStream();
-        const { data } = await FileBlob.fromStream({ stream });
-        sourceCache.set(file, data);
-        inputFiles.add(resolve(workPath, file));
-      });
+      await Promise.all(
+        Object.keys(files).map(async file => {
+          const entry: FileFsRef = files[file];
+          fsCache.set(file, entry);
+          const stream = entry.toStream();
+          const { data } = await FileBlob.fromStream({ stream });
+          sourceCache.set(file, data);
+          inputFiles.add(resolve(workPath, file));
+        })
+      );
     }
   }
 
