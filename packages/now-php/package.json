@@ -9,7 +9,7 @@
     "directory": "packages/now-php"
   },
   "dependencies": {
-    "@now/php-bridge": "^0.5.3-canary.0"
+    "@now/php-bridge": "^0.5.3"
   },
   "scripts": {
     "test": "jest"

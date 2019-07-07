@@ -10,7 +10,7 @@
     "directory": "packages/now-node"
   },
   "dependencies": {
-    "@now/node-bridge": "1.2.0-canary.3",
+    "@now/node-bridge": "1.2.2",
     "@types/node": "*",
     "@zeit/ncc": "0.20.3",
     "@zeit/ncc-watcher": "1.1.0"
