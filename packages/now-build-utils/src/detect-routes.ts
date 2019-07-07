@@ -196,8 +196,6 @@ export async function detectApiRoutes(
 
     const conflictingSegment = getConflictingSegment(file);
 
-    console.log({ file, conflictingSegment });
-
     if (conflictingSegment) {
       return {
         defaultRoutes: null,
