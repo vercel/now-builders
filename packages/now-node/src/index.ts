@@ -161,9 +161,7 @@ async function compile(
     file => !file.endsWith('.ts') && !file.match(libPathRegEx)
   );
   if (esmPaths.length) {
-    const babel = require('@babel/core');
-    const pluginTransformModulesCommonJs = require('@babel/plugin-transform-modules-commonjs');
-
+    const babelCompile = require('./babel');
     for (const path of esmPaths) {
       console.log('compiling es module file ' + path);
 
@@ -172,28 +170,7 @@ async function compile(
       });
       const filename = basename(path);
       try {
-        const { code, map } = babel.transform(source, {
-          filename,
-          babelrc: false,
-          highlightCode: false,
-          compact: false,
-          sourceType: 'module',
-          sourceMaps: true,
-          parserOpts: {
-            plugins: [
-              'asyncGenerators',
-              'classProperties',
-              'classPrivateProperties',
-              'classPrivateMethods',
-              'optionalCatchBinding',
-              'objectRestSpread',
-              'numericSeparator',
-              'dynamicImport',
-              'importMeta',
-            ],
-          },
-          plugins: [pluginTransformModulesCommonJs],
-        });
+        const { code, map } = babelCompile(filename, source);
         shouldAddSourcemapSupport = true;
         preparedFiles[path] = new FileBlob({
           data: `${code}\n//# sourceMappingURL=${filename}.map`,
