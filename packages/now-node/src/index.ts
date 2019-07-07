@@ -63,6 +63,7 @@ async function compile(
   config: CompilerConfig,
   { isDev, filesChanged, filesRemoved }: Meta
 ): Promise<{ preparedFiles: Files; watch: string[] }> {
+  const inputDir = dirname(entrypointPath);
   const inputFiles = new Set<string>([entrypointPath]);
 
   const sourceCache = new Map<string, string | Buffer | null>();
@@ -75,7 +76,7 @@ async function compile(
         : config.includeFiles;
 
     for (const pattern of includeFiles) {
-      const files = await glob(pattern, workPath);
+      const files = await glob(pattern, inputDir);
       await Object.keys(files).map(async file => {
         const entry: FileFsRef = files[file];
         fsCache.set(file, entry);
