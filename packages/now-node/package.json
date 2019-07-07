@@ -12,7 +12,7 @@
   "dependencies": {
     "@now/node-bridge": "1.2.2",
     "@types/node": "*",
-    "@zeit/ncc": "0.18.5",
+    "@zeit/ncc": "0.20.4",
     "@zeit/node-file-trace": "github:zeit/node-file-trace"
   },
   "scripts": {
