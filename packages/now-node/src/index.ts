@@ -3,6 +3,7 @@ import nodeFileTrace from '@zeit/node-file-trace';
 import {
   glob,
   download,
+  File,
   FileBlob,
   FileFsRef,
   Files,
@@ -62,7 +63,7 @@ async function compile(
   { isDev, filesChanged, filesRemoved }: Meta
 ): Promise<{ preparedFiles: Files; watch: string[] }> {
   const inputFiles = new Set<string>(entrypointPath);
-  const fsCache = new Map<string, FileBlob>();
+  const fsCache = new Map<string, File | null>();
 
   if (config && config.includeFiles) {
     const includeFiles =
@@ -71,27 +72,31 @@ async function compile(
         : config.includeFiles;
 
     for (const pattern of includeFiles) {
-      const files: Record<string, FileBlob> = await glob(pattern, workPath);
+      const files = await glob(pattern, workPath);
       Object.keys(files).forEach(file => {
-        const entry: FileBlob = files[file];
+        const entry: FileFsRef = files[file];
         fsCache.set(file, entry);
         inputFiles.add(resolve(workPath, file));
       });
     }
   }
 
-  const fileList: string[] = await nodeFileTrace(inputFiles, {
+  const { fileList } = await nodeFileTrace([...inputFiles], {
     base: workPath,
     filterBase: true,
-    ignore: config && config.excludeFiles,
-    async readFile(path: string) {
+    ignore: config && (<any>config).excludeFiles,
+    async readFile(path: string): Promise<Buffer | string | null> {
       const relPath = relative(workPath, path);
       const cached = fsCache.get(relPath);
-      if (cached) return cached.data;
+      if (cached) {
+        const stream = cached.toStream();
+        const { data } = await FileBlob.fromStream({ stream });
+        return data;
+      }
       // null represents a not found
       if (cached === null) return null;
       try {
-        const source = await new Promise((resolve, reject) =>
+        const source = await new Promise<Buffer>((resolve, reject) =>
           readFile(path, (err, source) => (err ? reject(err) : resolve(source)))
         );
         // TODO: set file mode here
