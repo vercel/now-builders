@@ -38,6 +38,7 @@ const libPathRegEx = /^node_modules|[\/\\]node_modules[\/\\]/;
 const LAUNCHER_FILENAME = '___now_launcher';
 const BRIDGE_FILENAME = '___now_bridge';
 const HELPERS_FILENAME = '___now_helpers';
+const SOURCEMAP_SUPPORT_FILENAME = '__sourcemap_support';
 
 async function downloadInstallAndBundle({
   files,
@@ -64,12 +65,18 @@ async function compile(
   entrypoint: string,
   config: CompilerConfig,
   { isDev, filesChanged, filesRemoved }: Meta
-): Promise<{ preparedFiles: Files; watch: string[] }> {
+): Promise<{
+  preparedFiles: Files;
+  shouldAddSourcemapSupport: boolean;
+  watch: string[];
+}> {
   const inputDir = dirname(entrypointPath);
   const inputFiles = new Set<string>([entrypointPath]);
 
   const sourceCache = new Map<string, string | Buffer | null>();
   const fsCache = new Map<string, File>();
+
+  let shouldAddSourcemapSupport = false;
 
   if (config && config.includeFiles) {
     const includeFiles =
@@ -187,9 +194,11 @@ async function compile(
           },
           plugins: [pluginTransformModulesCommonJs],
         });
+        shouldAddSourcemapSupport = true;
         preparedFiles[path] = new FileBlob({
           data: `${code}\n//# sourceMappingURL=${filename}.map`,
         });
+        delete map.sourcesContent;
         preparedFiles[path + '.map'] = new FileBlob({
           data: JSON.stringify(map),
         });
@@ -199,6 +208,7 @@ async function compile(
 
   return {
     preparedFiles,
+    shouldAddSourcemapSupport,
     watch: fileList,
   };
 }
@@ -234,7 +244,7 @@ export async function build({
   await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOpts);
 
   console.log('tracing entrypoint file...');
-  const { preparedFiles, watch } = await compile(
+  const { preparedFiles, shouldAddSourcemapSupport, watch } = await compile(
     workPath,
     entrypointPath,
     entrypoint,
@@ -248,13 +258,21 @@ export async function build({
         entrypointPath: `./${entrypoint}`,
         bridgePath: `./${BRIDGE_FILENAME}`,
         helpersPath: `./${HELPERS_FILENAME}`,
+        sourcemapSupportPath: `./${SOURCEMAP_SUPPORT_FILENAME}`,
         shouldAddHelpers,
+        shouldAddSourcemapSupport,
       }),
     }),
     [`${BRIDGE_FILENAME}.js`]: new FileFsRef({
       fsPath: require('@now/node-bridge'),
     }),
   };
+
+  if (shouldAddSourcemapSupport) {
+    launcherFiles[`${SOURCEMAP_SUPPORT_FILENAME}.js`] = new FileFsRef({
+      fsPath: join(__dirname, 'source-map-support.js'),
+    });
+  }
 
   if (shouldAddHelpers) {
     launcherFiles[`${HELPERS_FILENAME}.js`] = new FileFsRef({
