@@ -1,6 +1,5 @@
-import { Assets, NccOptions } from '@zeit/ncc';
-import { join, dirname, relative, sep } from 'path';
-import { NccWatcher, WatcherResult } from '@zeit/ncc-watcher';
+import { join, dirname, relative, resolve } from 'path';
+import nodeFileTrace from '@zeit/node-file-trace';
 import {
   glob,
   download,
@@ -19,6 +18,7 @@ import {
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
+import { readFile } from 'fs';
 
 interface CompilerConfig {
   includeFiles?: string | string[];
@@ -31,27 +31,9 @@ interface DownloadOptions {
   meta: Meta;
 }
 
-const watchers: Map<string, NccWatcher> = new Map();
-
 const LAUNCHER_FILENAME = '___now_launcher';
 const BRIDGE_FILENAME = '___now_bridge';
 const HELPERS_FILENAME = '___now_helpers';
-
-function getWatcher(entrypoint: string, options: NccOptions): NccWatcher {
-  let watcher = watchers.get(entrypoint);
-  if (!watcher) {
-    watcher = new NccWatcher(entrypoint, options);
-    watchers.set(entrypoint, watcher);
-  }
-  return watcher;
-}
-
-function toBuffer(data: string | Buffer): Buffer {
-  if (typeof data === 'string') {
-    return Buffer.from(data, 'utf8');
-  }
-  return data;
-}
 
 async function downloadInstallAndBundle({
   files,
@@ -79,46 +61,8 @@ async function compile(
   config: CompilerConfig,
   { isDev, filesChanged, filesRemoved }: Meta
 ): Promise<{ preparedFiles: Files; watch: string[] }> {
-  const input = entrypointPath;
-  const inputDir = dirname(input);
-  const rootIncludeFiles = inputDir.split(sep).pop() || '';
-  const options: NccOptions = {
-    sourceMap: true,
-    sourceMapRegister: true,
-  };
-  let code: string;
-  let map: string | undefined;
-  let assets: Assets | undefined;
-  let watch: string[] = [];
-  if (isDev) {
-    const watcher = getWatcher(entrypointPath, options);
-    const result = await watcher.build(
-      Array.isArray(filesChanged)
-        ? filesChanged.map(f => join(workPath, f))
-        : undefined,
-      Array.isArray(filesRemoved)
-        ? filesRemoved.map(f => join(workPath, f))
-        : undefined
-    );
-    code = result.code;
-    map = result.map;
-    assets = result.assets;
-    watch = [...result.files, ...result.dirs, ...result.missing]
-      .filter(f => f.startsWith(workPath))
-      .map(f => relative(workPath, f))
-      .concat(Object.keys(assets || {}));
-  } else {
-    const ncc = require('@zeit/ncc');
-    const result = await ncc(input, {
-      sourceMap: true,
-      sourceMapRegister: true,
-    });
-    code = result.code;
-    map = result.map;
-    assets = result.assets;
-  }
-
-  if (!assets) assets = {};
+  const inputFiles = new Set<string>(entrypointPath);
+  const fsCache = new Map<string, FileBlob>();
 
   if (config && config.includeFiles) {
     const includeFiles =
@@ -127,46 +71,56 @@ async function compile(
         : config.includeFiles;
 
     for (const pattern of includeFiles) {
-      const files = await glob(pattern, inputDir);
-
-      for (const assetName of Object.keys(files)) {
-        const stream = files[assetName].toStream();
-        const { mode } = files[assetName];
-        const { data } = await FileBlob.fromStream({ stream });
-        let fullPath = join(rootIncludeFiles, assetName);
-
-        // if asset contain directory
-        // no need to use `rootIncludeFiles`
-        if (assetName.includes(sep)) {
-          fullPath = assetName;
-        }
-
-        assets[fullPath] = {
-          source: toBuffer(data),
-          permissions: mode,
-        };
-      }
+      const files: Record<string, FileBlob> = await glob(pattern, workPath);
+      Object.keys(files).forEach(file => {
+        const entry: FileBlob = files[file];
+        fsCache.set(file, entry);
+        inputFiles.add(resolve(workPath, file));
+      });
     }
   }
 
+  const fileList: string[] = await nodeFileTrace(inputFiles, {
+    base: workPath,
+    filterBase: true,
+    ignore: config && config.excludeFiles,
+    async readFile(path: string) {
+      const relPath = relative(workPath, path);
+      const cached = fsCache.get(relPath);
+      if (cached) return cached.data;
+      // null represents a not found
+      if (cached === null) return null;
+      try {
+        const source = await new Promise((resolve, reject) =>
+          readFile(path, (err, source) => (err ? reject(err) : resolve(source)))
+        );
+        // TODO: set file mode here
+        fsCache.set(relPath, new FileBlob({ data: source }));
+        return source;
+      } catch (e) {
+        if (e.code === 'ENOENT' || e.code === 'EISDIR') {
+          fsCache.set(relPath, null);
+          return null;
+        }
+        throw e;
+      }
+    },
+  });
+
+  console.log('Traced files:');
+  console.log(JSON.stringify(fileList, null, 2));
+
   const preparedFiles: Files = {};
-  preparedFiles[entrypoint] = new FileBlob({ data: code });
+  fileList.forEach(path => {
+    const entry = fsCache.get(path);
+    if (!entry) throw new Error('Internal Error: Expected a file entry.');
+    preparedFiles[path] = entry;
+  });
 
-  if (map) {
-    preparedFiles[`${entrypoint.replace('.ts', '.js')}.map`] = new FileBlob({
-      data: toBuffer(map),
-    });
-  }
-
-  // move all user code to 'user' subdirectory
-  // eslint-disable-next-line no-restricted-syntax
-  for (const assetName of Object.keys(assets)) {
-    const { source: data, permissions: mode } = assets[assetName];
-    const blob2 = new FileBlob({ data, mode });
-    preparedFiles[join(dirname(entrypoint), assetName)] = blob2;
-  }
-
-  return { preparedFiles, watch };
+  return {
+    preparedFiles,
+    watch: fileList,
+  };
 }
 
 export const version = 2;
@@ -199,7 +153,7 @@ export async function build({
   console.log('running user script...');
   await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOpts);
 
-  console.log('compiling entrypoint with ncc...');
+  console.log('tracing entrypoint file...');
   const { preparedFiles, watch } = await compile(
     workPath,
     entrypointPath,
@@ -243,14 +197,6 @@ export async function build({
   const output = { [entrypoint]: lambda };
   const result = { output, watch };
   return result;
-}
-
-export async function prepareCache({ workPath }: PrepareCacheOptions) {
-  return {
-    ...(await glob('node_modules/**', workPath)),
-    ...(await glob('package-lock.json', workPath)),
-    ...(await glob('yarn.lock', workPath)),
-  };
 }
 
 export { shouldServe };
