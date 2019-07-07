@@ -1,4 +1,4 @@
-import { join, dirname, relative, resolve } from 'path';
+import { basename, dirname, join, relative, resolve } from 'path';
 import nodeFileTrace from '@zeit/node-file-trace';
 import {
   glob,
@@ -32,6 +32,8 @@ interface DownloadOptions {
   workPath: string;
   meta: Meta;
 }
+
+const libPathRegEx = /^node_modules|[\/\\]node_modules[\/\\]/;
 
 const LAUNCHER_FILENAME = '___now_launcher';
 const BRIDGE_FILENAME = '___now_bridge';
@@ -92,7 +94,7 @@ async function compile(
 
   console.log('tracing input files: ' + [...inputFiles].join(', '));
 
-  const { fileList } = await nodeFileTrace([...inputFiles], {
+  const { fileList, esmFileList } = await nodeFileTrace([...inputFiles], {
     base: workPath,
     filterBase: true,
     ignore: config && config.excludeFiles,
@@ -122,7 +124,7 @@ async function compile(
   console.log('\t' + fileList.join('\n\t'));
 
   const preparedFiles: Files = {};
-  fileList.forEach(path => {
+  for (const path of fileList) {
     let entry = fsCache.get(path);
     // TODO: handle symlinks here
     if (!entry) {
@@ -130,7 +132,62 @@ async function compile(
       entry = new FileBlob({ data: source });
     }
     preparedFiles[path] = entry;
-  });
+  }
+
+  // Compile TypeScript files
+  const tsPaths = Object.keys(preparedFiles).filter(
+    file => file.endsWith('.ts') && !file.match(libPathRegEx)
+  );
+  if (tsPaths.length) {
+    const typescript = require('typescript');
+    for (const path of tsPaths) {
+      console.log('compiling typescript file ' + path);
+    }
+  }
+
+  // Compile ES Modules into CommonJS
+  const esmPaths = esmFileList.filter(file => !file.match(libPathRegEx));
+  if (esmPaths.length) {
+    const babel = require('@babel/core');
+
+    for (const path of esmPaths) {
+      console.log('compiling es module file ' + path);
+
+      const { data: source } = await FileBlob.fromStream({
+        stream: preparedFiles[path].toStream(),
+      });
+      const filename = basename(path);
+      try {
+        const { code, map } = babel.transform(source, {
+          filename,
+          babelrc: false,
+          highlightCode: false,
+          compact: false,
+          sourceType: 'module',
+          sourceMaps: true,
+          parserOpts: {
+            plugins: [
+              'asyncGenerators',
+              'classProperties',
+              'classPrivateProperties',
+              'classPrivateMethods',
+              'optionalCatchBinding',
+              'objectRestSpread',
+              'numericSeparator',
+              'dynamicImport',
+              'importMeta',
+            ],
+          },
+        });
+        preparedFiles[path] = new FileBlob({
+          data: `${code}\n//# sourceMappingURL=${filename}.map`,
+        });
+        preparedFiles[path + '.map'] = new FileBlob({
+          data: JSON.stringify(map),
+        });
+      } catch (e) {}
+    }
+  }
 
   return {
     preparedFiles,
