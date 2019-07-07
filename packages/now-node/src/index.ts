@@ -87,6 +87,8 @@ async function compile(
     }
   }
 
+  console.log('Tracing input files: ' + [...inputFiles].join(', '));
+
   const { fileList } = await nodeFileTrace([...inputFiles], {
     base: workPath,
     filterBase: true,
@@ -113,8 +115,8 @@ async function compile(
     },
   });
 
-  // console.log('Traced files:');
-  // console.log(JSON.stringify(fileList, null, 2));
+  console.log('Traced files:');
+  console.log(fileList.join('\n'));
 
   const preparedFiles: Files = {};
   fileList.forEach(path => {
