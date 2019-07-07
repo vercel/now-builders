@@ -23,6 +23,7 @@ import { readFileSync } from 'fs';
 
 interface CompilerConfig {
   includeFiles?: string | string[];
+  excludeFiles?: string | string[];
 }
 
 interface DownloadOptions {
@@ -94,7 +95,7 @@ async function compile(
   const { fileList } = await nodeFileTrace([...inputFiles], {
     base: workPath,
     filterBase: true,
-    ignore: config && (<any>config).excludeFiles,
+    ignore: config && config.excludeFiles,
     readFile(path: string): Buffer | string | null {
       const relPath = relative(workPath, path);
       const cached = sourceCache.get(relPath);

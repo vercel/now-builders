@@ -15,4 +15,3 @@
 /packages/now-ruby/dist/*
 /packages/now-static-build/dist/*
 /packages/now-static-build/test/fixtures/**
-/packages/now-node/node-file-trace/**
