@@ -21,6 +21,7 @@
     "graceful-fs": "^4.1.15",
     "micromatch": "^4.0.2",
     "mkdirp": "^0.5.1",
+    "node-pre-gyp": "0.13.0",
     "resolve-from": "^5.0.0",
     "rollup-pluginutils": "^2.3.3",
     "typescript": "^3.5.2"

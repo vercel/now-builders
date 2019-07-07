@@ -19,7 +19,8 @@ import {
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
-import { readFile } from 'fs';
+import { readFileSync } from 'fs';
+import { stringify } from 'querystring';
 
 interface CompilerConfig {
   includeFiles?: string | string[];
@@ -62,8 +63,10 @@ async function compile(
   config: CompilerConfig,
   { isDev, filesChanged, filesRemoved }: Meta
 ): Promise<{ preparedFiles: Files; watch: string[] }> {
-  const inputFiles = new Set<string>(entrypointPath);
-  const fsCache = new Map<string, File | null>();
+  const inputFiles = new Set<string>([entrypointPath]);
+
+  const sourceCache = new Map<string, string | Buffer | null>();
+  const fsCache = new Map<string, File>();
 
   if (config && config.includeFiles) {
     const includeFiles =
@@ -73,9 +76,12 @@ async function compile(
 
     for (const pattern of includeFiles) {
       const files = await glob(pattern, workPath);
-      Object.keys(files).forEach(file => {
+      await Object.keys(files).map(async file => {
         const entry: FileFsRef = files[file];
         fsCache.set(file, entry);
+        const stream = entry.toStream();
+        const { data } = await FileBlob.fromStream({ stream });
+        sourceCache.set(file, data);
         inputFiles.add(resolve(workPath, file));
       });
     }
@@ -85,26 +91,21 @@ async function compile(
     base: workPath,
     filterBase: true,
     ignore: config && (<any>config).excludeFiles,
-    async readFile(path: string): Promise<Buffer | string | null> {
+    readFile(path: string): Buffer | string | null {
       const relPath = relative(workPath, path);
-      const cached = fsCache.get(relPath);
-      if (cached) {
-        const stream = cached.toStream();
-        const { data } = await FileBlob.fromStream({ stream });
-        return data;
-      }
+      const cached = sourceCache.get(relPath);
+      if (cached) return cached.toString();
       // null represents a not found
       if (cached === null) return null;
       try {
-        const source = await new Promise<Buffer>((resolve, reject) =>
-          readFile(path, (err, source) => (err ? reject(err) : resolve(source)))
-        );
+        const source = readFileSync(path);
         // TODO: set file mode here
         fsCache.set(relPath, new FileBlob({ data: source }));
-        return source;
+        sourceCache.set(relPath, source);
+        return source.toString();
       } catch (e) {
         if (e.code === 'ENOENT' || e.code === 'EISDIR') {
-          fsCache.set(relPath, null);
+          sourceCache.set(relPath, null);
           return null;
         }
         throw e;
@@ -112,13 +113,17 @@ async function compile(
     },
   });
 
-  console.log('Traced files:');
-  console.log(JSON.stringify(fileList, null, 2));
+  // console.log('Traced files:');
+  // console.log(JSON.stringify(fileList, null, 2));
 
   const preparedFiles: Files = {};
   fileList.forEach(path => {
-    const entry = fsCache.get(path);
-    if (!entry) throw new Error('Internal Error: Expected a file entry.');
+    let entry = fsCache.get(path);
+    // TODO: handle symlinks here
+    if (!entry) {
+      const source = readFileSync(resolve(workPath, path));
+      entry = new FileBlob({ data: source });
+    }
     preparedFiles[path] = entry;
   });
 
