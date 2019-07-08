@@ -19,7 +19,7 @@ import {
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
-import { readFileSync } from 'fs';
+import { readFileSync, statSync } from 'fs';
 import { Compile } from './typescript';
 
 interface CompilerConfig {
@@ -145,8 +145,8 @@ async function compile(
       try {
         let source = readFileSync(path).toString();
         if (path.endsWith('.ts')) source = compileTypeScript(path, source);
-        // TODO: set file mode here
-        fsCache.set(relPath, new FileBlob({ data: source }));
+        const stats = statSync(path);
+        fsCache.set(relPath, new FileBlob({ data: source, mode: stats.mode }));
         sourceCache.set(relPath, source);
         return source;
       } catch (e) {
@@ -164,10 +164,14 @@ async function compile(
 
   for (const path of fileList) {
     let entry = fsCache.get(path);
-    // TODO: handle symlinks here
     if (!entry) {
-      const source = readFileSync(resolve(workPath, path));
-      entry = new FileBlob({ data: source });
+      const resolved = resolve(workPath, path);
+      const source = readFileSync(resolved);
+      const stats = statSync(resolved);
+      if (stats.isSymbolicLink()) {
+        // TODO: handle asset symlinks
+      }
+      entry = new FileBlob({ data: source, mode: stats.mode });
     }
     // Rename .ts -> .js (except for entry)
     if (path !== entrypoint && tsCompiled.has(path))
