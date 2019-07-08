@@ -4,7 +4,7 @@
   "probes": [
     {
       "path": "/",
-      "mustContain": "index.js:4"
+      "mustContain": "index.js:5"
     }
   ]
 }
