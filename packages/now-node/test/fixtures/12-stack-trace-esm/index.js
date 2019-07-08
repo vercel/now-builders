@@ -1,7 +1,7 @@
 export default function handler(req, res) {
   try {
     if (req) {
-      throw new Error('Should throw');
+      req.notdefined.something;
     }
     res.end('Should not print');
   } catch (error) {
