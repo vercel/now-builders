@@ -80,7 +80,7 @@ async function compile(
 
   let shouldAddSourcemapSupport = false;
 
-  if (config && config.includeFiles) {
+  if (config.includeFiles) {
     const includeFiles =
       typeof config.includeFiles === 'string'
         ? [config.includeFiles]
@@ -152,7 +152,7 @@ async function compile(
     base: workPath,
     filterBase: true,
     ts: true,
-    ignore: config && config.excludeFiles,
+    ignore: config.excludeFiles,
     readFile(path: string): Buffer | string | null {
       const relPath = relative(workPath, path);
       const cached = sourceCache.get(relPath);
@@ -245,10 +245,10 @@ export async function build({
   files,
   entrypoint,
   workPath,
-  config,
+  config = {},
   meta = {},
 }: BuildOptions) {
-  const shouldAddHelpers = !(config && config.helpers === false);
+  const shouldAddHelpers = config.helpers !== false;
 
   const {
     entrypointPath,
