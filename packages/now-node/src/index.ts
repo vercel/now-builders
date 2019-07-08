@@ -105,15 +105,17 @@ async function compile(
     }
   }
 
-  console.log(
+  /*console.log(
     'tracing input files: ' +
       [...inputFiles].map(p => relative(workPath, p)).join(', ')
-  );
+  );*/
+
+  const preparedFiles: Files = {};
 
   let tsCompile: Compile;
   function compileTypeScript(path: string, source: string): string {
     const relPath = relative(workPath, path);
-    console.log('compiling typescript file ' + relPath);
+    // console.log('compiling typescript file ' + relPath);
     if (!tsCompile)
       tsCompile = require('./typescript').init({
         basePath: workPath,
@@ -122,10 +124,9 @@ async function compile(
     try {
       const { code, map } = tsCompile(source, path);
       tsCompiled.add(relPath);
-      fsCache.set(
-        relPath + '.map',
-        new FileBlob({ data: JSON.stringify(map) })
-      );
+      preparedFiles[relPath.slice(0, -3) + '.js.map'] = new FileBlob({
+        data: JSON.stringify(map),
+      });
       source = code;
       shouldAddSourcemapSupport = true;
     } catch (e) {
@@ -162,10 +163,9 @@ async function compile(
     },
   });
 
-  console.log('traced files:');
-  console.log('\t' + fileList.join('\n\t'));
+  // console.log('traced files:');
+  // console.log('\t' + fileList.join('\n\t'));
 
-  const preparedFiles: Files = {};
   for (const path of fileList) {
     let entry = fsCache.get(path);
     // TODO: handle symlinks here
@@ -175,7 +175,7 @@ async function compile(
     }
     // Rename .ts -> .js (except for entry)
     if (path !== entrypoint && tsCompiled.has(path))
-      preparedFiles[path.substr(0, path.length - 3) + '.js'] = entry;
+      preparedFiles[path.slice(0, -3) + '.js'] = entry;
     else preparedFiles[path] = entry;
   }
 
@@ -186,7 +186,7 @@ async function compile(
   if (esmPaths.length) {
     const babelCompile = require('./babel').compile;
     for (const path of esmPaths) {
-      console.log('compiling es module file ' + path);
+      // console.log('compiling es module file ' + path);
 
       const filename = basename(path);
       const { data: source } = await FileBlob.fromStream({
@@ -246,7 +246,7 @@ export async function build({
   console.log('running user script...');
   await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOpts);
 
-  console.log('tracing entrypoint file...');
+  console.log('tracing input files...');
   const { preparedFiles, shouldAddSourcemapSupport, watch } = await compile(
     workPath,
     entrypointPath,
