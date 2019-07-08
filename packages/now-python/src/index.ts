@@ -92,7 +92,7 @@ export const build = async ({
   files: originalFiles,
   entrypoint,
   meta = {},
-  config = {},
+  config,
 }: BuildOptions) => {
   console.log('downloading files...');
   let downloadedFiles = await download(originalFiles, workPath, meta);
