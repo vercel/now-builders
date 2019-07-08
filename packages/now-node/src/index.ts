@@ -119,19 +119,15 @@ async function compile(
     if (!tsCompile)
       tsCompile = require('./typescript').init({
         basePath: workPath,
-        logError: isDev,
+        logError: true,
       });
-    try {
-      const { code, map } = tsCompile(source, path);
-      tsCompiled.add(relPath);
-      preparedFiles[relPath.slice(0, -3) + '.js.map'] = new FileBlob({
-        data: JSON.stringify(map),
-      });
-      source = code;
-      shouldAddSourcemapSupport = true;
-    } catch (e) {
-      if (isDev) throw e;
-    }
+    const { code, map } = tsCompile(source, path);
+    tsCompiled.add(relPath);
+    preparedFiles[relPath.slice(0, -3) + '.js.map'] = new FileBlob({
+      data: JSON.stringify(map),
+    });
+    source = code;
+    shouldAddSourcemapSupport = true;
     return source;
   }
 
