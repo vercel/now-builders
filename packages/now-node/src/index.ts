@@ -296,4 +296,12 @@ export async function build({
   return result;
 }
 
+export async function prepareCache({ workPath }: PrepareCacheOptions) {
+  return {
+    ...(await glob('node_modules/**', workPath)),
+    ...(await glob('package-lock.json', workPath)),
+    ...(await glob('yarn.lock', workPath)),
+  };
+}
+
 export { shouldServe };
