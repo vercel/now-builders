@@ -52,7 +52,7 @@ export async function detectApiBuilders(
 ): Promise<Builder[] | null> {
   const builds = files.filter(ignoreApiFilter).map(file => {
     const result = API_BUILDERS.find(
-      ({ src }): boolean => file === src || minimatch(file, src)
+      ({ src }): boolean => minimatch(file, src)
     );
 
     return result ? { ...result, src: file } : null;
