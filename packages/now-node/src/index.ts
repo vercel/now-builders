@@ -143,12 +143,13 @@ async function compile(
       // null represents a not found
       if (cached === null) return null;
       try {
-        let source = readFileSync(path).toString();
-        if (path.endsWith('.ts')) source = compileTypeScript(path, source);
+        let source: string | Buffer = readFileSync(path);
+        if (path.endsWith('.ts'))
+          source = compileTypeScript(path, source.toString());
         const stats = statSync(path);
         fsCache.set(relPath, new FileBlob({ data: source, mode: stats.mode }));
         sourceCache.set(relPath, source);
-        return source;
+        return source.toString();
       } catch (e) {
         if (e.code === 'ENOENT' || e.code === 'EISDIR') {
           sourceCache.set(relPath, null);
