@@ -93,12 +93,14 @@ async function compile(
           fsCache.set(file, entry);
           const stream = entry.toStream();
           const { data } = await FileBlob.fromStream({ stream });
-          if (file.endsWith('.ts'))
+          if (file.endsWith('.ts')) {
             sourceCache.set(
               file,
               compileTypeScript(resolve(workPath, file), data.toString())
             );
-          else sourceCache.set(file, data);
+          } else {
+            sourceCache.set(file, data);
+          }
           inputFiles.add(resolve(workPath, file));
         })
       );
@@ -116,11 +118,12 @@ async function compile(
   function compileTypeScript(path: string, source: string): string {
     const relPath = relative(workPath, path);
     // console.log('compiling typescript file ' + relPath);
-    if (!tsCompile)
+    if (!tsCompile) {
       tsCompile = require('./typescript').init({
         basePath: workPath,
         logError: true,
       });
+    }
     try {
       var { code, map } = tsCompile(source, path);
     } catch (e) {
@@ -153,8 +156,9 @@ async function compile(
       if (cached === null) return null;
       try {
         let source: string | Buffer = readFileSync(path);
-        if (path.endsWith('.ts'))
+        if (path.endsWith('.ts')) {
           source = compileTypeScript(path, source.toString());
+        }
         const stats = statSync(path);
         fsCache.set(relPath, new FileBlob({ data: source, mode: stats.mode }));
         sourceCache.set(relPath, source);
@@ -184,9 +188,9 @@ async function compile(
       entry = new FileBlob({ data: source, mode: stats.mode });
     }
     // Rename .ts -> .js (except for entry)
-    if (path !== entrypoint && tsCompiled.has(path))
+    if (path !== entrypoint && tsCompiled.has(path)) {
       preparedFiles[path.slice(0, -3) + '.js'] = entry;
-    else preparedFiles[path] = entry;
+    } else preparedFiles[path] = entry;
   }
 
   // Compile ES Modules into CommonJS
