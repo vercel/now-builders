@@ -20,6 +20,7 @@ import {
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
 import { readFileSync } from 'fs';
+import { Compile } from './typescript';
 
 interface CompilerConfig {
   includeFiles?: string | string[];
@@ -70,11 +71,11 @@ async function compile(
   shouldAddSourcemapSupport: boolean;
   watch: string[];
 }> {
-  const inputDir = dirname(entrypointPath);
   const inputFiles = new Set<string>([entrypointPath]);
 
   const sourceCache = new Map<string, string | Buffer | null>();
   const fsCache = new Map<string, File>();
+  const tsCompiled = new Set<String>();
 
   let shouldAddSourcemapSupport = false;
 
@@ -85,29 +86,58 @@ async function compile(
         : config.includeFiles;
 
     for (const pattern of includeFiles) {
-      const files = await glob(pattern, inputDir);
+      const files = await glob(pattern, workPath);
       await Promise.all(
         Object.keys(files).map(async file => {
           const entry: FileFsRef = files[file];
           fsCache.set(file, entry);
           const stream = entry.toStream();
           const { data } = await FileBlob.fromStream({ stream });
-          sourceCache.set(file, data);
+          if (file.endsWith('.ts'))
+            sourceCache.set(
+              file,
+              compileTypeScript(resolve(workPath, file), data.toString())
+            );
+          else sourceCache.set(file, data);
           inputFiles.add(resolve(workPath, file));
         })
       );
     }
   }
 
-  console.log('tracing input files: ' + [...inputFiles].join(', '));
+  console.log(
+    'tracing input files: ' +
+      [...inputFiles].map(p => relative(workPath, p)).join(', ')
+  );
 
-  let compileTypescript: (
-    path: string,
-    source: string
-  ) => { code: string; map: any };
+  let tsCompile: Compile;
+  function compileTypeScript(path: string, source: string): string {
+    const relPath = relative(workPath, path);
+    console.log('compiling typescript file ' + relPath);
+    if (!tsCompile)
+      tsCompile = require('./typescript').init({
+        basePath: workPath,
+        logError: isDev,
+      });
+    try {
+      const { code, map } = tsCompile(source, path);
+      tsCompiled.add(relPath);
+      fsCache.set(
+        relPath + '.map',
+        new FileBlob({ data: JSON.stringify(map) })
+      );
+      source = code;
+      shouldAddSourcemapSupport = true;
+    } catch (e) {
+      if (isDev) throw e;
+    }
+    return source;
+  }
+
   const { fileList, esmFileList } = await nodeFileTrace([...inputFiles], {
     base: workPath,
     filterBase: true,
+    ts: true,
     ignore: config && config.excludeFiles,
     readFile(path: string): Buffer | string | null {
       const relPath = relative(workPath, path);
@@ -117,24 +147,7 @@ async function compile(
       if (cached === null) return null;
       try {
         let source = readFileSync(path).toString();
-        if (path.endsWith('.ts')) {
-          if (!compileTypescript)
-            compileTypescript = require('./typescript').init({
-              basePath: inputDir,
-              logError: isDev,
-            });
-          try {
-            const { code, map } = compileTypescript(source, path);
-            fsCache.set(
-              relPath + '.map',
-              new FileBlob({ data: JSON.stringify(map) })
-            );
-            source = code;
-            shouldAddSourcemapSupport = true;
-          } catch (e) {
-            if (isDev) throw e;
-          }
-        }
+        if (path.endsWith('.ts')) source = compileTypeScript(path, source);
         // TODO: set file mode here
         fsCache.set(relPath, new FileBlob({ data: source }));
         sourceCache.set(relPath, source);
@@ -160,7 +173,10 @@ async function compile(
       const source = readFileSync(resolve(workPath, path));
       entry = new FileBlob({ data: source });
     }
-    preparedFiles[path] = entry;
+    // Rename .ts -> .js (except for entry)
+    if (path !== entrypoint && tsCompiled.has(path))
+      preparedFiles[path.substr(0, path.length - 3) + '.js'] = entry;
+    else preparedFiles[path] = entry;
   }
 
   // Compile ES Modules into CommonJS
@@ -187,7 +203,9 @@ async function compile(
         preparedFiles[path + '.map'] = new FileBlob({
           data: JSON.stringify(map),
         });
-      } catch (e) {}
+      } catch (e) {
+        if (isDev) throw e;
+      }
     }
   }
 

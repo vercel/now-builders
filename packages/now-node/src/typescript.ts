@@ -10,7 +10,7 @@ import _ts from 'typescript';
 /**
  * Debugging `ts-node`.
  */
-const shouldDebug = true;
+const shouldDebug = false;
 const debug = shouldDebug
   ? console.log.bind(console, 'ts-node')
   : () => undefined;
@@ -156,10 +156,16 @@ export function init(opts: Options = {}): Compile {
   const cwd = options.basePath || process.cwd();
   const typeCheck =
     options.typeCheck === true || options.transpileOnly !== true;
+  const nowNodeBase = resolve(__dirname, '../../../');
   const compiler = require.resolve(options.compiler || 'typescript', {
-    paths: [cwd, __dirname],
+    paths: [cwd, nowNodeBase],
   });
   const ts: typeof _ts = require(compiler);
+  if (compiler.startsWith(nowNodeBase)) {
+    console.log('Using TypeScript ' + ts.version + ' (now internal)');
+  } else {
+    console.log('Using TypeScript ' + ts.version + ' (local user-provided)');
+  }
   const transformers = options.transformers || undefined;
   const readFile = options.readFile || ts.sys.readFile;
   const fileExists = options.fileExists || ts.sys.fileExists;
