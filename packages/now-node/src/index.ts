@@ -23,6 +23,7 @@ import { readFileSync, statSync } from 'fs';
 import { Compile } from './typescript';
 
 interface CompilerConfig {
+  debug?: boolean;
   includeFiles?: string | string[];
   excludeFiles?: string | string[];
 }
@@ -107,17 +108,21 @@ async function compile(
     }
   }
 
-  /*console.log(
-    'tracing input files: ' +
-      [...inputFiles].map(p => relative(workPath, p)).join(', ')
-  );*/
+  if (config.debug) {
+    console.log(
+      'tracing input files: ' +
+        [...inputFiles].map(p => relative(workPath, p)).join(', ')
+    );
+  }
 
   const preparedFiles: Files = {};
 
   let tsCompile: Compile;
   function compileTypeScript(path: string, source: string): string {
     const relPath = relative(workPath, path);
-    // console.log('compiling typescript file ' + relPath);
+    if (config.debug) {
+      console.log('compiling typescript file ' + relPath);
+    }
     if (!tsCompile) {
       tsCompile = require('./typescript').init({
         basePath: workPath,
@@ -173,8 +178,10 @@ async function compile(
     },
   });
 
-  // console.log('traced files:');
-  // console.log('\t' + fileList.join('\n\t'));
+  if (config.debug) {
+    console.log('traced files:');
+    console.log('\t' + fileList.join('\n\t'));
+  }
 
   for (const path of fileList) {
     let entry = fsCache.get(path);
@@ -200,7 +207,9 @@ async function compile(
   if (esmPaths.length) {
     const babelCompile = require('./babel').compile;
     for (const path of esmPaths) {
-      // console.log('compiling es module file ' + path);
+      if (config.debug) {
+        console.log('compiling es module file ' + path);
+      }
 
       const filename = basename(path);
       const { data: source } = await FileBlob.fromStream({
