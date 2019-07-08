@@ -101,6 +101,10 @@ async function compile(
 
   console.log('tracing input files: ' + [...inputFiles].join(', '));
 
+  let compileTypescript: (
+    path: string,
+    source: string
+  ) => { code: string; map: any };
   const { fileList, esmFileList } = await nodeFileTrace([...inputFiles], {
     base: workPath,
     filterBase: true,
@@ -112,11 +116,29 @@ async function compile(
       // null represents a not found
       if (cached === null) return null;
       try {
-        const source = readFileSync(path);
+        let source = readFileSync(path).toString();
+        if (path.endsWith('.ts')) {
+          if (!compileTypescript)
+            compileTypescript = require('./typescript').init({
+              basePath: inputDir,
+              logError: isDev,
+            });
+          try {
+            const { code, map } = compileTypescript(source, path);
+            fsCache.set(
+              relPath + '.map',
+              new FileBlob({ data: JSON.stringify(map) })
+            );
+            source = code;
+            shouldAddSourcemapSupport = true;
+          } catch (e) {
+            if (isDev) throw e;
+          }
+        }
         // TODO: set file mode here
         fsCache.set(relPath, new FileBlob({ data: source }));
         sourceCache.set(relPath, source);
-        return source.toString();
+        return source;
       } catch (e) {
         if (e.code === 'ENOENT' || e.code === 'EISDIR') {
           sourceCache.set(relPath, null);
@@ -141,34 +163,20 @@ async function compile(
     preparedFiles[path] = entry;
   }
 
-  // Compile TypeScript files
-  const tsPaths = Object.keys(preparedFiles).filter(
-    file => file.endsWith('.ts') && !file.match(libPathRegEx)
-  );
-  if (tsPaths.length) {
-    const typescript = require('typescript');
-    for (const path of tsPaths) {
-      console.log('compiling typescript file ' + path);
-
-      const { data: source } = await FileBlob.fromStream({
-        stream: preparedFiles[path].toStream(),
-      });
-    }
-  }
-
   // Compile ES Modules into CommonJS
   const esmPaths = esmFileList.filter(
     file => !file.endsWith('.ts') && !file.match(libPathRegEx)
   );
   if (esmPaths.length) {
-    const babelCompile = require('./babel');
+    const babelCompile = require('./babel').compile;
     for (const path of esmPaths) {
       console.log('compiling es module file ' + path);
 
+      const filename = basename(path);
       const { data: source } = await FileBlob.fromStream({
         stream: preparedFiles[path].toStream(),
       });
-      const filename = basename(path);
+
       try {
         const { code, map } = babelCompile(filename, source);
         shouldAddSourcemapSupport = true;
