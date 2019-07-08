@@ -52,8 +52,6 @@ interface TSCommon {
 interface Options {
   basePath?: string;
   pretty?: boolean | null;
-  typeCheck?: boolean | null;
-  transpileOnly?: boolean | null;
   logError?: boolean | null;
   files?: boolean | null;
   compiler?: string;
@@ -91,8 +89,6 @@ const DEFAULTS: Options = {
   project: undefined,
   skipProject: null,
   ignoreDiagnostics: undefined,
-  typeCheck: null,
-  transpileOnly: null,
   logError: null,
 };
 
@@ -121,8 +117,8 @@ function normalizeSlashes(value: string): string {
 export type Compile = (
   code: string,
   fileName: string,
-  lineOffset?: number
-) => { code: string; map: any };
+  skipTypeCheck?: boolean
+) => { code: string; map: string };
 
 /**
  * Cached fs operation wrapper.
@@ -154,8 +150,6 @@ export function init(opts: Options = {}): Compile {
 
   // Require the TypeScript compiler and configuration.
   const cwd = options.basePath || process.cwd();
-  const typeCheck =
-    options.typeCheck === true || options.transpileOnly !== true;
   const nowNodeBase = resolve(__dirname, '../../../');
   const compiler = require.resolve(options.compiler || 'typescript', {
     paths: [cwd, nowNodeBase],
@@ -215,11 +209,7 @@ export function init(opts: Options = {}): Compile {
   /**
    * Create the basic required function using transpile mode.
    */
-  let getOutput = function(
-    code: string,
-    fileName: string,
-    lineOffset = 0
-  ): [string, string] {
+  let getOutput = function(code: string, fileName: string): [string, string] {
     const result = ts.transpileModule(code, {
       fileName,
       transformers,
@@ -237,7 +227,8 @@ export function init(opts: Options = {}): Compile {
   };
 
   // Use full language services when the fast option is disabled.
-  if (typeCheck) {
+  let getOutputTypeCheck: (code: string, fileName: string) => [string, string];
+  {
     const memoryCache = new MemoryCache(config.fileNames);
     const cachedReadFile = cachedLookup(debugFn('readFile', readFile));
 
@@ -298,11 +289,7 @@ export function init(opts: Options = {}): Compile {
       memoryCache.fileContents.set(fileName, contents);
     };
 
-    getOutput = function(
-      code: string,
-      fileName: string,
-      lineOffset: number = 0
-    ) {
+    getOutputTypeCheck = function(code: string, fileName: string) {
       updateMemoryCache(code, fileName);
 
       const output = service.getEmitOutput(fileName);
@@ -336,8 +323,11 @@ export function init(opts: Options = {}): Compile {
   }
 
   // Create a simple TypeScript compiler proxy.
-  function compile(code: string, fileName: string, lineOffset?: number) {
-    const [value, sourceMap] = getOutput(code, fileName, lineOffset);
+  function compile(code: string, fileName: string, skipTypeCheck?: boolean) {
+    const [value, sourceMap] = (skipTypeCheck ? getOutput : getOutputTypeCheck)(
+      code,
+      fileName
+    );
     const output = {
       code: value,
       map: Object.assign(JSON.parse(sourceMap), {
