@@ -193,19 +193,15 @@ async function compile(
         stream: preparedFiles[path].toStream(),
       });
 
-      try {
-        const { code, map } = babelCompile(filename, source);
-        shouldAddSourcemapSupport = true;
-        preparedFiles[path] = new FileBlob({
-          data: `${code}\n//# sourceMappingURL=${filename}.map`,
-        });
-        delete map.sourcesContent;
-        preparedFiles[path + '.map'] = new FileBlob({
-          data: JSON.stringify(map),
-        });
-      } catch (e) {
-        if (isDev) throw e;
-      }
+      const { code, map } = babelCompile(filename, source);
+      shouldAddSourcemapSupport = true;
+      preparedFiles[path] = new FileBlob({
+        data: `${code}\n//# sourceMappingURL=${filename}.map`,
+      });
+      delete map.sourcesContent;
+      preparedFiles[path + '.map'] = new FileBlob({
+        data: JSON.stringify(map),
+      });
     }
   }
 
