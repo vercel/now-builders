@@ -147,10 +147,7 @@ it(
     let error = null;
 
     try {
-      const result = await runBuildLambda(
-        path.join(__dirname, 'serverless-config-async'),
-      );
-      console.log('async result', result);
+      await runBuildLambda(path.join(__dirname, 'serverless-config-async'));
     } catch (err) {
       error = err;
     }
@@ -166,10 +163,7 @@ it(
     let error = null;
 
     try {
-      const result = await runBuildLambda(
-        path.join(__dirname, 'serverless-config-promise'),
-      );
-      console.log('promise result', result);
+      await runBuildLambda(path.join(__dirname, 'serverless-config-promise'));
     } catch (err) {
       error = err;
     }

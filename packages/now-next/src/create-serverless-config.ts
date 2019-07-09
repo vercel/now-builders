@@ -11,16 +11,12 @@ module.exports = function(...args) {
 
   if (typeof original === 'function' && original.constructor.name === 'AsyncFunction') {
     // AsyncFunctions will become promises
-    orignal = original(...args);
-    console.log('resolve AsyncFunction', { orignal });
+    original = original(...args);
   }
 
   if (original instanceof Promise) {
     // Special case for promises, as it's currently not supported
     // and will just error later on
-
-    console.log('Return Promise', { orignal });
-
     return original
       .then((orignalConfig) => Object.assign(finalConfig, orignalConfig))
       .then((config) => Object.assign(config, target));
