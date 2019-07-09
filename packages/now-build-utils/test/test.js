@@ -182,7 +182,7 @@ it('Test `detectBuilder`', async () => {
   {
     const pkg = {};
     const { builder } = await detectBuilder(pkg);
-    expect(builder.use).toBe('@now/static-build');
+    expect(builder).toBe(null);
   }
 });
 
