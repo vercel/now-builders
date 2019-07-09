@@ -12,6 +12,7 @@ module.exports = function(...args) {
   if (typeof original === 'function' && original.constructor.name === 'AsyncFunction') {
     // AsyncFunctions will become promises
     orignal = original(...args);
+    console.log('resolve AsyncFunction', { orignal });
   }
 
   if (original instanceof Promise) {
