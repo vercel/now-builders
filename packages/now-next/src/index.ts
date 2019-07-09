@@ -178,7 +178,6 @@ export const build = async ({
 
   const pkg = await readPackageJson(entryPath);
   const nextVersion = getNextVersion(pkg);
-  const nextSemVersion = nextVersion && semver.coerce(nextVersion);
 
   if (!meta.isDev) {
     await createServerlessConfig(workPath);
