@@ -1,4 +1,4 @@
-import { basename, dirname, join, relative, resolve } from 'path';
+import { basename, dirname, join, relative, resolve, sep } from 'path';
 import nodeFileTrace from '@zeit/node-file-trace';
 import {
   glob,
@@ -19,7 +19,7 @@ import {
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
-import { readFileSync, statSync } from 'fs';
+import { readFileSync, lstatSync, readlinkSync } from 'fs';
 import { Compile } from './typescript';
 
 interface CompilerConfig {
@@ -164,8 +164,14 @@ async function compile(
         if (path.endsWith('.ts')) {
           source = compileTypeScript(path, source.toString());
         }
-        const stats = statSync(path);
-        fsCache.set(relPath, new FileBlob({ data: source, mode: stats.mode }));
+        const stats = lstatSync(path);
+        let entry: File;
+        if (stats.isSymbolicLink()) {
+          entry = new FileFsRef({ mode: stats.mode, fsPath: path });
+        } else {
+          entry = new FileBlob({ data: source, mode: stats.mode });
+        }
+        fsCache.set(relPath, entry);
         sourceCache.set(relPath, source);
         return source.toString();
       } catch (e) {
@@ -187,12 +193,26 @@ async function compile(
     let entry = fsCache.get(path);
     if (!entry) {
       const resolved = resolve(workPath, path);
-      const source = readFileSync(resolved);
-      const stats = statSync(resolved);
+      const stats = lstatSync(resolved);
       if (stats.isSymbolicLink()) {
-        // TODO: handle asset symlinks
+        entry = new FileFsRef({ mode: stats.mode, fsPath: resolved });
+      } else {
+        const source = readFileSync(resolved);
+        entry = new FileBlob({ data: source, mode: stats.mode });
       }
-      entry = new FileBlob({ data: source, mode: stats.mode });
+    }
+    // ensure symlink targets are added to the file list
+    if (entry.mode && entry.fsPath && entry.mode >> 12 === 10) {
+      // ensure the symlink target is added to the file list
+      const symlinkTarget = relative(
+        workPath,
+        resolve(dirname(entry.fsPath), readlinkSync(entry.fsPath))
+      );
+      if (
+        !symlinkTarget.startsWith('..' + sep) &&
+        fileList.indexOf(symlinkTarget) === -1
+      )
+        fileList.push(symlinkTarget);
     }
     // Rename .ts -> .js (except for entry)
     if (path !== entrypoint && tsCompiled.has(path)) {
