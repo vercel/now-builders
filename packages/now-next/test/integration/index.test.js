@@ -144,10 +144,15 @@ it(
 it(
   'Should not build the serverless-config-async example',
   async () => {
-    const result = await runBuildLambda(
-      path.join(__dirname, 'serverless-config-async'),
-    );
-    console.log('async output', result);
+    let error = null;
+
+    try {
+      await runBuildLambda(path.join(__dirname, 'serverless-config-async'));
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).not.toBe(null);
   },
   FOUR_MINUTES,
 );
@@ -155,10 +160,15 @@ it(
 it(
   'Should not build the serverless-config-promise example',
   async () => {
-    const result = await runBuildLambda(
-      path.join(__dirname, 'serverless-config-promise'),
-    );
-    console.log('promise output', result);
+    let error = null;
+
+    try {
+      await runBuildLambda(path.join(__dirname, 'serverless-config-promise'));
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).not.toBe(null);
   },
   FOUR_MINUTES,
 );
