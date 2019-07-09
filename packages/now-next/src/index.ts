@@ -26,9 +26,7 @@ import {
   getSpawnOptions,
 } from '@now/build-utils';
 
-import nextLegacyVersions, {
-  FIRST_SUPPORT_FOR_TARGET_ENV,
-} from './legacy-versions';
+import nextLegacyVersions from './legacy-versions';
 import {
   EnvConfig,
   excludeFiles,
@@ -182,13 +180,7 @@ export const build = async ({
   const nextVersion = getNextVersion(pkg);
   const nextSemVersion = nextVersion && semver.coerce(nextVersion);
 
-  if (
-    meta.isDev ||
-    (nextSemVersion &&
-      semver.gte(nextSemVersion.version, FIRST_SUPPORT_FOR_TARGET_ENV))
-  ) {
-    process.env.__NEXT_BUILDER_EXPERIMENTAL_TARGET = 'serverless';
-  } else {
+  if (!meta.isDev) {
     await createServerlessConfig(workPath);
   }
 
