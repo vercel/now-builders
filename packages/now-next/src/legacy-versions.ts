@@ -334,5 +334,3 @@ export default [
   '7.0.2-canary.50',
   '7.0.2',
 ];
-
-export const FIRST_SUPPORT_FOR_TARGET_ENV = '8.1.1-canary.63';
