@@ -195,7 +195,6 @@ export function init(opts: Options = {}): Compile {
     let build = builds.get(configFileName);
     if (build) return build;
 
-    const outputCache = new Map<string, { code: string; map: any }>();
     const config = readConfig(configFileName);
 
     /**
@@ -325,7 +324,6 @@ export function init(opts: Options = {}): Compile {
       (build = {
         getOutput,
         getOutputTypeCheck,
-        outputCache,
       })
     );
     return build;
@@ -363,7 +361,7 @@ export function init(opts: Options = {}): Compile {
           options: {},
         };
         const configDiagnosticList = filterDiagnostics(
-          config.errors,
+          errorResult.errors,
           ignoreDiagnostics
         );
         // Render the configuration errors.
@@ -401,7 +399,7 @@ export function init(opts: Options = {}): Compile {
 
     if (configFileName) {
       const configDiagnosticList = filterDiagnostics(
-        config.errors,
+        configResult.errors,
         ignoreDiagnostics
       );
       // Render the configuration errors.
@@ -426,7 +424,6 @@ export function init(opts: Options = {}): Compile {
       }),
     };
     delete output.map.sourceRoot;
-    build.outputCache.set(fileName, output);
     return output;
   }
 
@@ -436,7 +433,6 @@ export function init(opts: Options = {}): Compile {
 interface Build {
   getOutput(code: string, fileName: string): [string, string];
   getOutputTypeCheck(code: string, fileName: string): [string, string];
-  outputCache: Map<string, { code: string; map: any }>;
 }
 
 /**
