@@ -46,6 +46,7 @@ export interface Config {
 
 export interface Meta {
   isDev?: boolean;
+  skipDownload?: boolean;
   requestPath?: string;
   filesChanged?: string[];
   filesRemoved?: string[];
@@ -204,4 +205,10 @@ export interface NodeVersion {
   major: number;
   range: string;
   runtime: string;
+}
+
+export interface Builder {
+  use: string;
+  src: string;
+  config?: Config;
 }
