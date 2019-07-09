@@ -1,5 +1,5 @@
 import chrome from 'chrome-aws-lambda';
-import { launch } from 'puppeteer-core';
+import puppeteer from 'puppeteer-core';
 import lighthouse from 'lighthouse';
 import { URL } from 'url';
 
@@ -14,7 +14,7 @@ async function getOptions() {
 
 async function getResult(url) {
   const options = await getOptions();
-  const browser = await launch(options);
+  const browser = await puppeteer.launch(options);
   const { port } = new URL(browser.wsEndpoint());
   const result = await lighthouse(url, {
     port,

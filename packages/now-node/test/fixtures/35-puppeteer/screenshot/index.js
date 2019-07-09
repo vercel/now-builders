@@ -1,5 +1,5 @@
 import chrome from 'chrome-aws-lambda';
-import { launch } from 'puppeteer-core';
+import puppeteer from 'puppeteer-core';
 
 async function getOptions() {
   const options = {
@@ -12,7 +12,7 @@ async function getOptions() {
 
 async function getPage() {
   const options = await getOptions();
-  const browser = await launch(options);
+  const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
   return page;
 }
