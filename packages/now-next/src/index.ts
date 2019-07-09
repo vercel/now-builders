@@ -4,7 +4,6 @@ import {
   readFile,
   unlink as unlinkFile,
   writeFile,
-  readdir,
 } from 'fs-extra';
 import os from 'os';
 import path from 'path';
