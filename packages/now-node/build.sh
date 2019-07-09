@@ -17,7 +17,7 @@ tsc
 # copy type file for ts test
 cp dist/types.d.ts test/fixtures/15-helpers/ts/types.d.ts
 # setup symlink for symlink test
-ln -s symlinked-asset test/fixtures/11-symlinks/symlink
+ln -sf symlinked-asset test/fixtures/11-symlinks/symlink
 
 # use types.d.ts as the main types export
 mv dist/types.d.ts dist/types
