@@ -147,7 +147,10 @@ it(
     let error = null;
 
     try {
-      await runBuildLambda(path.join(__dirname, 'serverless-config-async'));
+      const result = await runBuildLambda(
+        path.join(__dirname, 'serverless-config-async'),
+      );
+      console.log('async result', result);
     } catch (err) {
       error = err;
     }
@@ -163,7 +166,10 @@ it(
     let error = null;
 
     try {
-      await runBuildLambda(path.join(__dirname, 'serverless-config-promise'));
+      const result = await runBuildLambda(
+        path.join(__dirname, 'serverless-config-promise'),
+      );
+      console.log('promise result', result);
     } catch (err) {
       error = err;
     }
@@ -181,7 +187,7 @@ it(
       buildResult: { output },
     } = await runBuildLambda(path.join(__dirname, 'serverless-config-object'));
 
-    expect(output.index).toBeDefined();
+    expect(output['index.html']).toBeDefined();
     expect(output.goodbye).toBeDefined();
     const filePaths = Object.keys(output);
     const serverlessError = filePaths.some(filePath => filePath.match(/_error/));
