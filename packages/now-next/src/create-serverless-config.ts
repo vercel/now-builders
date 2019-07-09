@@ -4,22 +4,29 @@ import fs from 'fs-extra';
 function getCustomData(importName: string) {
   return `
 module.exports = function(...args) {
-  const original = require('./${importName}');
+  let original = require('./${importName}');
 
   const finalConfig = {};
+  const target = { target: 'serverless' };
 
   if (typeof original === 'function' && original.constructor.name === 'AsyncFunction') {
-    // Special case for promises
-    return original(...args)
+    // AsyncFunctions will become promises
+    orignal = original(...args);
+  }
+
+  if (original instanceof Promise) {
+    // Special case for promises, as it's currently not supported
+    // and will just error later on
+    return original
       .then((orignalConfig) => Object.assign(finalConfig, orignalConfig))
-      .then((config) => Object.assign(config, { target: 'serverless' }));
+      .then((config) => Object.assign(config, target));
   } else if (typeof original === 'function') {
     Object.assign(finalConfig, original(...args));
   } else if (typeof original === 'object') {
     Object.assign(finalConfig, original);
   }
 
-  Object.assign(finalConfig, { target: 'serverless' });
+  Object.assign(finalConfig, target);
 
   return finalConfig;
 }
