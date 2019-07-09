@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "download": "7.1.0",
     "sharp": "0.22.0"
   }
 }
