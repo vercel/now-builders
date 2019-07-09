@@ -149,7 +149,7 @@ it(
       buildResult: { output },
     } = await runBuildLambda(path.join(__dirname, 'serverless-no-config'));
 
-    expect(output.index).toBeDefined();
+    expect(output['index.html']).toBeDefined();
     expect(output.goodbye).toBeDefined();
     const filePaths = Object.keys(output);
     const serverlessError = filePaths.some(filePath => filePath.match(/_error/));
