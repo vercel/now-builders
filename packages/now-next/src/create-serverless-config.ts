@@ -18,6 +18,9 @@ module.exports = function(...args) {
   if (original instanceof Promise) {
     // Special case for promises, as it's currently not supported
     // and will just error later on
+
+    console.log('Return Promise', { orignal });
+
     return original
       .then((orignalConfig) => Object.assign(finalConfig, orignalConfig))
       .then((config) => Object.assign(config, target));
