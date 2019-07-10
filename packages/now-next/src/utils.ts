@@ -258,7 +258,7 @@ function getRoutes(
     ...getDynamicRoutes(entryPath, entryDirectory, dynamicPages).map(
       (route: { src: string; dest: string }) => {
         // convert to make entire RegExp match as one group
-        route.src = route.src.replace('^', '^(').replace('$', ')$');
+        route.src = route.src.replace('^', `^${prefix}(`).replace('$', ')$');
         route.dest = `${url}/$1`;
         return route;
       }
@@ -321,7 +321,7 @@ export function getDynamicRoutes(
 
   const pageMatchers = getSortedRoutes(dynamicPages).map(pageName => ({
     pageName,
-    matcher: getRouteRegex!(path.join('/', entryDirectory, pageName)).re,
+    matcher: getRouteRegex!(pageName).re,
   }));
 
   const routes: { src: string; dest: string }[] = [];

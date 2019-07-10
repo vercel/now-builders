@@ -416,7 +416,7 @@ export const build = async ({
       const pathname = page.replace(/\.html$/, '');
 
       if (isDynamicRoute(pathname)) {
-        dynamicPages.push(pathname);
+        dynamicPages.push(normalizePage(pathname));
         return;
       }
 
@@ -523,6 +523,7 @@ export const build = async ({
     if (staticPages[`${route.dest}.html`.substr(1)]) {
       route.dest = `${route.dest}.html`;
     }
+    route.src = route.src.replace('^', `^${path.join('/', entryDirectory)}`);
     return route;
   });
 
