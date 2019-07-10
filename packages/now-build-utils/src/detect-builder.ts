@@ -57,7 +57,7 @@ export async function detectBuilder(
   // If there is no `build` and `now-build` script
   // we'll not select `@now/static-build`
   // since it would fail
-  if (!scripts.build && !scripts['now-build']) {
+  if (!scripts.build) {
     return { builder: null, warnings };
   }
 
