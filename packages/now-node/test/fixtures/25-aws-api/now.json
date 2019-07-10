@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@now/node",
+      "config": { "awsLambdaHandler": "index.handler" }
+    }
+  ],
+  "probes": [{ "path": "/", "mustContain": "aws-api:RANDOMNESS_PLACEHOLDER" }]
+}

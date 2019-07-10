@@ -306,13 +306,14 @@ export async function build({
 
   // Use the system-installed version of `node` when running via `now dev`
   const runtime = meta.isDev ? 'nodejs' : nodeVersion.runtime;
+  const awsLambdaHandler = config.awsLambdaHandler as string;
 
   const lambda = await createLambda({
     files: {
       ...preparedFiles,
-      ...launcherFiles,
+      ...(awsLambdaHandler ? files : launcherFiles),
     },
-    handler: `${LAUNCHER_FILENAME}.launcher`,
+    handler: awsLambdaHandler || `${LAUNCHER_FILENAME}.launcher`,
     runtime,
   });
 
