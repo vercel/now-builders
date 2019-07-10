@@ -417,6 +417,7 @@ export const build = async ({
 
       if (isDynamicRoute(pathname)) {
         dynamicPages.push(pathname);
+        return;
       }
 
       exportedPageRoutes.push({

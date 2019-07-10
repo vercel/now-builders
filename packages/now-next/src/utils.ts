@@ -236,6 +236,7 @@ function getRoutes(
 
     if (isDynamicRoute(pageName)) {
       dynamicPages.push(normalizePage(pageName));
+      continue;
     }
 
     routes.push({
@@ -289,7 +290,8 @@ function getRoutes(
 export function getDynamicRoutes(
   entryPath: string,
   entryDirectory: string,
-  dynamicPages: string[]
+  dynamicPages: string[],
+  isDev?: boolean
 ): { src: string; dest: string }[] {
   if (!dynamicPages.length) {
     return [];
@@ -319,14 +321,19 @@ export function getDynamicRoutes(
 
   const pageMatchers = getSortedRoutes(dynamicPages).map(pageName => ({
     pageName,
-    matcher: getRouteRegex!(pageName).re,
+    matcher: getRouteRegex!(path.join('/', entryDirectory, pageName)).re,
   }));
 
   const routes: { src: string; dest: string }[] = [];
   pageMatchers.forEach(pageMatcher => {
+    // in `now dev` we don't need to prefix the destination
+    const dest = !isDev
+      ? path.join('/', entryDirectory, pageMatcher.pageName)
+      : pageMatcher.pageName;
+
     routes.push({
       src: pageMatcher.matcher.source,
-      dest: path.join('/', entryDirectory, pageMatcher.pageName),
+      dest,
     });
   });
   return routes;
