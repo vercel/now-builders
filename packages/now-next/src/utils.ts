@@ -260,8 +260,8 @@ function getRoutes(
         // convert to make entire RegExp match as one group
         route.src = route.src
           .replace('^', `^${prefix}(`)
-          .replace('$', ')$')
-          .replace('(\\/', '(');
+          .replace('(\\/', '(')
+          .replace('$', ')$');
         route.dest = `${url}/$1`;
         return route;
       }
