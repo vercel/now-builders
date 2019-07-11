@@ -65,6 +65,35 @@ async function parseTOMLStream(stream: NodeJS.ReadableStream) {
   return toml.parse.stream(stream);
 }
 
+async function collectFilesToWatch(buildDir: string, meta: Meta) {
+  if (!meta.isDev) {
+    return [];
+  }
+
+  const fsFiles = await glob('*.d', buildDir);
+  const files = Object.values(fsFiles);
+  const toWatch: string[] = [];
+
+  for (let file in files) {
+    const contents = await fs.readFile(files[file].fsPath, 'utf8');
+    const targets = contents.split('\n');
+    const fileRegex = /.+: (.+)$/;
+    const dependentFiles = targets.flatMap(target => {
+      const matches = target.match(fileRegex);
+
+      if (!matches || !matches.length) return [];
+
+      return matches[0].split(' ');
+    });
+
+    toWatch.push(...dependentFiles);
+  }
+
+  console.log({ toWatch });
+
+  return toWatch;
+}
+
 async function buildWholeProject(
   { entrypoint, config }: BuildOptions,
   downloadedFiles: DownloadedFiles,
@@ -93,13 +122,14 @@ async function buildWholeProject(
   const targetPath = path.join(
     entrypointDirname,
     'target',
-    debug ? 'debug' : 'release'
+    debug || meta.isDev ? 'debug' : 'release'
   );
   const binaries = await inferCargoBinaries({
     env: rustEnv,
     cwd: entrypointDirname,
   });
 
+  const watch = await collectFilesToWatch(targetPath, meta);
   const lambdas: Record<string, Lambda> = {};
   const lambdaPath = path.dirname(entrypoint);
   await Promise.all(
@@ -118,7 +148,7 @@ async function buildWholeProject(
     })
   );
 
-  return lambdas;
+  return { output: lambdas, watch };
 }
 
 async function gatherExtraFiles(
@@ -258,10 +288,11 @@ async function buildSingleFile(
   const bin = path.join(
     path.dirname(cargoTomlFile),
     'target',
-    debug ? 'debug' : 'release',
+    debug || meta.isDev ? 'debug' : 'release',
     binName
   );
 
+  const watch = await collectFilesToWatch(path.dirname(bin), meta);
   const lambda = await createLambda({
     files: {
       ...extraFiles,
@@ -272,7 +303,10 @@ async function buildSingleFile(
   });
 
   return {
-    [entrypoint]: lambda,
+    output: {
+      [entrypoint]: lambda,
+    },
+    watch,
   };
 }
 
