@@ -13,6 +13,7 @@ import {
   PrepareCacheOptions,
   DownloadedFiles,
   Lambda,
+  Meta,
 } from '@now/build-utils'; // eslint-disable-line import/no-extraneous-dependencies
 import installRust from './install-rust';
 
@@ -68,7 +69,8 @@ async function buildWholeProject(
   { entrypoint, config }: BuildOptions,
   downloadedFiles: DownloadedFiles,
   extraFiles: DownloadedFiles,
-  rustEnv: Record<string, string>
+  rustEnv: Record<string, string>,
+  meta: Meta
 ) {
   const entrypointDirname = path.dirname(downloadedFiles[entrypoint].fsPath);
   const { debug } = config;
@@ -76,7 +78,7 @@ async function buildWholeProject(
   try {
     await execa(
       'cargo',
-      ['build', '--verbose'].concat(debug ? [] : ['--release']),
+      ['build', '--verbose'].concat(debug || meta.isDev ? [] : ['--release']),
       {
         env: rustEnv,
         cwd: entrypointDirname,
@@ -176,7 +178,8 @@ async function buildSingleFile(
   { workPath, entrypoint, config }: BuildOptions,
   downloadedFiles: DownloadedFiles,
   extraFiles: DownloadedFiles,
-  rustEnv: Record<string, string>
+  rustEnv: Record<string, string>,
+  meta: Meta
 ) {
   console.log('building single file');
   const launcherPath = path.join(__dirname, '..', 'launcher.rs');
@@ -239,7 +242,7 @@ async function buildSingleFile(
     await execa(
       'cargo',
       ['build', '--bin', binName, '--verbose'].concat(
-        debug ? [] : ['--release']
+        debug || meta.isDev ? [] : ['--release']
       ),
       {
         env: rustEnv,
@@ -296,9 +299,10 @@ export async function build(opts: BuildOptions) {
   const extraFiles = await gatherExtraFiles(config.includeFiles, entryPath);
 
   if (path.extname(entrypoint) === '.toml') {
-    return buildWholeProject(opts, downloadedFiles, extraFiles, rustEnv);
+    return buildWholeProject(opts, downloadedFiles, extraFiles, rustEnv, meta);
   }
-  return buildSingleFile(opts, downloadedFiles, extraFiles, rustEnv);
+
+  return buildSingleFile(opts, downloadedFiles, extraFiles, rustEnv, meta);
 }
 
 export async function prepareCache({
