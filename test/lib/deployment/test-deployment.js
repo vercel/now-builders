@@ -80,7 +80,7 @@ async function testDeployment (
   console.log('deploymentUrl', `https://${deploymentUrl}`);
 
   for (const probe of nowJson.probes || []) {
-    console.log('testing', JSON.stringify(probe));
+    console.log(`testing probe for ${deploymentUrl}`, JSON.stringify(probe));
     const probeUrl = `https://${deploymentUrl}${probe.path}`;
     const fetchOpts = { method: probe.method, headers: { ...probe.headers } };
     if (probe.body) {
@@ -88,6 +88,7 @@ async function testDeployment (
       fetchOpts.body = JSON.stringify(probe.body);
     }
     const { text, resp } = await fetchDeploymentUrl(probeUrl, fetchOpts);
+    console.log(`finished probe for ${deploymentUrl}`, JSON.stringify(probe));
 
     if (probe.mustContain) {
       if (!text.includes(probe.mustContain)) {
