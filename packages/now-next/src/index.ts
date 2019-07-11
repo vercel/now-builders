@@ -513,12 +513,6 @@ export const build = async ({
     {}
   );
 
-  let dynamicPrefix = path.join('/', entryDirectory);
-
-  dynamicPrefix = dynamicPrefix.endsWith('/')
-    ? dynamicPrefix.substr(0, dynamicPrefix.length - 1)
-    : dynamicPrefix;
-
   let dynamicRoutes = getDynamicRoutes(
     entryPath,
     entryDirectory,
@@ -529,7 +523,7 @@ export const build = async ({
     if (staticPages[`${route.dest}.html`.substr(1)]) {
       route.dest = `${route.dest}.html`;
     }
-    route.src = route.src.replace('^', `^${dynamicPrefix}`);
+    route.src = route.src.replace('^', `^${path.join('/', entryDirectory)}`);
     return route;
   });
 

@@ -254,17 +254,14 @@ function getRoutes(
     }
   }
 
-  const dynamicPrefix = prefix.endsWith('/')
-    ? prefix.substr(0, prefix.length - 1)
-    : prefix;
-
   routes.push(
     ...getDynamicRoutes(entryPath, entryDirectory, dynamicPages).map(
       (route: { src: string; dest: string }) => {
         // convert to make entire RegExp match as one group
         route.src = route.src
-          .replace('^', `^${dynamicPrefix}(`)
-          .replace('$', ')$');
+          .replace('^', `^${prefix}(`)
+          .replace('$', ')$')
+          .replace('(\\/', '(');
         route.dest = `${url}/$1`;
         return route;
       }
