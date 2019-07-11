@@ -5,7 +5,7 @@ import { join } from 'path';
 const readirPromise = promisify(readdir);
 const statPromise = promisify(stat);
 const isDir = async (file: string): Promise<boolean> =>
-  (await statPromise()).isDirectory();
+  (await statPromise(file)).isDirectory();
 
 // Please note that is extremely important
 // that the `dependency` property needs
