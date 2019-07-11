@@ -9,7 +9,7 @@
   "probes": [
     {
       "path": "/",
-      "mustContain": "symlinked-asset"
+      "mustContain": "asdf"
     }
   ]
 }
