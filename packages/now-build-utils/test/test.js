@@ -22,7 +22,7 @@ const {
   detectApiRoutes,
 } = require('../dist');
 
-jest.setTimeout(4 * 60 * 1000);
+jest.setTimeout(6 * 60 * 1000);
 const builderUrl = '@canary';
 let buildUtilsUrl;
 
