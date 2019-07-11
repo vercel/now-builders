@@ -10,6 +10,6 @@
   "probes": [
     { "path": "/", "mustContain": "Hello World" },
     { "path": "/", "mustContain": "Hexo" },
-    { "path": "/archives", "mustContain": "Jul 9" }
+    { "path": "/archives", "mustContain": "Hello World" }
   ]
 }
