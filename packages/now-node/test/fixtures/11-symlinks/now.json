@@ -6,5 +6,10 @@
       "use": "@now/node"
     }
   ],
-  "probes": [{ "path": "/", "mustContain": "found:RANDOMNESS_PLACEHOLDER" }]
+  "probes": [
+    {
+      "path": "/",
+      "mustContain": "asdf"
+    }
+  ]
 }
