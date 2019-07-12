@@ -192,4 +192,20 @@ export default [
       },
     ],
   },
+  {
+    name: 'Docusaurus',
+    dependency: 'docusaurus',
+    getOutputDirName: async (dirPrefix: string) => {
+      const base = 'build';
+      const location = join(dirPrefix, base);
+      const content = await readirPromise(location);
+
+      // If there is only one file in it that is a dir we'll use it as dist dir
+      if (content.length === 1 && (await isDir(join(location, content[0])))) {
+        return join(base, content[0]);
+      }
+
+      return base;
+    },
+  },
 ];
