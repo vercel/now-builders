@@ -1,7 +1,5 @@
-import say from '@builders-test/lib';
+const { say } = require('@builders-test/lib');
 
-const handler = (req, resp) => {
-  resp.end(say());
+module.exports = (req, res) => {
+  res.end(say('api:RANDOMNESS_PLACEHOLDER'));
 };
-
-export default handler;
