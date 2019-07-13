@@ -1,8 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "index.ts", "use": "@now/node", "config": { "debug": true } }
-  ],
+  "builds": [{ "src": "index.ts", "use": "@now/node" }],
   "probes": [
     {
       "path": "/",
