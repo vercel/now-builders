@@ -101,7 +101,7 @@ async function compile(
           fsCache.set(file, entry);
           const stream = entry.toStream();
           const { data } = await FileBlob.fromStream({ stream });
-          if (file.endsWith('.ts')) {
+          if (file.endsWith('.ts') || file.endsWith('.tsx')) {
             sourceCache.set(
               file,
               compileTypeScript(resolve(workPath, file), data.toString())
@@ -170,7 +170,7 @@ async function compile(
       if (cached === null) return null;
       try {
         let source: string | Buffer = readFileSync(fsPath);
-        if (fsPath.endsWith('.ts')) {
+        if (fsPath.endsWith('.ts') || fsPath.endsWith('.tsx')) {
           source = compileTypeScript(fsPath, source.toString());
         }
         const { mode } = lstatSync(fsPath);
@@ -230,7 +230,10 @@ async function compile(
 
   // Compile ES Modules into CommonJS
   const esmPaths = esmFileList.filter(
-    file => !file.endsWith('.ts') && !file.match(libPathRegEx)
+    file =>
+      !file.endsWith('.ts') &&
+      !file.endsWith('.tsx') &&
+      !file.match(libPathRegEx)
   );
   if (esmPaths.length) {
     const babelCompile = require('./babel').compile;
