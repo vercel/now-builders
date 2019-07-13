@@ -149,7 +149,9 @@ async function compile(
       var { code, map } = tsCompile(source, path, true);
     }
     tsCompiled.add(relPath);
-    preparedFiles[relPath.slice(0, -3) + '.js.map'] = new FileBlob({
+    preparedFiles[
+      relPath.slice(0, -3 - Number(path.endsWith('x'))) + '.js.map'
+    ] = new FileBlob({
       data: JSON.stringify(map),
     });
     source = code;
@@ -224,7 +226,9 @@ async function compile(
     }
     // Rename .ts -> .js (except for entry)
     if (path !== entrypoint && tsCompiled.has(path)) {
-      preparedFiles[path.slice(0, -3) + '.js'] = entry;
+      preparedFiles[
+        path.slice(0, -3 - Number(path.endsWith('x'))) + '.js'
+      ] = entry;
     } else preparedFiles[path] = entry;
   }
 
