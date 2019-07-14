@@ -1,55 +1,64 @@
-const {
-  createLambda,
-  rename,
-  glob,
-  download,
-  shouldServe,
-} = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
-const { getFiles } = require('@now/php-bridge');
+const { createLambda, rename, shouldServe } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
+const {
+  getPhpFiles,
+  getLauncherFiles,
+  getIncludedFiles,
+  getComposerFiles,
+  getRuntime,
+} = require('@now/php-bridge');
+
+// ###########################
+// EXPORTS
+// ###########################
+
+exports.analyze = ({ files, entrypoint }) => files[entrypoint].digest;
+
+exports.shouldServe = shouldServe;
 
 exports.build = async ({
   files, entrypoint, workPath, config, meta,
 }) => {
-  // Download all files to workPath
-  const downloadedFiles = await download(files, workPath, meta);
+  const runtime = getRuntime(config);
 
-  let includedFiles = {};
-  if (config && config.includeFiles) {
-    // Find files for each glob
-    // eslint-disable-next-line no-restricted-syntax
-    for (const pattern of config.includeFiles) {
-      // eslint-disable-next-line no-await-in-loop
-      const matchedFiles = await glob(pattern, workPath);
-      Object.assign(includedFiles, matchedFiles);
-    }
-    // explicit and always include the entrypoint
-    Object.assign(includedFiles, {
-      [entrypoint]: files[entrypoint],
-    });
-  } else {
-    // Backwards compatibility
-    includedFiles = downloadedFiles;
-  }
-  console.log('Included files:', Object.keys(includedFiles));
+  const bridgeFiles = {
+    ...(await getPhpFiles({ workPath, config })),
+    ...(await getLauncherFiles(config)),
+  };
+
+  const includedFiles = {
+    ...(await getIncludedFiles({
+      files,
+      entrypoint,
+      workPath,
+      config,
+      meta,
+    })),
+    ...(await getComposerFiles({ workPath, config })),
+  };
 
   const userFiles = rename(includedFiles, name => path.join('user', name));
-  const bridgeFiles = await getFiles();
 
-  // TODO config.extensions. OR php.ini from user
-  delete bridgeFiles['native/modules/mysqli.so'];
-  delete bridgeFiles['native/modules/libmysqlclient.so.16'];
+  if (process.env.NOW_PHP_DEBUG === '1') {
+    console.log('🐘 Entrypoint:', entrypoint);
+    console.log('🐘 Runtime:', runtime);
+    console.log('🐘 Config:', config);
+    console.log('🐘 Work path:', workPath);
+    console.log('🐘 Meta:', meta);
+    console.log('🐘 User files:', Object.keys(userFiles));
+    console.log('🐘 Bridge files:', Object.keys(bridgeFiles));
+    console.log('🐘 PHP: php.ini', bridgeFiles['php/php.ini'].data.toString());
+  }
 
   const lambda = await createLambda({
     files: { ...userFiles, ...bridgeFiles },
     handler: 'launcher.launcher',
-    runtime: 'nodejs8.10',
+    runtime,
     environment: {
       NOW_ENTRYPOINT: entrypoint,
+      NOW_PHP_DEV: (meta || {}).isDev ? '1' : '0',
     },
   });
 
   return { [entrypoint]: lambda };
 };
-
-exports.shouldServe = shouldServe;
