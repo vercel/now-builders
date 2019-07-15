@@ -177,7 +177,7 @@ export async function build({
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
       let devPort: number | undefined = nowDevScriptPorts.get(entrypoint);
 
-      if (framework && config.zeroConfig) {
+      if (framework && framework.defaultRoutes) {
         // We need to delete the routes for `now dev`
         // since in this case it will get proxied to
         // a custom server we don't have controll over
