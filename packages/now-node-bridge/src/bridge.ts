@@ -138,11 +138,16 @@ export class Bridge {
 
     const resolveListening = this.resolveListening;
 
-    // The default timeout is two minutes so we increase
-    // to ten minutes and let now-proxy handle timeouts
-    // at about five minutes.
-    // See https://nodejs.org/docs/latest/api/http.html#http_server_settimeout_msecs_callback
-    return this.server.setTimeout(10 * 60 * 1000).listen(
+    if (typeof this.server.setTimeout === 'function') {
+      // The default timeout is two minutes so we increase
+      // to ten minutes and let now-proxy handle timeouts
+      // at about five minutes. We check for existence because
+      // express doesn't expose setTimeout, only vanilla node server.
+      // See https://nodejs.org/docs/latest/api/http.html#http_server_settimeout_msecs_callback
+      this.server.setTimeout(10 * 60 * 1000);
+    }
+
+    return this.server.listen(
       {
         host: '127.0.0.1',
         port: 0,
