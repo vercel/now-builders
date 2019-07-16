@@ -25,12 +25,13 @@ const allowedConfigImports = new Set([
 exports.analyze = ({ files, entrypoint }) => files[entrypoint].digest;
 
 exports.build = async ({
-  workPath, files, entrypoint, config,
+  workPath, files, entrypoint, meta, config,
 }) => {
-  const srcDir = await getWriteableDirectory();
-
   console.log('downloading files...');
-  await download(files, srcDir);
+  await download(files, workPath, meta);
+
+  const distPath = join(workPath, 'dist');
+  require('fs').mkdirSync(distPath);
 
   const configEnv = Object.keys(config).reduce((o, v) => {
     const name = snakeCase(v).toUpperCase();
@@ -50,11 +51,11 @@ exports.build = async ({
     });
   }
 
-  const IMPORT_CACHE = `${workPath}/.import-cache`;
+  const IMPORT_CACHE = `${distPath}/.import-cache`;
   const env = Object.assign({}, process.env, configEnv, {
     PATH: `${IMPORT_CACHE}/bin:${process.env.PATH}`,
     IMPORT_CACHE,
-    SRC: srcDir,
+    SRC: workPath,
     BUILDER: __dirname,
     ENTRYPOINT: entrypoint,
   });
@@ -63,12 +64,12 @@ exports.build = async ({
 
   await execa(builderPath, [entrypoint], {
     env,
-    cwd: workPath,
+    cwd: distPath,
     stdio: 'inherit',
   });
 
   const lambda = await createLambda({
-    files: await glob('**', workPath),
+    files: await glob('**', distPath),
     handler: entrypoint, // not actually used in `bootstrap`
     runtime: 'provided',
     environment: Object.assign({}, configEnv, {
