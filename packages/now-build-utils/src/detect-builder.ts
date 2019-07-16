@@ -88,15 +88,7 @@ export function ignoreApiFilter(file: string) {
 // We need to sort the file paths by alphabet to make
 // sure the routes stay in the same order e.g. for deduping
 export function sortFiles(fileA: string, fileB: string) {
-  if (fileA > fileB) {
-    return 1;
-  }
-
-  if (fileA < fileB) {
-    return -1;
-  }
-
-  return 0;
+  return fileA.localeCompare(fileB);
 }
 
 export async function detectApiBuilders(
