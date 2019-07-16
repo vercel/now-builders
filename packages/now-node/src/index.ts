@@ -317,7 +317,7 @@ export async function build({
       }),
     }),
     [`${BRIDGE_FILENAME}.js`]: new FileFsRef({
-      fsPath: require('./bridge'),
+      fsPath: resolve('@now/node-bridge/bridge'),
     }),
   };
 

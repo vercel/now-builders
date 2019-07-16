@@ -15,7 +15,7 @@
   "scripts": {
     "build": "./build.sh",
     "test": "npm run build && jest",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "files": [
     "dist"
@@ -35,6 +35,7 @@
     "@babel/core": "7.5.0",
     "@babel/plugin-transform-modules-commonjs": "7.5.0",
     "@types/node": "*",
+    "@now/node-bridge": "1.2.2",
     "@zeit/node-file-trace": "0.1.7",
     "typescript": "3.5.2"
   }

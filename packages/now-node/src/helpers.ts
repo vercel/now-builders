@@ -6,7 +6,7 @@ import {
   NowRequestBody,
 } from './types';
 import { Server } from 'http';
-import { Bridge } from './bridge';
+import { Bridge } from '@now/node-bridge/bridge';
 
 function getBodyParser(req: NowRequest, body: Buffer) {
   return function parseBody(): NowRequestBody {
