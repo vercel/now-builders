@@ -6,7 +6,7 @@ import {
   NowRequestBody,
 } from './types';
 import { Server } from 'http';
-import { Bridge } from './bridge';
+import { Bridge } from '@now/node-bridge';
 
 function getBodyParser(req: NowRequest, body: Buffer) {
   return function parseBody(): NowRequestBody {
@@ -84,7 +84,7 @@ function setCharset(type: string, charset: string) {
   return format(parsed);
 }
 
-function createETag(body: any, encoding: string | undefined) {
+function createETag(body: any, encoding: 'utf8' | undefined) {
   const etag = require('etag');
   const buf = !Buffer.isBuffer(body) ? Buffer.from(body, encoding) : body;
   return etag(buf, { weak: true });
@@ -92,7 +92,7 @@ function createETag(body: any, encoding: string | undefined) {
 
 function send(req: NowRequest, res: NowResponse, body: any): NowResponse {
   let chunk: unknown = body;
-  let encoding: string | undefined;
+  let encoding: 'utf8' | undefined;
 
   switch (typeof chunk) {
     // string defaulting to html
@@ -178,7 +178,11 @@ function send(req: NowRequest, res: NowResponse, body: any): NowResponse {
     res.end();
   } else {
     // respond
-    res.end(chunk, encoding);
+    if (encoding) {
+      res.end(chunk, encoding);
+    } else {
+      res.end(chunk);
+    }
   }
 
   return res;
