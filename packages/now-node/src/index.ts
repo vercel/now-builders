@@ -19,7 +19,7 @@ import {
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
-import { readFileSync, lstatSync, readlinkSync } from 'fs';
+import { readFileSync, lstatSync, readlinkSync, statSync } from 'fs';
 import { Compile } from './typescript';
 
 interface CompilerConfig {
@@ -161,7 +161,6 @@ async function compile(
 
   const { fileList, esmFileList } = await nodeFileTrace([...inputFiles], {
     base: workPath,
-    filterBase: true,
     ts: true,
     ignore: config.excludeFiles,
     readFile(fsPath: string): Buffer | string | null {
@@ -176,12 +175,9 @@ async function compile(
           source = compileTypeScript(fsPath, source.toString());
         }
         const { mode } = lstatSync(fsPath);
-        let entry: File;
-        if (isSymbolicLink(mode)) {
-          entry = new FileFsRef({ fsPath, mode });
-        } else {
-          entry = new FileBlob({ data: source, mode });
-        }
+        if (isSymbolicLink(mode))
+          throw new Error('Internal error: Unexpected symlink.');
+        const entry = new FileBlob({ data: source, mode });
         fsCache.set(relPath, entry);
         sourceCache.set(relPath, source);
         return source.toString();
@@ -204,8 +200,10 @@ async function compile(
     let entry = fsCache.get(path);
     if (!entry) {
       const fsPath = resolve(workPath, path);
+      console.log(fsPath);
       const { mode } = lstatSync(fsPath);
       if (isSymbolicLink(mode)) {
+        console.log('SYMLINK: ' + path);
         entry = new FileFsRef({ fsPath, mode });
       } else {
         const source = readFileSync(fsPath);
@@ -221,8 +219,12 @@ async function compile(
       if (
         !symlinkTarget.startsWith('..' + sep) &&
         fileList.indexOf(symlinkTarget) === -1
-      )
-        fileList.push(symlinkTarget);
+      ) {
+        const stats = statSync(resolve(workPath, symlinkTarget));
+        if (stats.isFile()) {
+          fileList.push(symlinkTarget);
+        }
+      }
     }
     // Rename .ts -> .js (except for entry)
     if (path !== entrypoint && tsCompiled.has(path)) {
