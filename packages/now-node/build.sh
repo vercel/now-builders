@@ -32,6 +32,10 @@ rm -rf dist/source-map-support
 
 # build typescript
 ncc build ../../node_modules/typescript/lib/typescript -o dist/typescript
+mv dist/typescript/index.js dist/typescript.js
+mkdir dist/typescript/lib
+mv dist/typescript/typescript/lib/* dist/typescript/lib/
+rm -r dist/typescript/typescript
 
 ncc build src/index.ts -o dist/main
 mv dist/main/index.js dist/index.js
