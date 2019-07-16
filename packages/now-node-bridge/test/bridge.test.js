@@ -1,6 +1,6 @@
 const assert = require('assert');
 const { Server } = require('http');
-const { Bridge } = require('../bridge');
+const { Bridge } = require('../'); // test the "main" from package.json
 
 test('port binding', async () => {
   const server = new Server();
