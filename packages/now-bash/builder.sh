@@ -11,7 +11,7 @@ curl -sfLS https://import.pw > "$IMPORT_BIN"
 chmod +x "$IMPORT_BIN"
 
 # For now only the entrypoint file is copied into the lambda
-mkdir -p "$DIST"
+mkdir -p "$(dirname "$DIST/$ENTRYPOINT")"
 cp "$ENTRYPOINT" "$DIST/$ENTRYPOINT"
 
 # Copy in the runtime
