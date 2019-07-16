@@ -13,7 +13,6 @@
     "@babel/core": "7.5.0",
     "@babel/plugin-transform-modules-commonjs": "7.5.0",
     "@now/node-bridge": "1.2.2",
-    "@types/node": "*",
     "@zeit/node-file-trace": "0.1.7",
     "typescript": "3.5.2"
   },
@@ -30,6 +29,7 @@
     "@types/cookie": "0.3.3",
     "@types/etag": "1.8.0",
     "@types/test-listen": "1.1.0",
+    "@types/node": "12.6.5",
     "@zeit/ncc": "0.20.4",
     "content-type": "1.0.4",
     "cookie": "0.4.0",
