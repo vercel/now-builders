@@ -31,7 +31,6 @@ exports.build = async ({
   await download(files, workPath, meta);
 
   const distPath = join(workPath, 'dist');
-  require('fs').mkdirSync(distPath);
 
   const configEnv = Object.keys(config).reduce((o, v) => {
     const name = snakeCase(v).toUpperCase();
@@ -55,7 +54,7 @@ exports.build = async ({
   const env = Object.assign({}, process.env, configEnv, {
     PATH: `${IMPORT_CACHE}/bin:${process.env.PATH}`,
     IMPORT_CACHE,
-    SRC: workPath,
+    DIST: distPath,
     BUILDER: __dirname,
     ENTRYPOINT: entrypoint,
   });
@@ -64,7 +63,7 @@ exports.build = async ({
 
   await execa(builderPath, [entrypoint], {
     env,
-    cwd: distPath,
+    cwd: workPath,
     stdio: 'inherit',
   });
 
