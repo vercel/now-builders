@@ -10,7 +10,8 @@
     "directory": "packages/now-node"
   },
   "dependencies": {
-    "@types/node": "*"
+    "@types/node": "*",
+    "typescript": "3.5.2"
   },
   "scripts": {
     "build": "./build.sh",
@@ -35,7 +36,6 @@
     "@babel/core": "7.5.0",
     "@babel/plugin-transform-modules-commonjs": "7.5.0",
     "@types/node": "*",
-    "@zeit/node-file-trace": "0.1.7",
-    "typescript": "3.5.2"
+    "@zeit/node-file-trace": "0.1.7"
   }
 }

@@ -149,13 +149,9 @@ export function init(opts: Options = {}): Compile {
   // Require the TypeScript compiler and configuration.
   const cwd = options.basePath || process.cwd();
   const nowNodeBase = resolve(__dirname, '../../../');
-  try {
-    var compiler = require.resolve(options.compiler || 'typescript', {
-      paths: [cwd, nowNodeBase],
-    });
-  } catch (e) {
-    compiler = require.resolve(eval('./typescript'));
-  }
+  const compiler = require.resolve(options.compiler || 'typescript', {
+    paths: [cwd, nowNodeBase],
+  });
   const ts: typeof _ts = require(compiler);
   if (compiler.startsWith(nowNodeBase)) {
     console.log('Using TypeScript ' + ts.version + ' (now internal)');
