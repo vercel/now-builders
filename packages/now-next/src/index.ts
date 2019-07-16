@@ -330,7 +330,7 @@ export const build = async ({
     );
     const launcherFiles = {
       'now__bridge.js': new FileFsRef({
-        fsPath: require('@now/node-bridge'),
+        fsPath: require.resolve('@now/node-bridge'),
       }),
     };
     const nextFiles: { [key: string]: FileFsRef } = {
@@ -394,7 +394,7 @@ export const build = async ({
     console.log('preparing lambda files...');
     const launcherFiles = {
       'now__bridge.js': new FileFsRef({
-        fsPath: require('@now/node-bridge'),
+        fsPath: require.resolve('@now/node-bridge'),
       }),
       'now__launcher.js': new FileFsRef({
         fsPath: path.join(__dirname, 'launcher.js'),
