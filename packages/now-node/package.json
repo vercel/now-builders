@@ -34,7 +34,6 @@
     "test-listen": "1.1.0",
     "@babel/core": "7.5.0",
     "@babel/plugin-transform-modules-commonjs": "7.5.0",
-    "@now/node-bridge": "1.2.2",
     "@types/node": "*",
     "@zeit/node-file-trace": "0.1.7",
     "typescript": "3.5.2"
