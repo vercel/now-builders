@@ -25,10 +25,6 @@ ncc build src/helpers.ts -o dist/helpers
 mv dist/helpers/index.js dist/helpers.js
 rm -rf dist/helpers
 
-ncc build src/index.ts -o dist/main
-mv dist/main/index.js dist/index.js
-rm -rf dist/main
-
 # build source-map-support/register for source maps
 ncc build node_modules/source-map-support/register -o dist/source-map-support
 mv dist/source-map-support/index.js dist/source-map-support.js
