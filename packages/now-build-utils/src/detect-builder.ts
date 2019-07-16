@@ -9,7 +9,7 @@ const BUILDERS = new Map<string, Builder>([
   ['next', { src, use: '@now/next', config }],
 ]);
 
-const API_BUILDERS: Builder[] = [
+export const API_BUILDERS: Builder[] = [
   { src: 'api/**/*.js', use: '@now/node@canary', config },
   { src: 'api/**/*.ts', use: '@now/node@canary', config },
   { src: 'api/**/*.rs', use: '@now/rust', config },
@@ -73,6 +73,12 @@ export function ignoreApiFilter(file: string) {
   }
 
   if (file.includes('/_')) {
+    return false;
+  }
+
+  // If the file does not match any builder we also
+  // don't want to create a reoute e.g. `package.json`
+  if (API_BUILDERS.some(({ src }) => minimatch(file, src)) === false) {
     return false;
   }
 
