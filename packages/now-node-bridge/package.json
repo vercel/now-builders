@@ -2,15 +2,14 @@
   "name": "@now/node-bridge",
   "version": "1.2.0-canary.3",
   "license": "MIT",
-  "main": "./bridge.js",
+  "main": "./bridge",
   "repository": {
     "type": "git",
     "url": "https://github.com/zeit/now-builders.git",
     "directory": "packages/now-node-bridge"
   },
   "files": [
-    "bridge.*",
-    "index.js"
+    "bridge.*"
   ],
   "scripts": {
     "build": "tsc",
