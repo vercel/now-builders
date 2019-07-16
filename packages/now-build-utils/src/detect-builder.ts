@@ -78,7 +78,7 @@ export function ignoreApiFilter(file: string) {
 
   // If the file does not match any builder we also
   // don't want to create a route e.g. `package.json`
-  if (API_BUILDERS.some(({ src }) => minimatch(file, src)) === false) {
+  if (API_BUILDERS.every(({ src }) => !minimatch(file, src))) {
     return false;
   }
 
