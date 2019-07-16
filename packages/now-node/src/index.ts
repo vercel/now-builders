@@ -200,10 +200,8 @@ async function compile(
     let entry = fsCache.get(path);
     if (!entry) {
       const fsPath = resolve(workPath, path);
-      console.log(fsPath);
       const { mode } = lstatSync(fsPath);
       if (isSymbolicLink(mode)) {
-        console.log('SYMLINK: ' + path);
         entry = new FileFsRef({ fsPath, mode });
       } else {
         const source = readFileSync(fsPath);
