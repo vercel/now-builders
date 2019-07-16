@@ -8,6 +8,7 @@ import {
   FileFsRef,
   Files,
   Meta,
+  Config,
   createLambda,
   runNpmInstall,
   runPackageJsonScript,
@@ -33,6 +34,7 @@ interface DownloadOptions {
   entrypoint: string;
   workPath: string;
   meta: Meta;
+  config: Config;
 }
 
 const libPathRegEx = /^node_modules|[\/\\]node_modules[\/\\]/;
@@ -54,13 +56,15 @@ async function downloadInstallAndBundle({
   entrypoint,
   workPath,
   meta,
+  config,
 }: DownloadOptions) {
   console.log('downloading user files...');
   const downloadedFiles = await download(files, workPath, meta);
 
   console.log("installing dependencies for user's code...");
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
-  const nodeVersion = await getNodeVersion(entrypointFsDirname);
+  const minNodeRange = config.zeroConfig ? '10.x' : undefined;
+  const nodeVersion = await getNodeVersion(entrypointFsDirname, minNodeRange);
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
   await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
 
@@ -291,6 +295,7 @@ export async function build({
     entrypoint,
     workPath,
     meta,
+    config,
   });
 
   console.log('running user script...');
