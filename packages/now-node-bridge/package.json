@@ -19,8 +19,6 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.19",
-    "@types/node": "*",
-    "jest": "24.1.0",
     "typescript": "3.5.2"
   }
 }

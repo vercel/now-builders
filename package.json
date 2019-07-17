@@ -52,7 +52,7 @@
     "eslint-config-prettier": "3.3.0",
     "eslint-plugin-import": "2.14.0",
     "fs-extra": "^7.0.1",
-    "jest": "24.7.0",
+    "jest": "24.7.1",
     "lint-staged": "8.1.0",
     "node-fetch": "2.6.0",
     "pre-commit": "1.2.2",

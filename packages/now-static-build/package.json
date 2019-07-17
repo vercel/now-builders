@@ -23,7 +23,6 @@
     "promise-timeout": "1.3.0"
   },
   "devDependencies": {
-    "@types/node": "*",
     "@types/promise-timeout": "1.3.0",
     "typescript": "3.5.2"
   }
