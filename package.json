@@ -43,6 +43,7 @@
     ]
   },
   "devDependencies": {
+    "@types/node": "*",
     "async-retry": "1.2.3",
     "buffer-replace": "1.0.0",
     "codecov": "3.2.0",
