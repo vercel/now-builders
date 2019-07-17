@@ -5,7 +5,6 @@ const {
   glob,
   download,
   createLambda,
-  getWriteableDirectory,
   shouldServe,
 } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 
