@@ -225,8 +225,12 @@ export async function build({
                   resolve();
                 }
               };
-              child.stdout.on('data', checkForPort);
-              child.stderr.on('data', checkForPort);
+              if (child.stdout) {
+                child.stdout.on('data', checkForPort);
+              }
+              if (child.stderr) {
+                child.stderr.on('data', checkForPort);
+              }
             }),
             5 * 60 * 1000
           );
