@@ -350,7 +350,7 @@ export function init(opts: Options = {}): Compile {
    * Load TypeScript configuration.
    */
   function readConfig(configFileName: string): _ts.ParsedCommandLine {
-    let config: any = { compilerOptions: {} };
+    let config = { compilerOptions: {}, files: [], include: [] };
     let basePath = normalizeSlashes(dirname(configFileName));
 
     // Read project configuration when available.
@@ -453,9 +453,14 @@ function fixConfig(ts: TSCommon, config: _ts.ParsedCommandLine) {
   delete config.options.tsBuildInfoFile;
   delete config.options.incremental;
 
-  // Target ES5 output by default (instead of ES3).
+  // Target esnext output by default (instead of ES3).
+  // This will prevent TS from polyfilling
   if (config.options.target === undefined) {
     config.options.target = ts.ScriptTarget.ESNext;
+  }
+
+  if (config.options.esModuleInterop === undefined) {
+    config.options.esModuleInterop = true;
   }
 
   // Target CommonJS, always!
