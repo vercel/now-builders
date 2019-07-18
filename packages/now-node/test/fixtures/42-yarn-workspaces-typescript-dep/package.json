@@ -3,5 +3,8 @@
   "workspaces": [
     "api",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "@zeit/node-file-trace": "0.2.1"
+  }
 }
