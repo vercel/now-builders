@@ -99,7 +99,7 @@ async function detectApiBuilders(files: string[]): Promise<Builder[]> {
 // to determine what builders to use
 export async function detectBuilders(
   files: string[],
-  pkg?: PackageJson | undefined
+  pkg?: PackageJson | undefined | null
 ): Promise<{
   builders: Builder[] | null;
   warnings: Warning[] | null;
