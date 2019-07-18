@@ -11,6 +11,19 @@ export interface File {
   fsPath?: string;
 }
 
+export interface PackageJson {
+  scripts?: {
+    [key: string]: string;
+  };
+  main?: string;
+  dependencies?: {
+    [key: string]: string;
+  };
+  devDependencies?: {
+    [key: string]: string;
+  };
+}
+
 export interface Files {
   [filePath: string]: File;
 }

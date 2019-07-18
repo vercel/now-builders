@@ -18,6 +18,7 @@ import streamToBuffer from './fs/stream-to-buffer';
 import shouldServe from './should-serve';
 import { detectBuilder, detectApiBuilders } from './detect-builder';
 import { detectApiRoutes } from './detect-routes';
+import { getCommand, getDevRoute } from './dev-script';
 
 export {
   FileBlob,
@@ -41,6 +42,8 @@ export {
   detectBuilder,
   detectApiBuilders,
   detectApiRoutes,
+  getCommand,
+  getDevRoute,
 };
 
 export * from './types';
