@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "www/nuxt.config.js",
+      "use": "../..",
+      "config": {
+        "serverFiles": ["custom/*.js"]
+      }
+    }
+  ]
+}

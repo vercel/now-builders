@@ -1,0 +1,29 @@
+{
+  "name": "@now/nuxt",
+  "version": "0.1.0",
+  "main": "./dist/index",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-nuxt"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && jest",
+    "prepublishOnly": "tsc"
+  },
+  "dependencies": {
+    "execa": "^1.0.0",
+    "fs-extra": "^7.0.1",
+    "resolve-from": "^5.0.0",
+    "semver": "6.1.1"
+  },
+  "devDependencies": {
+    "@types/execa": "^0.9.0",
+    "typescript": "3.5.2"
+  }
+}
