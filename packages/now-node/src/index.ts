@@ -299,7 +299,7 @@ export async function build({
   console.log('running user script...');
   const runScriptTime = Date.now();
   await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOpts);
-  console.log(`install complete [${Date.now() - runScriptTime}ms]`);
+  console.log(`script complete [${Date.now() - runScriptTime}ms]`);
 
   console.log('tracing input files...');
   const traceTime = Date.now();
