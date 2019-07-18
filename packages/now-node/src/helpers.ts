@@ -195,7 +195,7 @@ function json(req: NowRequest, res: NowResponse, jsonBody: any): NowResponse {
   return send(req, res, body);
 }
 
-function redirect(res: NowResponse, statusCode: number = 302, path: string) {
+function redirect(res: NowResponse, path: string, statusCode: number = 302): NowResponse {
   res.statusCode = statusCode;
   res.setHeader('Location', path);
   return res;
@@ -265,7 +265,7 @@ export function createServerWithHelpers(
       res.status = statusCode => status(res, statusCode);
       res.send = body => send(req, res, body);
       res.json = jsonBody => json(req, res, jsonBody);
-      res.redirect = res => redirect(res, statusCode, path);
+      res.redirect = (path, statusCode) => redirect(res, path, statusCode);
 
       await listener(req, res);
     } catch (err) {
