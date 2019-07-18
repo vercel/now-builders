@@ -104,11 +104,10 @@ export async function detectBuilders(
   builders: Builder[] | null;
   warnings: Warning[] | null;
 }> {
-  const builders: Builder[] = [];
   const warnings: Warning[] = [];
 
   // Detect all builders for the `api` directory before anything else
-  builders.push(...(await detectApiBuilders(files)));
+  const builders = await detectApiBuilders(files);
 
   if (pkg && hasBuildScript(pkg)) {
     builders.push(await detectBuilder(pkg));
