@@ -140,7 +140,7 @@ export async function build({
 
     if (config.zeroConfig) {
       // `public` is the default for zero config
-      distPath = 'public';
+      distPath = path.join(workPath, path.dirname(entrypoint), 'public');
 
       const dependencies = Object.assign(
         {},
