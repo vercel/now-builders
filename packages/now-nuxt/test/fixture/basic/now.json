@@ -5,7 +5,7 @@
       "src": "nuxt.config.js",
       "use": "@nuxtjs/now-builder",
       "config": {
-        "serverFiles": ["server-middleware/**"]
+        "includeFiles": ["server-middleware/**"]
       }
     }
   ],
