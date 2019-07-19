@@ -50,19 +50,14 @@ export default [
         handle: 'filesystem',
       },
       {
-        src: '^/js/(.*)',
+        src: '^(/(?:img|js|css)/.*)',
         headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '/js/$1',
+        dest: '$1',
       },
       {
-        src: '^/css/(.*)',
-        headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '/css/$1',
-      },
-      {
-        src: '^/img/(.*)',
-        headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '/img/$1',
+        src: '^(/[^/]*\\.(?:js|txt|ico|json))',
+        headers: { 'cache-control': 'max-age=300' },
+        dest: '$1',
       },
       {
         src: '/(.*)',
