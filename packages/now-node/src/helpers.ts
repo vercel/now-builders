@@ -195,10 +195,20 @@ function json(req: NowRequest, res: NowResponse, jsonBody: any): NowResponse {
   return send(req, res, body);
 }
 
-function redirect(res: NowResponse, path: string, statusCode: number = 302): NowResponse {
-  res.statusCode = statusCode;
-  res.setHeader('Location', path);
-  return res;
+function redirect(res: NowResponse, statusCode: number, path: string): NowResponse {  
+  if(arguments[0] === 'string') {
+    path = arguments[0];
+    statusCode = 302;
+    res.statusCode = statusCode;
+    res.setHeader('Location', path);
+    res.end();
+    return res;
+  } else if (typeof arguments[0] === 'number') {
+    res.statusCode = statusCode;
+    res.setHeader('Location', path);
+    res.end();
+    return res;
+  }
 }
 
 export class ApiError extends Error {
@@ -265,7 +275,7 @@ export function createServerWithHelpers(
       res.status = statusCode => status(res, statusCode);
       res.send = body => send(req, res, body);
       res.json = jsonBody => json(req, res, jsonBody);
-      res.redirect = (path, statusCode) => redirect(res, path, statusCode);
+      res.redirect = (statusCode, path) => redirect(res, statusCode, path);
 
       await listener(req, res);
     } catch (err) {
