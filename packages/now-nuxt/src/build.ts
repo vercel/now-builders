@@ -1,30 +1,37 @@
-const path = require('path');
-const resolveFrom = require('resolve-from');
-const fs = require('fs-extra');
-const semver = require('semver');
-const consola = require('consola');
+import path from 'path';
+import resolveFrom from 'resolve-from';
+import fs from 'fs-extra';
+import semver from 'semver';
 const esm = require('esm');
 
-const {
+import {
   createLambda,
   download,
+  glob,
   FileFsRef,
   FileBlob,
   getNodeVersion,
   getSpawnOptions,
-} = require('@now/build-utils');
+  BuildOptions,
+  Lambda,
+} from '@now/build-utils';
 
-const {
+import {
   exec,
   validateEntrypoint,
   globAndPrefix,
-  glob,
   preparePkgForProd,
   startStep,
   endStep,
-} = require('./utils');
+} from './utils';
 
-async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
+async function build({
+  files,
+  entrypoint,
+  workPath,
+  config = {},
+  meta = {},
+}: BuildOptions) {
   // ----------------- Prepare build -----------------
   startStep('Prepare build');
 
@@ -37,12 +44,12 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
   const rootDir = path.join(workPath, entryDir);
 
   // Create a real filesystem
-  consola.log('Downloading files...');
+  console.log('Downloading files...');
   await download(files, workPath, meta);
 
   // Change cwd to rootDir
   process.chdir(rootDir);
-  consola.log('Working directory:', process.cwd());
+  console.log('Working directory:', process.cwd());
 
   // Read package.json
   let pkg;
@@ -57,12 +64,12 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
 
   // Detect npm (prefer yarn)
-  const isYarn = !(await fs.exists('package-lock.json'));
-  consola.log('Using', isYarn ? 'yarn' : 'npm');
+  const isYarn = !(await fs.pathExists('package-lock.json'));
+  console.log('Using', isYarn ? 'yarn' : 'npm');
 
   // Write .npmrc
   if (process.env.NPM_AUTH_TOKEN) {
-    consola.log('Found NPM_AUTH_TOKEN in environment, creating .npmrc');
+    console.log('Found NPM_AUTH_TOKEN in environment, creating .npmrc');
     await fs.writeFile(
       '.npmrc',
       `//registry.npmjs.org/:_authToken=${process.env.NPM_AUTH_TOKEN}`
@@ -70,7 +77,7 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
   }
 
   // Write .yarnclean
-  if (isYarn && !(await fs.exists('.yarnclean'))) {
+  if (isYarn && !(await fs.pathExists('.yarnclean'))) {
     await fs.copyFile(path.join(__dirname, '.yarnclean'), '.yarnclean');
   }
 
@@ -86,13 +93,13 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
 
   // Prepare node_modules
   await fs.mkdirp('node_modules_dev');
-  if (await fs.exists('node_modules')) {
+  if (await fs.pathExists('node_modules')) {
     await fs.unlink('node_modules');
   }
   await fs.symlink('node_modules_dev', 'node_modules');
 
   // Install all dependencies
-  spawnOpts.env.NODE_ENV = 'development';
+  spawnOpts.env!.NODE_ENV = 'development';
   if (isYarn) {
     await exec(
       'yarn',
@@ -135,8 +142,8 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
     : 'index';
 
   // Execute nuxt build
-  if (await fs.exists(buildDir)) {
-    consola.warn(
+  if (await fs.pathExists(buildDir)) {
+    console.warn(
       buildDir,
       'exists! Please ensure to ignore it with `.nowignore`'
     );
@@ -154,7 +161,7 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
 
   // Use node_modules_prod
   await fs.mkdirp('node_modules_prod');
-  if (await fs.exists('node_modules')) {
+  if (await fs.pathExists('node_modules')) {
     await fs.unlink('node_modules');
   }
   await fs.symlink('node_modules_prod', 'node_modules');
@@ -163,7 +170,7 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
   const nuxtDep = preparePkgForProd(pkg);
   await fs.writeJSON('package.json', pkg);
 
-  spawnOpts.env.NODE_ENV = 'production';
+  spawnOpts.env!.NODE_ENV = 'production';
   if (isYarn) {
     await exec(
       'yarn',
@@ -192,7 +199,7 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
     );
   }
   if (semver.gt(nuxtPkg.version, '3.0.0')) {
-    consola.warn('WARNING: nuxt >= 3.0.0 is not tested against this builder!');
+    console.warn('WARNING: nuxt >= 3.0.0 is not tested against this builder!');
   }
 
   // Cleanup .npmrc
@@ -228,7 +235,7 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
   const nodeModules = await globAndPrefix('**', nodeModulesDir, 'node_modules');
 
   // Lambdas
-  const lambdas = {};
+  const lambdas: { [key: string]: Lambda } = {};
 
   const launcherPath = path.join(__dirname, 'launcher.js');
   const launcherSrc = (await fs.readFile(launcherPath, 'utf8'))
@@ -247,9 +254,9 @@ async function build({ files, entrypoint, workPath, config = {}, meta = {} }) {
   };
 
   // Extra files to be included in lambda
-  const serverFiles = [...(config.serverFiles || []), 'package.json'];
+  const includeFiles = [...((config.includeFiles as []) || []), 'package.json'];
 
-  for (const pattern of serverFiles) {
+  for (const pattern of includeFiles) {
     const files = await glob(pattern, rootDir);
     Object.assign(launcherFiles, files);
   }

@@ -1,19 +1,24 @@
-const path = require('path');
-const execa = require('execa');
-const { glob } = require('@now/build-utils');
-const consola = require('consola');
+import path from 'path';
+import execa from 'execa';
+import { glob, Files, File, PackageJson } from '@now/build-utils';
+import { SpawnOptions } from 'child_process';
 
-async function exec(cmd, args, { env, ...opts } = {}) {
+export async function exec(
+  cmd: string,
+  args: string[],
+  options: SpawnOptions = {}
+) {
+  const { env = {}, ...opts } = options;
   args = args.filter(Boolean);
 
-  consola.log('Running', cmd, ...args);
+  console.log('Running', cmd, ...args);
 
   await execa(cmd, args, {
     stdout: process.stdout,
     stderr: process.stderr,
     preferLocal: true,
     env: {
-      MINIMAL: 1,
+      MINIMAL: '1',
       NODE_OPTIONS: '--max_old_space_size=3000',
       ...env,
     },
@@ -24,7 +29,7 @@ async function exec(cmd, args, { env, ...opts } = {}) {
 /**
  * Validate if the entrypoint is allowed to be used
  */
-function validateEntrypoint(entrypoint) {
+export function validateEntrypoint(entrypoint: string) {
   const filename = path.basename(entrypoint);
 
   if (['package.json', 'nuxt.config.js'].includes(filename) === false) {
@@ -34,53 +39,52 @@ function validateEntrypoint(entrypoint) {
   }
 }
 
-// function filterFiles(files, filterFn) {
-//   const newFiles = {}
-//   for (const fileName in files) {
-//     if (filterFn(files)) {
-//       newFiles[fileName] = files[fileName]
-//     }
-//   }
-//   return newFiles
-// }
-
-function renameFiles(files, renameFn) {
-  const newFiles = {};
+function renameFiles(files: Files, renameFn: (str: string) => string) {
+  const newFiles: { [key: string]: File } = {};
   for (const fileName in files) {
     newFiles[renameFn(fileName)] = files[fileName];
   }
   return newFiles;
 }
 
-async function globAndRename(pattern, opts, renameFn) {
+async function globAndRename(
+  pattern: string,
+  opts: string,
+  renameFn: (str: string) => string
+) {
   const files = await glob(pattern, opts);
   return renameFiles(files, renameFn);
 }
 
-function globAndPrefix(pattern, opts, prefix) {
+export function globAndPrefix(pattern: string, opts: string, prefix: string) {
   return globAndRename(pattern, opts, name => path.join(prefix, name));
 }
 
-function findNuxtDep(pkg) {
-  for (const section of ['dependencies', 'devDependencies']) {
+function findNuxtDep(pkg: PackageJson) {
+  const sections = ['dependencies', 'devDependencies'] as const;
+  for (const section of sections) {
     for (const suffix of ['-edge', '']) {
       const name = 'nuxt' + suffix;
-      const version = pkg[section][name];
-      if (version) {
-        const semver = version.replace(/^[\^~><=]{1,2}/, '');
-        return {
-          name,
-          version,
-          semver,
-          suffix,
-          section,
-        };
+      const dep = pkg[section];
+      if (dep) {
+        const version = dep[name];
+        if (version) {
+          const semver = version.replace(/^[\^~><=]{1,2}/, '');
+          return {
+            name,
+            version,
+            semver,
+            suffix,
+            section,
+          };
+        }
       }
     }
   }
+  return undefined;
 }
 
-function preparePkgForProd(pkg) {
+export function preparePkgForProd(pkg: PackageJson) {
   // Ensure fields exist
   if (!pkg.dependencies) {
     pkg.dependencies = {};
@@ -113,40 +117,28 @@ function preparePkgForProd(pkg) {
   return nuxtDependency;
 }
 
-let _step, _stepStartTime;
+let _step: string | undefined;
+let _stepStartTime: [number, number] | undefined;
 
 const dash = ' ----------------- ';
 
-function startStep(step) {
+export function startStep(step: string) {
   endStep();
-  consola.log(dash + step + dash);
+  console.log(dash + step + dash);
   _step = step;
   _stepStartTime = process.hrtime();
 }
 
-function hrToMs(hr) {
+function hrToMs(hr: [number, number] | undefined) {
   const hrTime = process.hrtime(hr);
   return (hrTime[0] * 1e9 + hrTime[1]) / 1e6;
 }
 
-function endStep() {
+export function endStep() {
   if (!_step) {
     return;
   }
-  consola.info(`${_step} took: ${hrToMs(_stepStartTime)} ms`);
+  console.log(`${_step} took: ${hrToMs(_stepStartTime)} ms`);
   _step = undefined;
   _stepStartTime = undefined;
 }
-
-module.exports = {
-  exec,
-  validateEntrypoint,
-  // filterFiles,
-  renameFiles,
-  glob,
-  globAndRename,
-  globAndPrefix,
-  preparePkgForProd,
-  startStep,
-  endStep,
-};

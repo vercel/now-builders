@@ -17,6 +17,7 @@
     "prepublishOnly": "tsc"
   },
   "dependencies": {
+    "esm": "3.2.25",
     "execa": "^1.0.0",
     "fs-extra": "^7.0.1",
     "resolve-from": "^5.0.0",

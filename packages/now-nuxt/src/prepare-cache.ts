@@ -1,14 +1,19 @@
-const path = require('path');
-const fs = require('fs-extra');
-const consola = require('consola');
-const { glob, startStep, endStep } = require('./utils');
+import { glob, PrepareCacheOptions } from '@now/build-utils/dist';
 
-async function prepareCache({ cachePath, workPath, entrypoint }) {
+import path from 'path';
+import fs from 'fs-extra';
+import { startStep, endStep } from './utils';
+
+export async function prepareCache({
+  cachePath,
+  workPath,
+  entrypoint,
+}: PrepareCacheOptions) {
   const entryDir = path.dirname(entrypoint);
   const rootDir = path.join(workPath, entryDir);
   const cacheDir = path.join(cachePath, entryDir);
 
-  consola.log('Cache dir:', cacheDir);
+  console.log('Cache dir:', cacheDir);
 
   startStep('Clean cache');
   await fs.remove(cacheDir);
@@ -20,18 +25,16 @@ async function prepareCache({ cachePath, workPath, entrypoint }) {
   for (const dir of ['.now_cache', 'node_modules_dev', 'node_modules_prod']) {
     const src = path.join(rootDir, dir);
     const dst = path.join(cacheDir, dir);
-    if (!(await fs.exists(src))) {
-      consola.warn(src, 'not exists. skipping!');
+    if (!(await fs.pathExists(src))) {
+      console.warn(src, 'not exists. skipping!');
       continue;
     }
     await fs.rename(src, dst);
     const files = await glob(path.join(dir, '**'), cacheDir);
-    consola.info(`${Object.keys(files).length} files collected from ${dir}`);
+    console.log(`${Object.keys(files).length} files collected from ${dir}`);
     Object.assign(cache, files);
   }
   endStep();
 
   return cache;
 }
-
-module.exports = prepareCache;

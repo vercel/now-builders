@@ -1,9 +1,20 @@
 const startTime = process.hrtime();
 
+const esm = require('esm');
+
+// Load Config
+const _esm = esm(module, {
+  cjs: {
+    dedefault: true,
+  },
+});
+const nuxtConfig = _esm('__NUXT_CONFIG__');
+
 // Create nuxt
 const { Nuxt } = require('@nuxt/core__NUXT_SUFFIX__');
 const nuxt = new Nuxt({
   _start: true,
+  ...nuxtConfig,
 });
 
 // Start nuxt initialization process
@@ -17,17 +28,17 @@ const readyPromise = nuxt
     // eslint-disable-next-line no-console
     console.log(`λ Cold start took: ${hrTimeMs}ms`);
   })
-  .catch(error => {
+  .catch((error: any) => {
     // eslint-disable-next-line no-console
     console.error('λ Error while initializing nuxt:', error);
     process.exit(1);
   });
 
 // Create brdige and start listening
-const { Server } = require('http'); // eslint-disable-line import/order
-const { Bridge } = require('./now__bridge.js');
+import { Server, IncomingMessage, ServerResponse } from 'http'; // eslint-disable-line import/order
+import { Bridge } from './now__bridge.js';
 
-const server = new Server(async (req, res) => {
+const server = new Server(async (req: IncomingMessage, res: ServerResponse) => {
   if (!isReady) {
     await readyPromise;
   }
@@ -37,4 +48,4 @@ const bridge = new Bridge(server);
 
 bridge.listen();
 
-exports.launcher = bridge.launcher;
+export const launcher = bridge.launcher;
