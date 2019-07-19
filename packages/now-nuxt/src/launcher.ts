@@ -36,7 +36,7 @@ const readyPromise = nuxt
 
 // Create brdige and start listening
 import { Server, IncomingMessage, ServerResponse } from 'http'; // eslint-disable-line import/order
-import { Bridge } from './now__bridge.js';
+const { Bridge } = require('./now__bridge.js');
 
 const server = new Server(async (req: IncomingMessage, res: ServerResponse) => {
   if (!isReady) {
