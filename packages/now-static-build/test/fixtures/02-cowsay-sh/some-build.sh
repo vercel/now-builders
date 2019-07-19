@@ -1,3 +1,3 @@
 yarn install
-mkdir public
-./node_modules/.bin/cowsay cow:RANDOMNESS_PLACEHOLDER > public/index.txt
+mkdir dist
+./node_modules/.bin/cowsay cow:RANDOMNESS_PLACEHOLDER > dist/index.txt
