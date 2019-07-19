@@ -1,16 +1,16 @@
 {
   "version": 2,
-  "builds": [{ "src": "routes/*.js", "use": "@now/node" }],
+  "builds": [{ "src": "src/routes/*.js", "use": "@now/node" }],
   "routes": [
     {
       "src": "/",
       "methods": ["GET"],
-      "dest": "routes/alpha.js"
+      "dest": "src/routes/alpha.js"
     },
     {
       "src": "/bravo",
       "methods": ["GET"],
-      "dest": "routes/bravo.js"
+      "dest": "src/routes/bravo.js"
     }
   ],
   "probes": [
