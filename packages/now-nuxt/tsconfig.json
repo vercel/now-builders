@@ -14,5 +14,6 @@
     "types": ["node"],
     "strict": true,
     "target": "esnext"
-  }
+  },
+  "include": ["src/**/*"]
 }
