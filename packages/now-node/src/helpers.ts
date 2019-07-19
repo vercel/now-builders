@@ -196,14 +196,14 @@ function json(req: NowRequest, res: NowResponse, jsonBody: any): NowResponse {
 }
 
 function redirect(res: NowResponse, statusCode: number, path: string): NowResponse {  
-  if(arguments[0] === 'string') {
-    path = arguments[0];
+  if(typeof statusCode === 'string') {
+    path = statusCode;
     statusCode = 302;
     res.statusCode = statusCode;
     res.setHeader('Location', path);
     res.end();
     return res;
-  } else if (typeof arguments[0] === 'number') {
+  } else if (typeof statusCode === 'number') {
     res.statusCode = statusCode;
     res.setHeader('Location', path);
     res.end();
