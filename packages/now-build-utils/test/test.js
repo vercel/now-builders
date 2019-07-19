@@ -336,6 +336,20 @@ it('Test `detectBuilders`', async () => {
     expect(builders[0].src).toBe('package.json');
     expect(builders.length).toBe(1);
   }
+
+  {
+    // nuxt
+    const pkg = {
+      scripts: { build: 'nuxt build' },
+      dependencies: { nuxt: '' },
+    };
+    const files = ['package.json', 'pages/index.js'];
+
+    const { builders } = await detectBuilders(files, pkg);
+    expect(builders[0].use).toBe('@now/nuxt');
+    expect(builders[0].src).toBe('package.json');
+    expect(builders.length).toBe(1);
+  }
 });
 
 it('Test `detectRoutes`', async () => {
