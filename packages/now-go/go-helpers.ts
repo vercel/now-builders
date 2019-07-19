@@ -25,21 +25,17 @@ const getGoUrl = (version: string, platform: string, arch: string) => {
 
 export async function getAnalyzedEntrypoint(filePath: string, modulePath = '') {
   debug('Analyzing entrypoint %o', filePath);
-  const bin = join(__dirname, 'analyze');
 
-  const isAnalyzeExist = await pathExists(bin);
-  if (!isAnalyzeExist) {
-    const src = join(__dirname, 'util', 'analyze.go');
-    const dest = join(__dirname, 'analyze');
-    const go = await downloadGo();
-    await go.build(src, dest);
-  }
+  const args = [
+    join(__dirname, 'wasm_exec.js'),
+    join(__dirname, 'analyze.wasm'),
+    `-modpath=${modulePath}`,
+    filePath,
+  ];
 
-  const args = [`-modpath=${modulePath}`, filePath];
-
-  const analyzed = await execa.stdout(bin, args);
-  debug('Analyzed entrypoint %o', analyzed);
-  return analyzed;
+  const { stdout } = await execa('node', args);
+  debug('Analyzed entrypoint %o', stdout);
+  return stdout;
 }
 
 // Creates a `$GOPATH` directory tree, as per `go help gopath` instructions.

@@ -4,3 +4,5 @@ node_modules
 /analyze
 *.js
 !util/install.js
+analyze.wasm
+!wasm_exec.js
