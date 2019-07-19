@@ -122,7 +122,7 @@ export async function build({
   let distPath = path.join(
     workPath,
     path.dirname(entrypoint),
-    (config && (config.distDir as string)) || 'public'
+    (config && (config.distDir as string)) || 'dist'
   );
 
   const entrypointName = path.basename(entrypoint);

@@ -1,5 +1,5 @@
 {
   "scripts": {
-    "now-build": "mkdir public && node now-build.js"
+    "now-build": "mkdir dist && node now-build.js"
   }
 }
