@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [{ "src": "routes/*.js", "use": "@now/node" }],
+  "routes": [
+    {
+      "src": "/",
+      "methods": ["GET"],
+      "dest": "routes/alpha.js"
+    },
+    {
+      "src": "/bravo",
+      "methods": ["GET"],
+      "dest": "routes/bravo.js"
+    }
+  ],
+  "probes": [
+    { "path": "/", "mustContain": "alpha:RANDOMNESS_PLACEHOLDER" },
+    { "path": "/bravo", "mustContain": "bravo:RANDOMNESS_PLACEHOLDER" }
+  ]
+}
