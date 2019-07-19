@@ -1,3 +1,3 @@
 yarn install
-mkdir dist
-./node_modules/.bin/yodasay yoda:RANDOMNESS_PLACEHOLDER > dist/index.txt
+mkdir public
+./node_modules/.bin/yodasay yoda:RANDOMNESS_PLACEHOLDER > public/index.txt
