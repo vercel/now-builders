@@ -341,7 +341,7 @@ it('Test `detectBuilders`', async () => {
     // nuxt
     const pkg = {
       scripts: { build: 'nuxt build' },
-      dependencies: { nuxt: '' },
+      dependencies: { nuxt: '2.8.1' },
     };
     const files = ['package.json', 'pages/index.js'];
 
