@@ -1,4 +1,4 @@
-const { say } = require('../../lib/util');
+const { say } = require('../lib/util');
 
 module.exports = (req, resp) => {
   resp.end(say('bravo'));
