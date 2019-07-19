@@ -11,8 +11,7 @@
   "scripts": {
     "build": "tsc",
     "test": "tsc && jest",
-    "prepublish": "tsc",
-    "prepublishOnly": "GOOS=js GOARCH=wasm go build -o analyze.wasm util/analyze.go"
+    "prepublish": "tsc && GOOS=js GOARCH=wasm go build -o analyze.wasm util/analyze.go"
   },
   "files": [
     "analyze.wasm",
