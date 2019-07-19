@@ -54,7 +54,7 @@ function validateDistDir(
   const docsUrl = `https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build${hash}`;
 
   const info = config.zeroConfig
-    ? '\nMore details: <link>'
+    ? '\nMore details: https://zeit.co/docs/v2/advanced/platform/frequently-asked-questions#missing-public-directory'
     : `\nMake sure you configure the the correct distDir: ${docsUrl}`;
 
   if (!exists()) {
