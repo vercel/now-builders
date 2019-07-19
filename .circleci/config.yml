@@ -24,6 +24,9 @@ jobs:
           name: Building
           command: ./.circleci/build.sh
       - run:
+          name: Building wasm
+          command: cd packages/now-go && yarn build:wasm
+      - run:
           name: Linting
           command: yarn lint
       - run:
