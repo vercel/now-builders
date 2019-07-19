@@ -13,7 +13,10 @@ jobs:
           command: sudo apt-get update
       - run:
           name: Installing the latest version of Go
-          command: sudo apt-get install golang-go
+          command: wget https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz &&
+            \tar -xvf go1.12.7.linux-amd64.tar.gz && sudo mv go /usr/local &&
+            \export GOROOT=/usr/local/go && export GOPATH=$HOME/go &&
+            \export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
       - run:
           name: Installing dependencies
           command: yarn install
