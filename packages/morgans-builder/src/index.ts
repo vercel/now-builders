@@ -126,11 +126,20 @@ export async function build(buildOptions: BuildOptions) {
       const fsPath = path.join(workPath, pkg.main);
       const file = new FileFsRef({ fsPath });
 
-      // @ts-ignore
-      const nodeResults = await nodeBuild({
-        files: [file],
+      const nodeConfig = {
         ...buildOptions,
-      });
+        config: {},
+        entrypoint: fsPath,
+        files: [file],
+      };
+
+      console.log('fsPath', fsPath);
+      console.log('file', file);
+      console.log('files', files);
+      // @ts-ignore
+      const nodeResults = await nodeBuild(nodeConfig);
+
+      console.log('nodeResults', nodeResults);
 
       output = {
         ...(await glob('**', distPath, mountpoint)),
