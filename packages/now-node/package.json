@@ -36,5 +36,6 @@
     "source-map-support": "0.5.12",
     "test-listen": "1.1.0",
     "typescript": "3.5.2"
-  }
+  },
+  "gitHead": "f8fb5b2e9f4801c3cdecedd71263c7dd25749fd8"
 }

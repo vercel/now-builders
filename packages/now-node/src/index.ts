@@ -16,6 +16,7 @@ import {
   PrepareCacheOptions,
   BuildOptions,
   shouldServe,
+  // @ts-ignore
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
@@ -72,8 +73,7 @@ async function compile(
   workPath: string,
   entrypointPath: string,
   entrypoint: string,
-  config: CompilerConfig,
-  { isDev, filesChanged, filesRemoved }: Meta
+  config: CompilerConfig
 ): Promise<{
   preparedFiles: Files;
   shouldAddSourcemapSupport: boolean;
@@ -301,8 +301,7 @@ export async function build({
     workPath,
     entrypointPath,
     entrypoint,
-    config,
-    meta
+    config
   );
 
   const launcherFiles: Files = {
