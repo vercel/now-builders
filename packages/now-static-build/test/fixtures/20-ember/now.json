@@ -8,7 +8,7 @@
     }
   ],
   "probes": [
-    { "path": "/", "mustContain": "20-preact" },
-    { "path": "/iudieufwunifiwwnuwfuw", "mustContain": "20-preact" }
+    { "path": "/", "mustContain": "Site" },
+    { "path": "/iudieufwunifiwwnuwfuw", "mustContain": "Site" }
   ]
 }
