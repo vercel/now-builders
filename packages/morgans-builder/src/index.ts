@@ -55,6 +55,8 @@ export async function build(buildOptions: BuildOptions) {
   console.log('Downloading user files...');
   await download(files, workPath, meta);
 
+  console.log('entrypoint', entrypoint);
+
   const mountpoint = path.dirname(entrypoint);
   const entrypointDir = path.join(workPath, mountpoint);
 
@@ -121,7 +123,7 @@ export async function build(buildOptions: BuildOptions) {
         throw new Error('WARN: "main" file is missing from package.json');
       }
 
-      const serverPath = path.join(entrypointDir, pkg.main);
+      const serverPath = pkg.main;
 
       const nodeConfig = {
         ...buildOptions,
@@ -129,7 +131,7 @@ export async function build(buildOptions: BuildOptions) {
         entrypoint: serverPath,
       };
 
-      console.log('fsPath', serverPath);
+      console.log('serverPath', serverPath);
       // @ts-ignore
       const nodeResults = await nodeBuild(nodeConfig);
 
