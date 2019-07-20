@@ -16,7 +16,7 @@
     "publish-canary": "git checkout canary && git pull && lerna version prerelease --preid canary --exact",
     "publish-from-github": "./.circleci/publish.sh",
     "build:mine": "lerna run build --scope=@morgs32/*",
-    "version:mine": "lerna version --skip-git --yes prerelease",
+    "version:mine": "lerna version --yes prerelease",
     "publish:mine": "lerna publish from-package --yes",
     "build": "./.circleci/build.sh",
     "lint": "eslint .",
