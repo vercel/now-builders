@@ -133,13 +133,18 @@ export async function build(buildOptions: BuildOptions) {
 
       console.log('serverPath', serverPath);
       // @ts-ignore
-      const nodeResults = await nodeBuild(nodeConfig);
+      const nodeResult = await nodeBuild(nodeConfig);
 
-      console.log('nodeResults', nodeResults);
+      console.log('nodeResults.output', nodeResult.output);
+      console.log('nodeResults', nodeResult);
+
+      const staticOutput = await glob('**', distPath, mountpoint);
+
+      console.log('staticOutput', staticOutput);
 
       output = {
-        ...(await glob('**', distPath, mountpoint)),
-        ...nodeResults.output,
+        ...staticOutput,
+        ...nodeResult.output,
       };
 
       const watch: string[] = [];
