@@ -344,6 +344,7 @@ export function init(opts: Options = {}): Compile {
       : ts.findConfigFile(normalizeSlashes(cwd), fileExists);
 
     if (configFileName) return normalizeSlashes(configFileName);
+    return undefined;
   }
 
   /**
