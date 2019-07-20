@@ -87,7 +87,6 @@ export async function build(buildOptions: BuildOptions) {
       /**
        * We are done
        */
-      console.log('route', route);
       const watch = [path.join(mountpoint.replace(/^\.\/?/, ''), '**/*')];
       return {
         routes: [route],
@@ -123,7 +122,7 @@ export async function build(buildOptions: BuildOptions) {
         throw new Error('WARN: "main" file is missing from package.json');
       }
 
-      const fsPath = path.join(workPath, pkg.main);
+      const fsPath = path.join(entrypointDir, pkg.main);
       const file = new FileFsRef({ fsPath });
 
       const nodeConfig = {
@@ -134,8 +133,6 @@ export async function build(buildOptions: BuildOptions) {
       };
 
       console.log('fsPath', fsPath);
-      console.log('file', file);
-      console.log('files', files);
       // @ts-ignore
       const nodeResults = await nodeBuild(nodeConfig);
 
