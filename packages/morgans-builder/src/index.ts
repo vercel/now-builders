@@ -74,7 +74,6 @@ export async function build(buildOptions: BuildOptions) {
     let output: Files = {};
     let minNodeRange: string | undefined = undefined;
 
-    const routes: Route[] = [];
     const devScript = getCommand(pkg, 'dev', config as Config);
 
     const nodeVersion = await getNodeVersion(entrypointDir, minNodeRange);
@@ -83,7 +82,7 @@ export async function build(buildOptions: BuildOptions) {
     await runNpmInstall(entrypointDir, ['--prefer-offline'], spawnOpts);
 
     if (meta.isDev && pkg.scripts && pkg.scripts[devScript]) {
-      const route = await getDevRoute(buildOptions);
+      const route: Route = await getDevRoute(buildOptions);
 
       /**
        * We are done
