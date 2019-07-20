@@ -123,12 +123,12 @@ export async function build(buildOptions: BuildOptions) {
         throw new Error('WARN: "main" file is missing from package.json');
       }
 
-      const serverPath = pkg.main;
+      const pkgEntrypoint = pkg.main;
 
       const nodeConfig = {
         ...buildOptions,
         config: {},
-        entrypoint: serverPath,
+        entrypoint: pkgEntrypoint,
       };
 
       const staticOutput = await glob('**', distPath, mountpoint);
