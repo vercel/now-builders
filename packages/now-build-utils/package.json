@@ -1,5 +1,8 @@
 {
-  "name": "@now/build-utils",
+  "name": "@morgs32/build-utils",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.5.6-canary.28",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -41,5 +44,6 @@
     "@types/yazl": "^2.4.1",
     "execa": "^1.0.0",
     "typescript": "3.5.2"
-  }
+  },
+  "gitHead": "262a8c754d100e10e021e998532539dcdb5f9cfc"
 }

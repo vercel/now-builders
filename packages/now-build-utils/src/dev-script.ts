@@ -124,6 +124,7 @@ export async function getDevRoute(buildOptions: BuildOptions) {
     srcBase = `/${srcBase}`;
   }
 
+  console.log('Making route');
   return getRouteAtPort(srcBase, devPort, {
     src: '/(.*)',
     dest: '/$1',
