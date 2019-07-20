@@ -16,7 +16,7 @@ import {
 } from '@morgs32/build-utils';
 
 // @ts-ignore
-import { build as nodeBuild } from '@now/node';
+import { build as nodeBuild } from '@morgs32/node';
 
 function validateDistDir(distDir: string, isDev: boolean | undefined) {
   const hash = isDev
@@ -151,6 +151,9 @@ export async function build(buildOptions: BuildOptions) {
       }
       // @ts-ignore
       const routes = config.distRoutes || [];
+
+      console.log('routes, output', routes, output);
+
       return { routes, output, watch };
     }
   }

@@ -350,6 +350,7 @@ export async function build({
 
   const output = { [entrypoint]: lambda };
   const result = { output, watch };
+  console.log('result', result);
   return result;
 }
 

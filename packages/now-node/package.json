@@ -1,5 +1,5 @@
 {
-  "name": "@now/node",
+  "name": "@morgs32/node",
   "version": "0.7.4-canary.43",
   "license": "MIT",
   "main": "./dist/index",
