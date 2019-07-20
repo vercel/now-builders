@@ -122,17 +122,15 @@ export async function build(buildOptions: BuildOptions) {
         throw new Error('WARN: "main" file is missing from package.json');
       }
 
-      const fsPath = path.join(entrypointDir, pkg.main);
-      const file = new FileFsRef({ fsPath });
+      const serverPath = path.join(entrypointDir, pkg.main);
 
       const nodeConfig = {
         ...buildOptions,
         config: {},
-        entrypoint: fsPath,
-        files: [file],
+        entrypoint: serverPath,
       };
 
-      console.log('fsPath', fsPath);
+      console.log('fsPath', serverPath);
       // @ts-ignore
       const nodeResults = await nodeBuild(nodeConfig);
 
