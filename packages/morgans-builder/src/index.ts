@@ -88,8 +88,11 @@ export async function build(buildOptions: BuildOptions) {
        * We are done
        */
       console.log('route', route);
+      const watch = [path.join(mountpoint.replace(/^\.\/?/, ''), '**/*')];
       return {
         routes: [route],
+        watch,
+        output,
       };
     } else {
       if (meta.isDev) {
