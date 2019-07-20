@@ -142,7 +142,7 @@ export async function build(buildOptions: BuildOptions) {
         ...nodeResults.output,
       };
 
-      const watch = [...nodeResults.watch];
+      const watch: string[] = [];
 
       /**
        *
