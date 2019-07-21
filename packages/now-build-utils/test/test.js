@@ -329,7 +329,7 @@ it('Test `detectBuilders`', async () => {
 
     const { builders } = await detectBuilders(files);
     expect(builders[0].src).toBe('public/**/*');
-    expect(builders.length).toBe(2);
+    expect(builders.length).toBe(1);
   }
 
   {
