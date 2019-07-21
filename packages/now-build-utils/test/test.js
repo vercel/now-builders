@@ -205,8 +205,8 @@ it('Test `detectBuilders`', async () => {
   }
 
   {
-    // no package.json + public
-    const files = ['public/index.html'];
+    // static file
+    const files = ['index.html'];
     const { builders, errors } = await detectBuilders(files);
     expect(builders).toBe(null);
     expect(errors).toBe(null);
