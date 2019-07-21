@@ -31,7 +31,7 @@ const API_BUILDERS: Builder[] = [
   { src: 'api/**/*.sh', use: '@now/bash', config },
 ];
 
-const MISSING_BUILD_SCRIPT_ERROR: Warning = {
+const MISSING_BUILD_SCRIPT_ERROR: ErrorResponse = {
   code: 'missing_build_script',
   message:
     'Your `package.json` file is missing a `build` property inside the `script` property.' +
