@@ -34,8 +34,8 @@ const API_BUILDERS: Builder[] = [
 const MISSING_BUILD_SCRIPT_ERROR: Warning = {
   code: 'missing_build_script',
   message:
-    'Your `package.json` file is missing a `build` property inside the `script` property. ' +
-    'More details: https://zeit.co/docs/v2/advanced/platform/frequently-asked-questions#missing-build-script',
+    'Your `package.json` file is missing a `build` property inside the `script` property.' +
+    '\nMore details: https://zeit.co/docs/v2/advanced/platform/frequently-asked-questions#missing-build-script',
 };
 
 function hasPublicDirectory(files: string[]) {
