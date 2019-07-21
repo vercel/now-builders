@@ -324,6 +324,15 @@ it('Test `detectBuilders`', async () => {
   }
 
   {
+    // just public
+    const files = ['public/index.html', 'public/favicon.ico', 'README.md'];
+
+    const { builders } = await detectBuilders(files);
+    expect(builders[0].src).toBe('public/**/*');
+    expect(builders.length).toBe(2);
+  }
+
+  {
     // next + public
     const pkg = {
       scripts: { build: 'next build' },

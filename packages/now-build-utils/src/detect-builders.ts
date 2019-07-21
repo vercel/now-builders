@@ -126,29 +126,27 @@ export async function detectBuilders(
       return { errors, builders: null };
     }
 
-    if (builders.length > 0) {
-      // We will only include a static deployment
-      // when there are api builds
-      if (hasPublicDirectory(files)) {
-        builders.push({
-          use: '@now/static',
-          src: 'public/**/*',
-          config,
-        });
-      } else {
-        // We can't use pattern matching, since `!(api)` and `!(api)/**/*`
-        // won't give the correct results
-        builders.push(
-          ...files
-            .filter(name => !name.startsWith('api/'))
-            .filter(name => !(name === 'package.json'))
-            .map(name => ({
-              use: '@now/static',
-              src: name,
-              config,
-            }))
-        );
-      }
+    // We allow a `public` directory
+    // when there are no build steps
+    if (hasPublicDirectory(files)) {
+      builders.push({
+        use: '@now/static',
+        src: 'public/**/*',
+        config,
+      });
+    } else if (builders.length > 0) {
+      // We can't use pattern matching, since `!(api)` and `!(api)/**/*`
+      // won't give the correct results
+      builders.push(
+        ...files
+          .filter(name => !name.startsWith('api/'))
+          .filter(name => !(name === 'package.json'))
+          .map(name => ({
+            use: '@now/static',
+            src: name,
+            config,
+          }))
+      );
     }
   }
 
