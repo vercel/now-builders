@@ -1,11 +1,6 @@
 import { PackageJson, Builder, Config } from './types';
 import minimatch from 'minimatch';
 
-interface Warning {
-  code: string;
-  message: string;
-}
-
 interface ErrorResponse {
   code: string;
   message: string;
