@@ -7,8 +7,5 @@
       "config": { "zeroConfig": true }
     }
   ],
-  "probes": [
-    { "path": "/", "mustContain": "20-ember" },
-    { "path": "/iudieufwunifiwwnuwfuw", "mustContain": "HelloWorld" }
-  ]
+  "probes": [{ "path": "/", "mustContain": "20-ember" }]
 }
