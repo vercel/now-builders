@@ -8,7 +8,7 @@
     }
   ],
   "probes": [
-    { "path": "/", "mustContain": "Site" },
-    { "path": "/iudieufwunifiwwnuwfuw", "mustContain": "Site" }
+    { "path": "/", "mustContain": "20-ember" },
+    { "path": "/iudieufwunifiwwnuwfuw", "mustContain": "HelloWorld" }
   ]
 }

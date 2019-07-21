@@ -1,8 +1,8 @@
 {
-  "name": "site",
+  "name": "hello-world",
   "version": "0.0.0",
   "private": true,
-  "description": "Small description for site goes here",
+  "description": "Small description for hello-world goes here",
   "repository": "",
   "license": "MIT",
   "author": "",
@@ -11,7 +11,7 @@
     "test": "tests"
   },
   "scripts": {
-    "build": "ember build -prod",
+    "build": "ember build",
     "lint:hbs": "ember-template-lint .",
     "lint:js": "eslint .",
     "start": "ember serve",
