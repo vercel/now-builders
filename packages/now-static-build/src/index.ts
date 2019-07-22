@@ -58,9 +58,7 @@ function validateDistDir(
     : `\nMake sure you configure the the correct distDir: ${docsUrl}`;
 
   if (!exists()) {
-    throw new Error(
-      `Build was unable to create the distDir: "${distDirName}".${info}`
-    );
+    throw new Error(`No output directory named "${distDirName}" found.${info}`);
   }
 
   if (!isDirectory()) {
@@ -76,10 +74,9 @@ function validateDistDir(
   }
 }
 
-function getCommand(pkg: PackageJson, cmd: string, config: Config) {
+function getCommand(pkg: PackageJson, cmd: string, { zeroConfig }: Config) {
   // The `dev` script can be `now dev`
   const nowCmd = `now-${cmd}`;
-  const { zeroConfig } = config;
 
   if (!zeroConfig && cmd === 'dev') {
     return nowCmd;
@@ -95,7 +92,7 @@ function getCommand(pkg: PackageJson, cmd: string, config: Config) {
     return cmd;
   }
 
-  return nowCmd;
+  return zeroConfig ? cmd : nowCmd;
 }
 
 export const version = 2;

@@ -28,9 +28,28 @@ export default [
     getOutputDirName: async () => 'public',
   },
   {
+    name: 'Docusaurus 2.0',
+    dependency: '@docusaurus/core',
+    getOutputDirName: async () => 'build',
+  },
+  {
     name: 'Preact',
     dependency: 'preact-cli',
     getOutputDirName: async () => 'build',
+    defaultRoutes: [
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '/(.*)',
+        dest: '/index.html',
+      },
+    ],
+  },
+  {
+    name: 'Ember',
+    dependency: 'ember-cli',
+    getOutputDirName: async () => 'dist',
     defaultRoutes: [
       {
         handle: 'filesystem',
@@ -193,7 +212,7 @@ export default [
     ],
   },
   {
-    name: 'Docusaurus',
+    name: 'Docusaurus 1.0',
     dependency: 'docusaurus',
     getOutputDirName: async (dirPrefix: string) => {
       const base = 'build';
