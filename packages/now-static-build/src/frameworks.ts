@@ -28,7 +28,7 @@ export default [
     getOutputDirName: async () => 'public',
   },
   {
-    name: 'Docusaurus',
+    name: 'Docusaurus 2.0',
     dependency: '@docusaurus/core',
     getOutputDirName: async () => 'build',
   },
@@ -212,7 +212,7 @@ export default [
     ],
   },
   {
-    name: 'Docusaurus',
+    name: 'Docusaurus 1.0',
     dependency: 'docusaurus',
     getOutputDirName: async (dirPrefix: string) => {
       const base = 'build';
