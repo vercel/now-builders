@@ -350,7 +350,7 @@ export function init(opts: Options = {}): Compile {
    * Load TypeScript configuration.
    */
   function readConfig(configFileName: string): _ts.ParsedCommandLine {
-    let config = { compilerOptions: {}, files: [], include: [] };
+    let config: any = { compilerOptions: {} };
     let basePath = normalizeSlashes(dirname(configFileName));
 
     // Read project configuration when available.
@@ -454,11 +454,13 @@ function fixConfig(ts: TSCommon, config: _ts.ParsedCommandLine) {
   delete config.options.incremental;
 
   // Target esnext output by default (instead of ES3).
-  // This will prevent TS from polyfilling
+  // This will prevent TS from polyfill/downlevel emit.
   if (config.options.target === undefined) {
     config.options.target = ts.ScriptTarget.ESNext;
   }
 
+  // When mixing TS with JS, its best to enable this flag.
+  // This is useful when no `tsconfig.json` is supplied.
   if (config.options.esModuleInterop === undefined) {
     config.options.esModuleInterop = true;
   }
