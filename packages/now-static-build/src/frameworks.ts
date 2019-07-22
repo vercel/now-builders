@@ -28,6 +28,11 @@ export default [
     getOutputDirName: async () => 'public',
   },
   {
+    name: 'Docusaurus',
+    dependency: '@docusaurus/core',
+    getOutputDirName: async () => 'build',
+  },
+  {
     name: 'Preact',
     dependency: 'preact-cli',
     getOutputDirName: async () => 'build',
