@@ -1,10 +1,16 @@
 {
   "version": 2,
   "builds": [
-    { "src": "package.json", "use": "@now/static-build", "config": { "zeroConfig": true } }
+    {
+      "src": "package.json",
+      "use": "@now/static-build",
+      "config": { "zeroConfig": true }
+    }
   ],
   "probes": [
     { "path": "/", "mustContain": "13-vue" },
-    { "path": "/923h3223329ddas", "mustContain": "13-vue" }
+    { "path": "/923h3223329ddas", "mustContain": "13-vue" },
+    { "path": "/robots.txt", "mustContain": "Disallow" },
+    { "path": "/manifest.json", "mustContain": "13-vue-manifest" }
   ]
 }
