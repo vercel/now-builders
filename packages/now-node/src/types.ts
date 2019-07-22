@@ -14,4 +14,5 @@ export type NowResponse = ServerResponse & {
   send: (body: any) => NowResponse;
   json: (jsonBody: any) => NowResponse;
   status: (statusCode: number) => NowResponse;
+  redirect: (statusCode: number, path: string) => NowResponse;
 };
