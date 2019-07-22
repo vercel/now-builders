@@ -1,6 +1,6 @@
 {
   "name": "@now/next",
-  "version": "0.4.1-canary.24",
+  "version": "0.4.1-canary.26",
   "license": "MIT",
   "main": "./dist/index",
   "homepage": "https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next",
@@ -28,7 +28,6 @@
     "@types/next-server": "^8.0.0",
     "@types/resolve-from": "^5.0.1",
     "@types/semver": "^6.0.0",
-    "jest": "^24.7.1",
     "typescript": "3.5.2"
   }
 }

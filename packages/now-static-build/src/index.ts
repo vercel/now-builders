@@ -38,39 +38,45 @@ interface Framework {
   minNodeRange?: string;
 }
 
-function validateDistDir(distDir: string, isDev: boolean | undefined) {
+function validateDistDir(
+  distDir: string,
+  isDev: boolean | undefined,
+  config: Config
+) {
+  const distDirName = path.basename(distDir);
+  const exists = () => existsSync(distDir);
+  const isDirectory = () => statSync(distDir).isDirectory();
+  const isEmpty = () => readdirSync(distDir).length === 0;
+
   const hash = isDev
     ? '#local-development'
     : '#configuring-the-build-output-directory';
   const docsUrl = `https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build${hash}`;
-  const distDirName = path.basename(distDir);
-  if (!existsSync(distDir)) {
-    const message =
-      `Build was unable to create the distDir: "${distDirName}".` +
-      `\nMake sure you configure the the correct distDir: ${docsUrl}`;
-    throw new Error(message);
-  }
-  const stat = statSync(distDir);
-  if (!stat.isDirectory()) {
-    const message =
-      `Build failed because distDir is not a directory: "${distDirName}".` +
-      `\nMake sure you configure the the correct distDir: ${docsUrl}`;
-    throw new Error(message);
+
+  const info = config.zeroConfig
+    ? '\nMore details: https://zeit.co/docs/v2/advanced/platform/frequently-asked-questions#missing-public-directory'
+    : `\nMake sure you configure the the correct distDir: ${docsUrl}`;
+
+  if (!exists()) {
+    throw new Error(`No output directory named "${distDirName}" found.${info}`);
   }
 
-  const contents = readdirSync(distDir);
-  if (contents.length === 0) {
-    const message =
-      `Build failed because distDir is empty: "${distDirName}".` +
-      `\nMake sure you configure the the correct distDir: ${docsUrl}`;
-    throw new Error(message);
+  if (!isDirectory()) {
+    throw new Error(
+      `Build failed because distDir is not a directory: "${distDirName}".${info}`
+    );
+  }
+
+  if (isEmpty()) {
+    throw new Error(
+      `Build failed because distDir is empty: "${distDirName}".${info}`
+    );
   }
 }
 
-function getCommand(pkg: PackageJson, cmd: string, config: Config) {
+function getCommand(pkg: PackageJson, cmd: string, { zeroConfig }: Config) {
   // The `dev` script can be `now dev`
   const nowCmd = `now-${cmd}`;
-  const { zeroConfig } = config;
 
   if (!zeroConfig && cmd === 'dev') {
     return nowCmd;
@@ -86,7 +92,7 @@ function getCommand(pkg: PackageJson, cmd: string, config: Config) {
     return cmd;
   }
 
-  return nowCmd;
+  return zeroConfig ? cmd : nowCmd;
 }
 
 export const version = 2;
@@ -139,6 +145,9 @@ export async function build({
     const devScript = getCommand(pkg, 'dev', config as Config);
 
     if (config.zeroConfig) {
+      // `public` is the default for zero config
+      distPath = path.join(workPath, path.dirname(entrypoint), 'public');
+
       const dependencies = Object.assign(
         {},
         pkg.dependencies,
@@ -203,10 +212,14 @@ export async function build({
 
         const child = spawn('yarn', ['run', devScript], opts);
         child.on('exit', () => nowDevScriptPorts.delete(entrypoint));
-        child.stdout.setEncoding('utf8');
-        child.stdout.pipe(process.stdout);
-        child.stderr.setEncoding('utf8');
-        child.stderr.pipe(process.stderr);
+        if (child.stdout) {
+          child.stdout.setEncoding('utf8');
+          child.stdout.pipe(process.stdout);
+        }
+        if (child.stderr) {
+          child.stderr.setEncoding('utf8');
+          child.stderr.pipe(process.stderr);
+        }
 
         // Now wait for the server to have listened on `$PORT`, after which we
         // will ProxyPass any requests to that development server that come in
@@ -221,8 +234,12 @@ export async function build({
                   resolve();
                 }
               };
-              child.stdout.on('data', checkForPort);
-              child.stderr.on('data', checkForPort);
+              if (child.stdout) {
+                child.stdout.on('data', checkForPort);
+              }
+              if (child.stderr) {
+                child.stderr.on('data', checkForPort);
+              }
             }),
             5 * 60 * 1000
           );
@@ -283,7 +300,7 @@ export async function build({
         distPath = path.join(outputDirPrefix, outputDirName);
       }
 
-      validateDistDir(distPath, meta.isDev);
+      validateDistDir(distPath, meta.isDev, config);
       output = await glob('**', distPath, mountpoint);
 
       if (framework && framework.defaultRoutes) {
@@ -300,7 +317,7 @@ export async function build({
     const nodeVersion = await getNodeVersion(entrypointDir);
     const spawnOpts = getSpawnOptions(meta, nodeVersion);
     await runShellScript(path.join(workPath, entrypoint), [], spawnOpts);
-    validateDistDir(distPath, meta.isDev);
+    validateDistDir(distPath, meta.isDev, config);
 
     return glob('**', distPath, mountpoint);
   }
