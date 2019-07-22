@@ -210,12 +210,11 @@ function redirect(
     res.setHeader('Location', path);
     res.end();
     return res;
-  } else if (typeof statusCode === 'number') {
-    res.statusCode = statusCode;
-    res.setHeader('Location', path);
-    res.end();
-    return res;
   }
+  res.statusCode = statusCode;
+  res.setHeader('Location', path);
+  res.end();
+  return res;
 }
 
 export class ApiError extends Error {
