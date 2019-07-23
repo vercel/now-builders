@@ -23,6 +23,7 @@ import {
   PrepareCacheOptions,
   runNpmInstall,
   runPackageJsonScript,
+  Route,
 } from '@now/build-utils';
 
 import createServerlessConfig from './create-serverless-config';
@@ -157,10 +158,7 @@ export const build = async ({
   entrypoint,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType): Promise<{
-  routes?: (
-    | { src?: string; dest?: string }
-    | { handle: string }
-    | { src: string; headers: { [header: string]: string }; continue: true })[];
+  routes: Route[];
   output: Files;
   watch?: string[];
   childProcesses: ChildProcess[];
