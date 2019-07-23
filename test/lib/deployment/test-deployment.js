@@ -102,8 +102,7 @@ async function testDeployment (
             + ` Response headers:\n ${headers}`
         );
       }
-    }
-    if (probe.responseHeaders) {
+    } else if (probe.responseHeaders) {
       // eslint-disable-next-line no-loop-func
       Object.keys(probe.responseHeaders).forEach((header) => {
         if (resp.headers.get(header) !== probe.responseHeaders[header]) {
