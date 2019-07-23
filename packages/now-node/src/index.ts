@@ -19,7 +19,13 @@ import {
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
-import { readFileSync, lstatSync, readlinkSync, statSync } from 'fs';
+import {
+  readFileSync,
+  lstatSync,
+  readlinkSync,
+  statSync,
+  existsSync,
+} from 'fs';
 import { Compile } from './typescript';
 
 interface CompilerConfig {
@@ -65,7 +71,11 @@ async function downloadInstallAndBundle({
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
   const nodeVersion = await getNodeVersion(entrypointFsDirname);
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
-  await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
+  if (meta.isDev && existsSync(join(workPath, 'node_modules'))) {
+    console.log('skipping install step');
+  } else {
+    await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
+  }
   console.log(`install complete [${Date.now() - installTime}ms]`);
 
   const entrypointPath = downloadedFiles[entrypoint].fsPath;
