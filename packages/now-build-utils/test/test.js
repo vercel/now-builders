@@ -135,7 +135,7 @@ for (const fixture of fs.readdirSync(fixturesPath)) {
 
 // few foreign tests
 
-const buildersToTestWith = ['now-node', 'now-static-build'];
+const buildersToTestWith = ['now-next', 'now-node', 'now-static-build'];
 
 // eslint-disable-next-line no-restricted-syntax
 for (const builder of buildersToTestWith) {
@@ -146,18 +146,15 @@ for (const builder of buildersToTestWith) {
 
   // eslint-disable-next-line no-restricted-syntax
   for (const fixture of fs.readdirSync(fixturesPath2)) {
-    // don't run all foreign fixtures, just some
-    if (['01-cowsay', '03-env-vars'].includes(fixture)) {
-      // eslint-disable-next-line no-loop-func
-      it(`should build ${builder}/${fixture}`, async () => {
-        await expect(
-          testDeployment(
-            { builderUrl, buildUtilsUrl },
-            path.join(fixturesPath2, fixture),
-          ),
-        ).resolves.toBeDefined();
-      });
-    }
+    // eslint-disable-next-line no-loop-func
+    it(`should build ${builder}/${fixture}`, async () => {
+      await expect(
+        testDeployment(
+          { builderUrl, buildUtilsUrl },
+          path.join(fixturesPath2, fixture),
+        ),
+      ).resolves.toBeDefined();
+    });
   }
 }
 
