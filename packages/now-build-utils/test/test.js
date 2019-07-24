@@ -135,7 +135,7 @@ for (const fixture of fs.readdirSync(fixturesPath)) {
 
 // few foreign tests
 
-const buildersToTestWith = ['now-node', 'now-static-build'];
+const buildersToTestWith = ['now-next', 'now-node', 'now-static-build'];
 
 // eslint-disable-next-line no-restricted-syntax
 for (const builder of buildersToTestWith) {
@@ -147,7 +147,7 @@ for (const builder of buildersToTestWith) {
   // eslint-disable-next-line no-restricted-syntax
   for (const fixture of fs.readdirSync(fixturesPath2)) {
     // don't run all foreign fixtures, just some
-    if (['01-cowsay', '03-env-vars'].includes(fixture)) {
+    if (['01-cowsay', '01-cache-headers', '03-env-vars'].includes(fixture)) {
       // eslint-disable-next-line no-loop-func
       it(`should build ${builder}/${fixture}`, async () => {
         await expect(
@@ -224,7 +224,7 @@ it('Test `detectBuilders`', async () => {
     // no package.json + no build + raw static + api
     const files = ['api/users.js', 'index.html'];
     const { builders, errors } = await detectBuilders(files);
-    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[0].use).toBe('@now/node');
     expect(builders[0].src).toBe('api/users.js');
     expect(builders[1].use).toBe('@now/static');
     expect(builders[1].src).toBe('index.html');
@@ -236,7 +236,7 @@ it('Test `detectBuilders`', async () => {
     // package.json + no build + root + api
     const files = ['index.html', 'api/[endpoint].js', 'static/image.png'];
     const { builders, errors } = await detectBuilders(files);
-    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[0].use).toBe('@now/node');
     expect(builders[0].src).toBe('api/[endpoint].js');
     expect(builders[1].use).toBe('@now/static');
     expect(builders[1].src).toBe('index.html');
@@ -255,7 +255,7 @@ it('Test `detectBuilders`', async () => {
     ];
 
     const { builders } = await detectBuilders(files);
-    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[0].use).toBe('@now/node');
     expect(builders[0].src).toBe('api/[endpoint]/[id].js');
     expect(builders.length).toBe(1);
   }
@@ -269,7 +269,7 @@ it('Test `detectBuilders`', async () => {
     const files = ['package.json', 'api/endpoint.js', 'public/index.html'];
 
     const { builders } = await detectBuilders(files, pkg);
-    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[0].use).toBe('@now/node');
     expect(builders[0].src).toBe('api/endpoint.js');
     expect(builders[1].use).toBe('@now/next');
     expect(builders[1].src).toBe('package.json');
@@ -285,7 +285,7 @@ it('Test `detectBuilders`', async () => {
     const files = ['package.json', 'api/endpoint.js', 'index.html'];
 
     const { builders } = await detectBuilders(files, pkg);
-    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[0].use).toBe('@now/node');
     expect(builders[0].src).toBe('api/endpoint.js');
     expect(builders[1].use).toBe('@now/next');
     expect(builders[1].src).toBe('package.json');
@@ -297,7 +297,7 @@ it('Test `detectBuilders`', async () => {
     const files = ['api/endpoint.js', 'index.html', 'favicon.ico'];
 
     const { builders } = await detectBuilders(files);
-    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[0].use).toBe('@now/node');
     expect(builders[0].src).toBe('api/endpoint.js');
     expect(builders[1].use).toBe('@now/static');
     expect(builders[1].src).toBe('favicon.ico');
@@ -316,7 +316,7 @@ it('Test `detectBuilders`', async () => {
     ];
 
     const { builders } = await detectBuilders(files);
-    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[0].use).toBe('@now/node');
     expect(builders[0].src).toBe('api/endpoint.js');
     expect(builders[1].use).toBe('@now/static');
     expect(builders[1].src).toBe('public/**/*');
@@ -366,7 +366,7 @@ it('Test `detectBuilders`', async () => {
     const files = ['package.json', 'api/[endpoint].js'];
 
     const { builders } = await detectBuilders(files, pkg);
-    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[0].use).toBe('@now/node');
     expect(builders[0].src).toBe('api/[endpoint].js');
     expect(builders.length).toBe(1);
   }
