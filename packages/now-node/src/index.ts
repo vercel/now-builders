@@ -175,6 +175,7 @@ async function compile(
   const { fileList, esmFileList } = await nodeFileTrace([...inputFiles], {
     base: workPath,
     ts: true,
+    mixedModules: true,
     ignore: config.excludeFiles,
     readFile(fsPath: string): Buffer | string | null {
       const relPath = relative(workPath, fsPath);
@@ -188,9 +189,12 @@ async function compile(
           source = compileTypeScript(fsPath, source.toString());
         }
         const { mode } = lstatSync(fsPath);
-        if (isSymbolicLink(mode))
-          throw new Error('Internal error: Unexpected symlink.');
-        const entry = new FileBlob({ data: source, mode });
+        let entry: File;
+        if (isSymbolicLink(mode)) {
+          entry = new FileFsRef({ fsPath, mode });
+        } else {
+          entry = new FileBlob({ data: source, mode });
+        }
         fsCache.set(relPath, entry);
         sourceCache.set(relPath, source);
         return source.toString();
