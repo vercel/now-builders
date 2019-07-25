@@ -29,10 +29,6 @@
       "mustContain": "root:RANDOMNESS_PLACEHOLDER"
     },
     {
-      "path": "//",
-      "mustContain": "double-redirect:RANDOMNESS_PLACEHOLDER"
-    },
-    {
       "path": "/pricing/",
       "mustContain": "trailing-redirect:RANDOMNESS_PLACEHOLDER"
     }
