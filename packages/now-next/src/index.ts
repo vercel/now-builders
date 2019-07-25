@@ -24,6 +24,7 @@ import {
   runNpmInstall,
   runPackageJsonScript,
   Route,
+  debug,
 } from '@now/build-utils';
 
 import createServerlessConfig from './create-serverless-config';
@@ -69,7 +70,7 @@ async function readPackageJson(entryPath: string) {
   try {
     return JSON.parse(await readFile(packagePath, 'utf8'));
   } catch (err) {
-    console.log('package.json not found in entry');
+    debug('package.json not found in entry');
     return {};
   }
 }
@@ -169,7 +170,7 @@ export const build = async ({
   const entryPath = path.join(workPath, entryDirectory);
   const dotNextStatic = path.join(entryPath, '.next/static');
 
-  console.log(`${name} Downloading user files...`);
+  debug(`${name} Downloading user files...`);
   await download(files, workPath, meta);
 
   const pkg = await readPackageJson(entryPath);
@@ -193,7 +194,7 @@ export const build = async ({
 
     // If this is the initial build, we want to start the server
     if (!urls[entrypoint]) {
-      console.log(`${name} Installing dependencies...`);
+      debug(`${name} Installing dependencies...`);
       await runNpmInstall(entryPath, ['--prefer-offline'], spawnOpts);
 
       if (!process.env.NODE_ENV) {
@@ -208,7 +209,7 @@ export const build = async ({
       const { forked, getUrl } = startDevServer(entryPath, runtimeEnv);
       urls[entrypoint] = await getUrl();
       childProcess = forked;
-      console.log(
+      debug(
         `${name} Development server for ${entrypoint} running at ${
           urls[entrypoint]
         }`
@@ -239,31 +240,31 @@ export const build = async ({
 
   const isLegacy = isLegacyNext(nextVersion);
 
-  console.log(`MODE: ${isLegacy ? 'legacy' : 'serverless'}`);
+  debug(`MODE: ${isLegacy ? 'legacy' : 'serverless'}`);
 
   if (isLegacy) {
     try {
       await unlinkFile(path.join(entryPath, 'yarn.lock'));
     } catch (err) {
-      console.log('no yarn.lock removed');
+      debug('no yarn.lock removed');
     }
 
     try {
       await unlinkFile(path.join(entryPath, 'package-lock.json'));
     } catch (err) {
-      console.log('no package-lock.json removed');
+      debug('no package-lock.json removed');
     }
 
     console.warn(
       "WARNING: your application is being deployed in @now/next's legacy mode. http://err.sh/zeit/now-builders/now-next-legacy-mode"
     );
 
-    console.log('normalizing package.json');
+    debug('normalizing package.json');
     const packageJson = normalizePackageJson(pkg);
-    console.log('normalized package.json result: ', packageJson);
+    debug('normalized package.json result: ', packageJson);
     await writePackageJson(entryPath, packageJson);
   } else if (!pkg.scripts || !pkg.scripts['now-build']) {
-    console.log(
+    debug(
       'Your application is being built using `next build`. ' +
         'If you need to define a different build step, please create a `now-build` script in your `package.json` ' +
         '(e.g. `{ "scripts": { "now-build": "npm run prepare && next build" } }`).'
@@ -276,21 +277,21 @@ export const build = async ({
   }
 
   if (process.env.NPM_AUTH_TOKEN) {
-    console.log('found NPM_AUTH_TOKEN in environment, creating .npmrc');
+    debug('found NPM_AUTH_TOKEN in environment, creating .npmrc');
     await writeNpmRc(entryPath, process.env.NPM_AUTH_TOKEN);
   }
 
-  console.log('installing dependencies...');
+  debug('installing dependencies...');
   await runNpmInstall(entryPath, ['--prefer-offline'], spawnOpts);
 
-  console.log('running user script...');
+  debug('running user script...');
   const memoryToConsume = Math.floor(os.totalmem() / 1024 ** 2) - 128;
   const env = { ...spawnOpts.env } as any;
   env.NODE_OPTIONS = `--max_old_space_size=${memoryToConsume}`;
   await runPackageJsonScript(entryPath, 'now-build', { ...spawnOpts, env });
 
   if (isLegacy) {
-    console.log('running npm install --production...');
+    debug('running npm install --production...');
     await runNpmInstall(
       entryPath,
       ['--prefer-offline', '--production'],
@@ -310,7 +311,7 @@ export const build = async ({
   if (isLegacy) {
     const filesAfterBuild = await glob('**', entryPath);
 
-    console.log('preparing lambda files...');
+    debug('preparing lambda files...');
     let buildId: string;
     try {
       buildId = await readFile(
@@ -378,7 +379,7 @@ export const build = async ({
           ],
         };
 
-        console.log(`Creating lambda for page: "${page}"...`);
+        debug(`Creating lambda for page: "${page}"...`);
         lambdas[path.join(entryDirectory, pathname)] = await createLambda({
           files: {
             ...nextFiles,
@@ -388,11 +389,11 @@ export const build = async ({
           handler: 'now__launcher.launcher',
           runtime: nodeVersion.runtime,
         });
-        console.log(`Created lambda for page: "${page}"`);
+        debug(`Created lambda for page: "${page}"`);
       })
     );
   } else {
-    console.log('preparing lambda files...');
+    debug('preparing lambda files...');
     const launcherFiles = {
       'now__bridge.js': new FileFsRef({
         fsPath: require('@now/node-bridge'),
@@ -447,8 +448,8 @@ export const build = async ({
 
     const assetKeys = Object.keys(assets);
     if (assetKeys.length > 0) {
-      console.log('detected assets to be bundled with lambda:');
-      assetKeys.forEach(assetFile => console.log(`\t${assetFile}`));
+      debug('detected assets to be bundled with lambda:');
+      assetKeys.forEach(assetFile => debug(`\t${assetFile}`));
     }
 
     await Promise.all(
@@ -464,7 +465,7 @@ export const build = async ({
           dynamicPages.push(normalizePage(pathname));
         }
 
-        console.log(`Creating lambda for page: "${page}"...`);
+        debug(`Creating lambda for page: "${page}"...`);
         lambdas[path.join(entryDirectory, pathname)] = await createLambda({
           files: {
             ...launcherFiles,
@@ -474,7 +475,7 @@ export const build = async ({
           handler: 'now__launcher.launcher',
           runtime: nodeVersion.runtime,
         });
-        console.log(`Created lambda for page: "${page}"`);
+        debug(`Created lambda for page: "${page}"`);
       })
     );
   }
@@ -570,7 +571,7 @@ export const prepareCache = async ({
   workPath,
   entrypoint,
 }: PrepareCacheOptions) => {
-  console.log('preparing cache ...');
+  debug('preparing cache ...');
   const entryDirectory = path.dirname(entrypoint);
   const entryPath = path.join(workPath, entryDirectory);
 
@@ -584,7 +585,7 @@ export const prepareCache = async ({
     return {};
   }
 
-  console.log('producing cache file manifest ...');
+  debug('producing cache file manifest ...');
   const cacheEntrypoint = path.relative(workPath, entryPath);
   const cache = {
     ...(await glob(path.join(cacheEntrypoint, 'node_modules/**'), workPath)),
@@ -592,6 +593,6 @@ export const prepareCache = async ({
     ...(await glob(path.join(cacheEntrypoint, 'package-lock.json'), workPath)),
     ...(await glob(path.join(cacheEntrypoint, 'yarn.lock'), workPath)),
   };
-  console.log('cache file manifest produced');
+  debug('cache file manifest produced');
   return cache;
 };
