@@ -1,6 +1,6 @@
 import { join } from 'path';
 import execa from 'execa';
-import { getWriteableDirectory } from '@now/build-utils';
+import { getWriteableDirectory, debug } from '@now/build-utils';
 
 const RUBY_VERSION = '2.5.5';
 
@@ -46,10 +46,10 @@ async function installRuby(version: string = RUBY_VERSION) {
 // process.env.GEM_HOME), and returns
 // the absolute path to it
 export async function installBundler() {
-  console.log('installing ruby...');
+  debug('installing ruby...');
   const { gemHome, rubyPath, gemPath } = await installRuby();
 
-  console.log('installing bundler...');
+  debug('installing bundler...');
   await execa(gemPath, ['install', 'bundler', '--no-document'], {
     stdio: 'inherit',
     env: {

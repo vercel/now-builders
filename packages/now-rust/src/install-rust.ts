@@ -1,7 +1,8 @@
 import execa from 'execa';
+import { debug } from '@now/build-utils';
 
 async function downloadRustToolchain(version: string = 'stable') {
-  console.log('downloading the rust toolchain');
+  debug('downloading the rust toolchain');
 
   try {
     await execa.shell(
@@ -14,7 +15,7 @@ async function downloadRustToolchain(version: string = 'stable') {
 }
 
 async function installOpenSSL() {
-  console.log('installing openssl-devel...');
+  debug('installing openssl-devel...');
   try {
     // need to downgrade otherwise yum can't resolve the dependencies given
     // a later version is already installed in the machine.

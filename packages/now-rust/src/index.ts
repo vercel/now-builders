@@ -13,6 +13,7 @@ import {
   PrepareCacheOptions,
   DownloadedFiles,
   Lambda,
+  debug as debugLog,
 } from '@now/build-utils'; // eslint-disable-line import/no-extraneous-dependencies
 import installRust from './install-rust';
 
@@ -68,7 +69,7 @@ async function buildWholeProject(
 ) {
   const entrypointDirname = path.dirname(downloadedFiles[entrypoint].fsPath);
   const { debug } = config;
-  console.log('running `cargo build`...');
+  debugLog('running `cargo build`...');
   try {
     await execa(
       'cargo',
@@ -121,7 +122,7 @@ async function gatherExtraFiles(
 ) {
   if (!globMatcher) return {};
 
-  console.log('gathering extra files for the fs...');
+  debugLog('gathering extra files for the fs...');
 
   const entryDir = path.dirname(entrypoint);
 
@@ -142,7 +143,7 @@ async function runUserScripts(entrypoint: string) {
   const buildScriptExists = await fs.pathExists(buildScriptPath);
 
   if (buildScriptExists) {
-    console.log('running `build.sh`...');
+    debugLog('running `build.sh`...');
     await runShellScript(buildScriptPath);
   }
 }
@@ -174,7 +175,7 @@ async function buildSingleFile(
   extraFiles: DownloadedFiles,
   rustEnv: Record<string, string>
 ) {
-  console.log('building single file');
+  debugLog('building single file');
   const launcherPath = path.join(__dirname, '..', 'launcher.rs');
   let launcherData = await fs.readFile(launcherPath, 'utf8');
 
@@ -222,7 +223,7 @@ async function buildSingleFile(
       },
     ],
   });
-  console.log('toml to write:', tomlToWrite);
+  debugLog('toml to write:', tomlToWrite);
 
   // Overwrite the Cargo.toml file with one that includes the `now_lambda`
   // dependency and our binary. `dependencies` is a map so we don't run the
@@ -230,7 +231,7 @@ async function buildSingleFile(
   await fs.writeFile(cargoTomlFile, tomlToWrite);
 
   const { debug } = config;
-  console.log('running `cargo build`...');
+  debugLog('running `cargo build`...');
   try {
     await execa(
       'cargo',
@@ -271,7 +272,7 @@ async function buildSingleFile(
 
 export async function build(opts: BuildOptions) {
   const { files, entrypoint, workPath, config, meta = {} } = opts;
-  console.log('downloading files');
+  debugLog('downloading files');
   const downloadedFiles = await download(files, workPath, meta);
   const entryPath = downloadedFiles[entrypoint].fsPath;
 
@@ -302,7 +303,7 @@ export async function prepareCache({
   entrypoint,
   workPath,
 }: PrepareCacheOptions) {
-  console.log('preparing cache...');
+  debugLog('preparing cache...');
 
   let targetFolderDir: string;
 

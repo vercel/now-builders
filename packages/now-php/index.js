@@ -4,6 +4,7 @@ const {
   glob,
   download,
   shouldServe,
+  debug,
 } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 const path = require('path');
 const { getFiles } = require('@now/php-bridge');
@@ -31,7 +32,7 @@ exports.build = async ({
     // Backwards compatibility
     includedFiles = downloadedFiles;
   }
-  console.log('Included files:', Object.keys(includedFiles));
+  debug('Included files:', Object.keys(includedFiles));
 
   const userFiles = rename(includedFiles, name => path.join('user', name));
   const bridgeFiles = await getFiles();
