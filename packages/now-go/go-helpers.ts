@@ -4,9 +4,8 @@ import fetch from 'node-fetch';
 import { mkdirp, pathExists } from 'fs-extra';
 import { dirname, join } from 'path';
 import { homedir } from 'os';
-import Debug from 'debug';
+import { debug } from '@now/build-utils';
 
-const debug = Debug('@now/go:go-helpers');
 const archMap = new Map([['x64', 'amd64'], ['x86', '386']]);
 const platformMap = new Map([['win32', 'windows']]);
 
@@ -46,7 +45,7 @@ export async function getAnalyzedEntrypoint(filePath: string, modulePath = '') {
 // Without this, `go` won't recognize the `$GOPATH`.
 function createGoPathTree(goPath: string, platform: string, arch: string) {
   const tuple = `${getPlatform(platform)}_${getArch(arch)}`;
-  debug('Creating GOPATH directory structure for %o (%s)', goPath, tuple);
+  debug(`Creating GOPATH directory structure for ${goPath}`, tuple);
   return Promise.all([
     mkdirp(join(goPath, 'bin')),
     mkdirp(join(goPath, 'pkg', tuple)),
@@ -87,7 +86,7 @@ class GoWrapper {
   }
 
   build(src: string | string[], dest: string, ldsflags = '-s -w') {
-    debug('Building optimized `go` binary %o -> %o', src, dest);
+    debug(`Building optimized \`go\` binary ${src} -> ${dest}`);
     const sources = Array.isArray(src) ? src : [src];
     return this.execute('build', '-ldflags', ldsflags, '-o', dest, ...sources);
   }
@@ -139,16 +138,9 @@ export async function downloadGo(
     // Check `Go` bin in builder CWD
     const isGoExist = await pathExists(join(dir, 'bin'));
     if (!isGoExist) {
-      debug(
-        'Installing `go` v%s to %o for %s %s',
-        version,
-        dir,
-        platform,
-        arch
-      );
+      debug(`Installing \`go\` v${version} to ${dir} for ${platform} ${arch}`);
       const url = getGoUrl(version, platform, arch);
-      debug('Downloading `go` URL: %o', url);
-      console.log('Downloading Go ...');
+      debug(`Downloading \`go\` URL: ${url}`);
       const res = await fetch(url);
 
       if (!res.ok) {
