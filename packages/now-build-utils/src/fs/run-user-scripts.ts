@@ -6,6 +6,7 @@ import { SpawnOptions } from 'child_process';
 import { deprecate } from 'util';
 import { Meta, PackageJson, NodeVersion } from '../types';
 import { getSupportedNodeVersion } from './node-version';
+import debug from '../debug';
 
 function spawnAsync(
   command: string,
@@ -123,7 +124,7 @@ export async function runNpmInstall(
   assert(path.isAbsolute(destPath));
 
   let commandArgs = args;
-  console.log(`installing to ${destPath}`);
+  debug(`installing to ${destPath}`);
   const { hasPackageLockJson } = await scanParentDirs(destPath);
 
   const opts = spawnOpts || { env: process.env };
@@ -165,10 +166,10 @@ export async function runPackageJsonScript(
   if (!hasScript) return false;
 
   if (hasPackageLockJson) {
-    console.log(`running "npm run ${scriptName}"`);
+    debug(`running "npm run ${scriptName}"`);
     await spawnAsync('npm', ['run', scriptName], destPath, opts);
   } else {
-    console.log(`running "yarn run ${scriptName}"`);
+    debug(`running "yarn run ${scriptName}"`);
     await spawnAsync(
       'yarn',
       ['--cwd', destPath, 'run', scriptName],

@@ -16,6 +16,7 @@ import {
   Route,
   BuildOptions,
   Config,
+  debug,
 } from '@now/build-utils';
 
 interface PackageJson {
@@ -119,7 +120,7 @@ export async function build({
   config,
   meta = {},
 }: BuildOptions) {
-  console.log('Downloading user files...');
+  debug('Downloading user files...');
   await download(files, workPath, meta);
 
   const mountpoint = path.dirname(entrypoint);
@@ -158,19 +159,19 @@ export async function build({
     }
 
     if (framework) {
-      console.log(
+      debug(
         `Detected ${framework.name} framework. Optimizing your deployment...`
       );
 
       if (framework.minNodeRange) {
         minNodeRange = framework.minNodeRange;
-        console.log(
+        debug(
           `${framework.name} requires Node.js ${
             framework.minNodeRange
           }. Switching...`
         );
       } else {
-        console.log(
+        debug(
           `${
             framework.name
           } does not require a specific Node.js version. Continuing ...`
@@ -194,11 +195,7 @@ export async function build({
       }
 
       if (typeof devPort === 'number') {
-        console.log(
-          '`%s` server already running for %j',
-          devScript,
-          entrypoint
-        );
+        debug(`\`${devScript}\` server already running for ${entrypoint}`);
       } else {
         // Run the `now-dev` or `dev` script out-of-bounds, since it is assumed that
         // it will launch a dev server that never "completes"
@@ -249,7 +246,7 @@ export async function build({
           );
         }
 
-        console.log('Detected dev server for %j', entrypoint);
+        debug('Detected dev server for %j', entrypoint);
       }
 
       let srcBase = mountpoint.replace(/^\.\/?/, '');
@@ -272,14 +269,14 @@ export async function build({
       );
     } else {
       if (meta.isDev) {
-        console.log(`WARN: "${devScript}" script is missing from package.json`);
-        console.log(
+        debug(`WARN: "${devScript}" script is missing from package.json`);
+        debug(
           'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development'
         );
       }
 
       const buildScript = getCommand(pkg, 'build', config as Config);
-      console.log(`Running "${buildScript}" script in "${entrypoint}"`);
+      debug(`Running "${buildScript}" script in "${entrypoint}"`);
 
       const found = await runPackageJsonScript(
         entrypointDir,
@@ -313,7 +310,7 @@ export async function build({
   }
 
   if (!config.zeroConfig && entrypointName.endsWith('.sh')) {
-    console.log(`Running build script "${entrypoint}"`);
+    debug(`Running build script "${entrypoint}"`);
     const nodeVersion = await getNodeVersion(entrypointDir);
     const spawnOpts = getSpawnOptions(meta, nodeVersion);
     await runShellScript(path.join(workPath, entrypoint), [], spawnOpts);
