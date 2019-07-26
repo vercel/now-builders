@@ -16,6 +16,7 @@ import {
   PrepareCacheOptions,
   BuildOptions,
   shouldServe,
+  debug,
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
@@ -55,18 +56,18 @@ async function downloadInstallAndBundle({
   workPath,
   meta,
 }: DownloadOptions) {
-  console.log('downloading user files...');
+  debug('downloading user files...');
   const downloadTime = Date.now();
   const downloadedFiles = await download(files, workPath, meta);
-  console.log(`download complete [${Date.now() - downloadTime}ms]`);
+  debug(`download complete [${Date.now() - downloadTime}ms]`);
 
-  console.log("installing dependencies for user's code...");
+  debug("installing dependencies for user's code...");
   const installTime = Date.now();
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
   const nodeVersion = await getNodeVersion(entrypointFsDirname);
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
   await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
-  console.log(`install complete [${Date.now() - installTime}ms]`);
+  debug(`install complete [${Date.now() - installTime}ms]`);
 
   const entrypointPath = downloadedFiles[entrypoint].fsPath;
   return { entrypointPath, entrypointFsDirname, nodeVersion, spawnOpts };
@@ -118,21 +119,17 @@ async function compile(
     }
   }
 
-  if (config.debug) {
-    console.log(
-      'tracing input files: ' +
-        [...inputFiles].map(p => relative(workPath, p)).join(', ')
-    );
-  }
+  debug(
+    'tracing input files: ' +
+      [...inputFiles].map(p => relative(workPath, p)).join(', ')
+  );
 
   const preparedFiles: Files = {};
 
   let tsCompile: Compile;
   function compileTypeScript(path: string, source: string): string {
     const relPath = relative(workPath, path);
-    if (config.debug) {
-      console.log('compiling typescript file ' + relPath);
-    }
+    debug('compiling typescript file ' + relPath);
     if (!tsCompile) {
       tsCompile = require('./typescript').init({
         basePath: workPath,
@@ -142,12 +139,10 @@ async function compile(
     try {
       var { code, map } = tsCompile(source, path);
     } catch (e) {
-      if (config.debug) {
-        console.error(e);
-        console.log(
-          'TypeScript compilation failed, falling back to basic transformModule'
-        );
-      }
+      console.error(e);
+      debug(
+        'TypeScript compilation failed, falling back to basic transformModule'
+      );
       // If TypeScript compile fails, attempt a direct non-typecheck compile
       var { code, map } = tsCompile(source, path, true);
     }
@@ -198,10 +193,8 @@ async function compile(
     },
   });
 
-  if (config.debug) {
-    console.log('traced files:');
-    console.log('\t' + fileList.join('\n\t'));
-  }
+  debug('traced files:');
+  debug('\t' + fileList.join('\n\t'));
 
   for (const path of fileList) {
     let entry = fsCache.get(path);
@@ -249,9 +242,7 @@ async function compile(
   if (esmPaths.length) {
     const babelCompile = require('./babel').compile;
     for (const path of esmPaths) {
-      if (config.debug) {
-        console.log('compiling es module file ' + path);
-      }
+      debug('compiling es module file ' + path);
 
       const filename = basename(path);
       const { data: source } = await FileBlob.fromStream({
@@ -300,12 +291,12 @@ export async function build({
     meta,
   });
 
-  console.log('running user script...');
+  debug('running user script...');
   const runScriptTime = Date.now();
   await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOpts);
-  console.log(`script complete [${Date.now() - runScriptTime}ms]`);
+  debug(`script complete [${Date.now() - runScriptTime}ms]`);
 
-  console.log('tracing input files...');
+  debug('tracing input files...');
   const traceTime = Date.now();
   const { preparedFiles, shouldAddSourcemapSupport, watch } = await compile(
     workPath,
@@ -313,7 +304,7 @@ export async function build({
     entrypoint,
     config
   );
-  console.log(`trace complete [${Date.now() - traceTime}ms]`);
+  debug(`trace complete [${Date.now() - traceTime}ms]`);
 
   const launcherFiles: Files = {
     [`${LAUNCHER_FILENAME}.js`]: new FileBlob({
