@@ -1,5 +1,5 @@
 const { homedir, tmpdir } = require('os');
-const path = require('path');
+const { join, dirname } = require('path');
 const fs = require('fs-extra');
 const createDeployment = require('now-client').default;
 const fetch = require('./fetch-retry.js');
@@ -13,7 +13,7 @@ async function nowDeploy (bodies, randomness) {
       .slice(2);
   }
   const nowJson = JSON.parse(bodies['now.json']);
-  const nowJsonBuffer = Buffer.from(
+  bodies['now.json'] = Buffer.from(
     JSON.stringify({
       name: 'test',
       version: 2,
@@ -29,14 +29,15 @@ async function nowDeploy (bodies, randomness) {
       routes: nowJson.routes || [],
     })
   );
-  const tmpDir = path.join(tmpdir(), randomness);
+  const tmpDir = join(tmpdir(), randomness);
   await fs.mkdir(tmpDir);
 
   Promise.all(
-    Object.keys(bodies).map((name) => {
-      const buffer = name === 'now.json' ? nowJsonBuffer : bodies[name];
-      const absolutePath = path.join(tmpDir, name);
-      return fs.writeFile(absolutePath, buffer);
+    Object.keys(bodies).map(async (name) => {
+      const buffer = bodies[name];
+      const absolutePath = join(tmpDir, name);
+      await fs.ensureDir(dirname(absolutePath));
+      await fs.writeFile(absolutePath, buffer);
     })
   );
 
@@ -89,7 +90,7 @@ async function getToken (randomness) {
         `${Buffer.from(str, 'base64').toString()}?${randomness}`
       );
     } else {
-      const authJsonPath = path.join(homedir(), '.now/auth.json');
+      const authJsonPath = join(homedir(), '.now/auth.json');
       token = require(authJsonPath).token;
     }
   }
