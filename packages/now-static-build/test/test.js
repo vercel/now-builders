@@ -36,7 +36,7 @@ for (const fixture of fs.readdirSync(fixturesPath)) {
           path.join(fixturesPath, fixture),
         );
       } catch (err) {
-        expect(err.message).toMatch(/is ERROR/);
+        expect(err.message).toMatch(/failed with error/);
       }
     });
     continue; //eslint-disable-line
