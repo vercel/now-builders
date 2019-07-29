@@ -1,5 +1,5 @@
 const { homedir, tmpdir } = require('os');
-const { join, dirname } = require('path');
+const { join } = require('path');
 const fs = require('fs-extra');
 const createDeployment = require('now-client').default;
 const fetch = require('./fetch-retry.js');
@@ -36,8 +36,7 @@ async function nowDeploy (bodies, randomness) {
     Object.keys(bodies).map(async (name) => {
       const buffer = bodies[name];
       const absolutePath = join(tmpDir, name);
-      await fs.ensureDir(dirname(absolutePath));
-      await fs.writeFile(absolutePath, buffer);
+      await fs.outputFile(absolutePath, buffer);
     })
   );
 
@@ -61,7 +60,9 @@ async function nowDeploy (bodies, randomness) {
 
 function deployFromFileSystem (absolutePath, token) {
   return new Promise(async (resolve, reject) => {
-    for await (const event of createDeployment(absolutePath, { token })) {
+    for await (const event of createDeployment(absolutePath, {
+      token,
+    })) {
       if (event.type === 'ready') {
         resolve(event.payload);
         break;
