@@ -41,11 +41,11 @@ async function nowDeploy (bodies, randomness) {
   );
 
   const token = await getToken(randomness);
-  let deployment;
-  try {
-    deployment = await deployFromFileSystem(tmpDir, token);
-  } catch (error) {
-    throw new Error(`Deployment failed: ${JSON.stringify(error)}`);
+  const { error, deployment } = await deployFromFileSystem(tmpDir, token);
+  if (error) {
+    throw new Error(
+      `Deployment ${deployment} failed with error ${JSON.stringify(error)}`
+    );
   }
 
   console.log({
@@ -58,21 +58,19 @@ async function nowDeploy (bodies, randomness) {
   return { deploymentId: deployment.id, deploymentUrl: deployment.url };
 }
 
-function deployFromFileSystem (absolutePath, token) {
-  return new Promise(async (resolve, reject) => {
-    for await (const event of createDeployment(absolutePath, {
-      token,
-    })) {
-      if (event.type === 'ready') {
-        resolve(event.payload);
-        break;
-      }
-      if (event.type === 'error') {
-        reject(event.payload);
-        break;
-      }
+async function deployFromFileSystem (dir, token) {
+  let error;
+  let deployment;
+  for await (const event of createDeployment(dir, { token })) {
+    if (event.type === 'created') {
+      deployment = event.payload;
+    } else if (event.type === 'ready') {
+      deployment = event.payload;
+    } else if (event.type === 'error') {
+      error = event.payload;
     }
-  });
+  }
+  return { error, deployment };
 }
 
 let token;
