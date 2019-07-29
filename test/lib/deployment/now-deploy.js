@@ -32,7 +32,7 @@ async function nowDeploy (bodies, randomness) {
   const tmpDir = join(tmpdir(), randomness);
   await fs.mkdir(tmpDir);
 
-  Promise.all(
+  await Promise.all(
     Object.keys(bodies).map(async (name) => {
       const buffer = bodies[name];
       const absolutePath = join(tmpDir, name);
