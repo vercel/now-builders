@@ -4,9 +4,8 @@ import fetch from 'node-fetch';
 import { mkdirp, pathExists } from 'fs-extra';
 import { dirname, join } from 'path';
 import { homedir } from 'os';
-import Debug from 'debug';
+import { debug } from '@now/build-utils';
 
-const debug = Debug('@now/go:go-helpers');
 const archMap = new Map([['x64', 'amd64'], ['x86', '386']]);
 const platformMap = new Map([['win32', 'windows']]);
 
@@ -148,7 +147,6 @@ export async function downloadGo(
       );
       const url = getGoUrl(version, platform, arch);
       debug('Downloading `go` URL: %o', url);
-      console.log('Downloading Go ...');
       const res = await fetch(url);
 
       if (!res.ok) {
