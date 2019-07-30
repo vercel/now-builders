@@ -116,6 +116,36 @@ it('should match all semver ranges', () => {
   );
 });
 
+it('should support require by path for legacy builders', () => {
+  const index = require('@now/build-utils');
+
+  const download2 = require('@now/build-utils/fs/download.js');
+  const getWriteableDirectory2 = require('@now/build-utils/fs/get-writable-directory.js');
+  const glob2 = require('@now/build-utils/fs/glob.js');
+  const rename2 = require('@now/build-utils/fs/rename.js');
+  const {
+    runNpmInstall: runNpmInstall2,
+  } = require('@now/build-utils/fs/run-user-scripts.js');
+  const streamToBuffer2 = require('@now/build-utils/fs/stream-to-buffer.js');
+
+  const FileBlob2 = require('@now/build-utils/file-blob.js');
+  const FileFsRef2 = require('@now/build-utils/file-fs-ref.js');
+  const FileRef2 = require('@now/build-utils/file-ref.js');
+  const { Lambda: Lambda2 } = require('@now/build-utils/lambda.js');
+
+  expect(download2).toBe(index.download);
+  expect(getWriteableDirectory2).toBe(index.getWriteableDirectory);
+  expect(glob2).toBe(index.glob);
+  expect(rename2).toBe(index.rename);
+  expect(runNpmInstall2).toBe(index.runNpmInstall);
+  expect(streamToBuffer2).toBe(index.streamToBuffer);
+
+  expect(FileBlob2).toBe(index.FileBlob);
+  expect(FileFsRef2).toBe(index.FileFsRef);
+  expect(FileRef2).toBe(index.FileRef);
+  expect(Lambda2).toBe(index.Lambda);
+});
+
 // own fixtures
 
 const fixturesPath = path.resolve(__dirname, 'fixtures');
@@ -355,7 +385,7 @@ it('Test `detectBuilders`', async () => {
     const files = ['package.json', 'pages/index.js'];
 
     const { builders } = await detectBuilders(files, pkg);
-    expect(builders[0].use).toBe('@now/nuxt');
+    expect(builders[0].use).toBe('@now/static-build');
     expect(builders[0].src).toBe('package.json');
     expect(builders.length).toBe(1);
   }
@@ -396,6 +426,25 @@ it('Test `detectBuilders`', async () => {
     const { builders, errors } = await detectBuilders(files);
     expect(builders).toBe(null);
     expect(errors).toBe(null);
+  }
+
+  {
+    // package.json + api + canary
+    const pkg = {
+      scripts: { build: 'next build' },
+      dependencies: { next: '9.0.0' },
+    };
+    const files = [
+      'pages/index.js',
+      'api/[endpoint].js',
+      'api/[endpoint]/[id].js',
+    ];
+
+    const { builders } = await detectBuilders(files, pkg, { tag: 'canary' });
+    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[1].use).toBe('@now/node@canary');
+    expect(builders[2].use).toBe('@now/next@canary');
+    expect(builders.length).toBe(3);
   }
 });
 
