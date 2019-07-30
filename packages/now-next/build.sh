@@ -5,6 +5,8 @@ bridge_defs="$(dirname $(pwd))/now-node-bridge/src/bridge.ts"
 
 cp -v "$bridge_defs" src/now__bridge.ts
 
+tsc
+
 ncc build src/dev-server.ts -o dist/dev
 mv dist/dev/index.js dist/dev-server.js
 rm -rf dist/dev
