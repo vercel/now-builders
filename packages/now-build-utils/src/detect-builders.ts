@@ -155,7 +155,7 @@ export async function detectBuilders(
       builders = builders.map((builder: Builder) => {
         // @now/static has no canary builder
         if (builder.use !== '@now/static') {
-          builder.use === `${builder.use}@${tag}`;
+          builder.use = `${builder.use}@${tag}`;
         }
 
         return builder;
