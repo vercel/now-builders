@@ -11,11 +11,12 @@ import {
   createLambda,
   shouldServe,
   BuildOptions,
+  debug,
 } from '@now/build-utils';
 
 async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
   const target = '.';
-  console.log(
+  debug(
     `running "pip install --disable-pip-version-check --target ${target} --upgrade ${args.join(
       ' '
     )}"...`
@@ -33,11 +34,11 @@ async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
       ],
       {
         cwd: workDir,
-        stdio: 'inherit',
+        stdio: 'pipe',
       }
     );
   } catch (err) {
-    console.log(
+    debug(
       `failed to run "pip install --disable-pip-version-check --target ${target} --upgrade ${args.join(
         ' '
       )}"...`
@@ -47,7 +48,7 @@ async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
 }
 
 async function pipInstallUser(pipPath: string, ...args: string[]) {
-  console.log(
+  debug(
     `running "pip install --disable-pip-version-check --user ${args.join(
       ' '
     )}"...`
@@ -57,11 +58,11 @@ async function pipInstallUser(pipPath: string, ...args: string[]) {
       pipPath,
       ['install', '--disable-pip-version-check', '--user', ...args],
       {
-        stdio: 'inherit',
+        stdio: 'pipe',
       }
     );
   } catch (err) {
-    console.log(
+    debug(
       `failed to run "pip install --disable-pip-version-check --user ${args.join(
         ' '
       )}"`
@@ -71,14 +72,14 @@ async function pipInstallUser(pipPath: string, ...args: string[]) {
 }
 
 async function pipenvInstall(pyUserBase: string, srcDir: string) {
-  console.log('running "pipenv_to_requirements -f');
+  debug('running "pipenv_to_requirements -f');
   try {
     await execa(join(pyUserBase, 'bin', 'pipenv_to_requirements'), ['-f'], {
       cwd: srcDir,
-      stdio: 'inherit',
+      stdio: 'pipe',
     });
   } catch (err) {
-    console.log('failed to run "pipenv_to_requirements -f"');
+    debug('failed to run "pipenv_to_requirements -f"');
     throw err;
   }
 }
@@ -90,7 +91,7 @@ export const build = async ({
   meta = {},
   config,
 }: BuildOptions) => {
-  console.log('downloading files...');
+  debug('downloading files...');
   let downloadedFiles = await download(originalFiles, workPath, meta);
 
   if (meta.isDev) {
@@ -125,7 +126,7 @@ export const build = async ({
       await writeFile(setupCfg, '[install]\nprefix=\n');
     }
   } catch (err) {
-    console.log('failed to create "setup.cfg" file');
+    debug('failed to create "setup.cfg" file');
     throw err;
   }
 
@@ -142,7 +143,7 @@ export const build = async ({
     : null;
 
   if (pipfileLockDir) {
-    console.log('found "Pipfile.lock"');
+    debug('found "Pipfile.lock"');
 
     // Install pipenv.
     await pipInstallUser(pipPath, ' pipenv_to_requirements');
@@ -154,11 +155,11 @@ export const build = async ({
   const requirementsTxt = join(entryDirectory, 'requirements.txt');
 
   if (fsFiles[requirementsTxt]) {
-    console.log('found local "requirements.txt"');
+    debug('found local "requirements.txt"');
     const requirementsTxtPath = fsFiles[requirementsTxt].fsPath;
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   } else if (fsFiles['requirements.txt']) {
-    console.log('found global "requirements.txt"');
+    debug('found global "requirements.txt"');
     const requirementsTxtPath = fsFiles['requirements.txt'].fsPath;
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   }
@@ -168,7 +169,7 @@ export const build = async ({
 
   // will be used on `from $here import handler`
   // for example, `from api.users import handler`
-  console.log('entrypoint is', entrypoint);
+  debug('entrypoint is', entrypoint);
   const userHandlerFilePath = entrypoint
     .replace(/\//g, '.')
     .replace(/\.py$/, '');
