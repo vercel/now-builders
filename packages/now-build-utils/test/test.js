@@ -116,6 +116,14 @@ it('should match all semver ranges', () => {
   );
 });
 
+it('should support require by path', () => {
+  // This is necessary to support legacy/community builders
+  const { Lambda } = require('@now/build-utils/lambda.js');
+  const streamToBuffer = require('@now/build-utils/fs/stream-to-buffer.js');
+  expect(Lambda).toBe(require('@now/build-utils').Lambda);
+  expect(streamToBuffer).toBe(require('@now/build-utils').streamToBuffer);
+});
+
 // own fixtures
 
 const fixturesPath = path.resolve(__dirname, 'fixtures');
