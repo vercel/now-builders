@@ -22,12 +22,9 @@ const BUILDERS = new Map<string, Builder>([
 const API_BUILDERS: Builder[] = [
   { src: 'api/**/*.js', use: '@now/node', config },
   { src: 'api/**/*.ts', use: '@now/node', config },
-  { src: 'api/**/*.rs', use: '@now/rust', config },
   { src: 'api/**/*.go', use: '@now/go', config },
-  { src: 'api/**/*.php', use: '@now/php', config },
   { src: 'api/**/*.py', use: '@now/python', config },
   { src: 'api/**/*.rb', use: '@now/ruby', config },
-  { src: 'api/**/*.sh', use: '@now/bash', config },
 ];
 
 const MISSING_BUILD_SCRIPT_ERROR: ErrorResponse = {
