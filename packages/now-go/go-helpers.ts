@@ -67,7 +67,7 @@ class GoWrapper {
   private execute(...args: string[]) {
     const { opts, env } = this;
     debug('Exec %o', `go ${args.join(' ')}`);
-    return execa('go', args, { stdio: 'inherit', ...opts, env });
+    return execa('go', args, { stdio: 'pipe', ...opts, env });
   }
 
   mod() {
