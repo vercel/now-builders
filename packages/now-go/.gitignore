@@ -3,4 +3,5 @@ node_modules
 /go
 /analyze
 *.js
+!install.js
 !util/install.js
