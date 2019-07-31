@@ -16,11 +16,7 @@ const {
   testDeployment,
 } = require('../../../test/lib/deployment/test-deployment.js');
 
-const {
-  detectBuilder,
-  detectApiBuilders,
-  detectApiRoutes,
-} = require('../dist');
+const { detectBuilders, detectRoutes } = require('../dist');
 
 jest.setTimeout(4 * 60 * 1000);
 const builderUrl = '@canary';
@@ -120,6 +116,36 @@ it('should match all semver ranges', () => {
   );
 });
 
+it('should support require by path for legacy builders', () => {
+  const index = require('@now/build-utils');
+
+  const download2 = require('@now/build-utils/fs/download.js');
+  const getWriteableDirectory2 = require('@now/build-utils/fs/get-writable-directory.js');
+  const glob2 = require('@now/build-utils/fs/glob.js');
+  const rename2 = require('@now/build-utils/fs/rename.js');
+  const {
+    runNpmInstall: runNpmInstall2,
+  } = require('@now/build-utils/fs/run-user-scripts.js');
+  const streamToBuffer2 = require('@now/build-utils/fs/stream-to-buffer.js');
+
+  const FileBlob2 = require('@now/build-utils/file-blob.js');
+  const FileFsRef2 = require('@now/build-utils/file-fs-ref.js');
+  const FileRef2 = require('@now/build-utils/file-ref.js');
+  const { Lambda: Lambda2 } = require('@now/build-utils/lambda.js');
+
+  expect(download2).toBe(index.download);
+  expect(getWriteableDirectory2).toBe(index.getWriteableDirectory);
+  expect(glob2).toBe(index.glob);
+  expect(rename2).toBe(index.rename);
+  expect(runNpmInstall2).toBe(index.runNpmInstall);
+  expect(streamToBuffer2).toBe(index.streamToBuffer);
+
+  expect(FileBlob2).toBe(index.FileBlob);
+  expect(FileFsRef2).toBe(index.FileFsRef);
+  expect(FileRef2).toBe(index.FileRef);
+  expect(Lambda2).toBe(index.Lambda);
+});
+
 // own fixtures
 
 const fixturesPath = path.resolve(__dirname, 'fixtures');
@@ -139,7 +165,7 @@ for (const fixture of fs.readdirSync(fixturesPath)) {
 
 // few foreign tests
 
-const buildersToTestWith = ['now-node', 'now-static-build'];
+const buildersToTestWith = ['now-next', 'now-node', 'now-static-build'];
 
 // eslint-disable-next-line no-restricted-syntax
 for (const builder of buildersToTestWith) {
@@ -151,7 +177,7 @@ for (const builder of buildersToTestWith) {
   // eslint-disable-next-line no-restricted-syntax
   for (const fixture of fs.readdirSync(fixturesPath2)) {
     // don't run all foreign fixtures, just some
-    if (['01-cowsay', '03-env-vars'].includes(fixture)) {
+    if (['01-cowsay', '01-cache-headers', '03-env-vars'].includes(fixture)) {
       // eslint-disable-next-line no-loop-func
       it(`should build ${builder}/${fixture}`, async () => {
         await expect(
@@ -165,68 +191,269 @@ for (const builder of buildersToTestWith) {
   }
 }
 
-it('Test `detectBuilder`', async () => {
+it('Test `detectBuilders`', async () => {
   {
-    const pkg = { dependencies: { next: '1.0.0' } };
-    const { builder, warnings } = await detectBuilder(pkg);
-    expect(builder.use).toBe('@now/next');
-    expect(warnings.length).toBe(1);
-  }
-
-  {
-    const pkg = { devDependencies: { next: '1.0.0' } };
-    const { builder } = await detectBuilder(pkg);
-    expect(builder.use).toBe('@now/next');
-  }
-
-  {
-    const pkg = {};
-    const { builder } = await detectBuilder(pkg);
-    expect(builder).toBe(null);
-  }
-});
-
-it('Test `detectApiBuilders`', async () => {
-  {
-    const files = ['package.json', 'api/user.js', 'api/team.js'];
-
-    const builders = await detectApiBuilders(files);
-    expect(builders[0].use).toBe('@now/node@canary');
-  }
-
-  {
-    const files = ['package.json', 'api/user.go', 'api/team.js'];
-
-    const builders = await detectApiBuilders(files);
-    expect(builders.some(({ use }) => use === '@now/go')).toBeTruthy();
-    expect(builders.some(({ use }) => use === '@now/node@canary')).toBeTruthy();
-  }
-
-  {
-    const files = ['package.json'];
-
-    const builders = await detectApiBuilders(files);
+    // package.json + no build
+    const pkg = { dependencies: { next: '9.0.0' } };
+    const files = ['package.json', 'pages/index.js', 'public/index.html'];
+    const { builders, errors } = await detectBuilders(files, pkg);
     expect(builders).toBe(null);
+    expect(errors.length).toBe(1);
   }
 
   {
+    // package.json + no build + next
+    const pkg = {
+      scripts: { build: 'next build' },
+      dependencies: { next: '9.0.0' },
+    };
+    const files = ['package.json', 'pages/index.js'];
+    const { builders, errors } = await detectBuilders(files, pkg);
+    expect(builders[0].use).toBe('@now/next');
+    expect(errors).toBe(null);
+  }
+
+  {
+    // package.json + no build + next
+    const pkg = {
+      scripts: { build: 'next build' },
+      devDependencies: { next: '9.0.0' },
+    };
+    const files = ['package.json', 'pages/index.js'];
+    const { builders, errors } = await detectBuilders(files, pkg);
+    expect(builders[0].use).toBe('@now/next');
+    expect(errors).toBe(null);
+  }
+
+  {
+    // package.json + no build
+    const pkg = {};
+    const files = ['package.json'];
+    const { builders, errors } = await detectBuilders(files, pkg);
+    expect(builders).toBe(null);
+    expect(errors.length).toBe(1);
+  }
+
+  {
+    // static file
+    const files = ['index.html'];
+    const { builders, errors } = await detectBuilders(files);
+    expect(builders).toBe(null);
+    expect(errors).toBe(null);
+  }
+
+  {
+    // no package.json + public
+    const files = ['api/users.js', 'public/index.html'];
+    const { builders, errors } = await detectBuilders(files);
+    expect(builders[1].use).toBe('@now/static');
+    expect(errors).toBe(null);
+  }
+
+  {
+    // no package.json + no build + raw static + api
+    const files = ['api/users.js', 'index.html'];
+    const { builders, errors } = await detectBuilders(files);
+    expect(builders[0].use).toBe('@now/node');
+    expect(builders[0].src).toBe('api/users.js');
+    expect(builders[1].use).toBe('@now/static');
+    expect(builders[1].src).toBe('index.html');
+    expect(builders.length).toBe(2);
+    expect(errors).toBe(null);
+  }
+
+  {
+    // package.json + no build + root + api
+    const files = ['index.html', 'api/[endpoint].js', 'static/image.png'];
+    const { builders, errors } = await detectBuilders(files);
+    expect(builders[0].use).toBe('@now/node');
+    expect(builders[0].src).toBe('api/[endpoint].js');
+    expect(builders[1].use).toBe('@now/static');
+    expect(builders[1].src).toBe('index.html');
+    expect(builders[2].use).toBe('@now/static');
+    expect(builders[2].src).toBe('static/image.png');
+    expect(builders.length).toBe(3);
+    expect(errors).toBe(null);
+  }
+
+  {
+    // api + ignore files
     const files = [
-      'api/users/[id].js',
       'api/_utils/handler.js',
-      'api/users/.helper.js',
-      'api/teams/_helper.js',
+      'api/[endpoint]/.helper.js',
+      'api/[endpoint]/[id].js',
     ];
 
-    const builders = await detectApiBuilders(files);
+    const { builders } = await detectBuilders(files);
+    expect(builders[0].use).toBe('@now/node');
+    expect(builders[0].src).toBe('api/[endpoint]/[id].js');
     expect(builders.length).toBe(1);
+  }
+
+  {
+    // api + next + public
+    const pkg = {
+      scripts: { build: 'next build' },
+      devDependencies: { next: '9.0.0' },
+    };
+    const files = ['package.json', 'api/endpoint.js', 'public/index.html'];
+
+    const { builders } = await detectBuilders(files, pkg);
+    expect(builders[0].use).toBe('@now/node');
+    expect(builders[0].src).toBe('api/endpoint.js');
+    expect(builders[1].use).toBe('@now/next');
+    expect(builders[1].src).toBe('package.json');
+    expect(builders.length).toBe(2);
+  }
+
+  {
+    // api + next + raw static
+    const pkg = {
+      scripts: { build: 'next build' },
+      devDependencies: { next: '9.0.0' },
+    };
+    const files = ['package.json', 'api/endpoint.js', 'index.html'];
+
+    const { builders } = await detectBuilders(files, pkg);
+    expect(builders[0].use).toBe('@now/node');
+    expect(builders[0].src).toBe('api/endpoint.js');
+    expect(builders[1].use).toBe('@now/next');
+    expect(builders[1].src).toBe('package.json');
+    expect(builders.length).toBe(2);
+  }
+
+  {
+    // api + raw static
+    const files = ['api/endpoint.js', 'index.html', 'favicon.ico'];
+
+    const { builders } = await detectBuilders(files);
+    expect(builders[0].use).toBe('@now/node');
+    expect(builders[0].src).toBe('api/endpoint.js');
+    expect(builders[1].use).toBe('@now/static');
+    expect(builders[1].src).toBe('favicon.ico');
+    expect(builders[2].use).toBe('@now/static');
+    expect(builders[2].src).toBe('index.html');
+    expect(builders.length).toBe(3);
+  }
+
+  {
+    // api + public
+    const files = [
+      'api/endpoint.js',
+      'public/index.html',
+      'public/favicon.ico',
+      'README.md',
+    ];
+
+    const { builders } = await detectBuilders(files);
+    expect(builders[0].use).toBe('@now/node');
+    expect(builders[0].src).toBe('api/endpoint.js');
+    expect(builders[1].use).toBe('@now/static');
+    expect(builders[1].src).toBe('public/**/*');
+    expect(builders.length).toBe(2);
+  }
+
+  {
+    // just public
+    const files = ['public/index.html', 'public/favicon.ico', 'README.md'];
+
+    const { builders } = await detectBuilders(files);
+    expect(builders[0].src).toBe('public/**/*');
+    expect(builders.length).toBe(1);
+  }
+
+  {
+    // next + public
+    const pkg = {
+      scripts: { build: 'next build' },
+      devDependencies: { next: '9.0.0' },
+    };
+    const files = ['package.json', 'public/index.html', 'README.md'];
+
+    const { builders } = await detectBuilders(files, pkg);
+    expect(builders[0].use).toBe('@now/next');
+    expect(builders[0].src).toBe('package.json');
+    expect(builders.length).toBe(1);
+  }
+
+  {
+    // nuxt
+    const pkg = {
+      scripts: { build: 'nuxt build' },
+      dependencies: { nuxt: '2.8.1' },
+    };
+    const files = ['package.json', 'pages/index.js'];
+
+    const { builders } = await detectBuilders(files, pkg);
+    expect(builders[0].use).toBe('@now/static-build');
+    expect(builders[0].src).toBe('package.json');
+    expect(builders.length).toBe(1);
+  }
+
+  {
+    // package.json with no build + api
+    const pkg = { dependencies: { next: '9.0.0' } };
+    const files = ['package.json', 'api/[endpoint].js'];
+
+    const { builders } = await detectBuilders(files, pkg);
+    expect(builders[0].use).toBe('@now/node');
+    expect(builders[0].src).toBe('api/[endpoint].js');
+    expect(builders.length).toBe(1);
+  }
+
+  {
+    // package.json with no build + public directory
+    const pkg = { dependencies: { next: '9.0.0' } };
+    const files = ['package.json', 'public/index.html'];
+
+    const { builders, errors } = await detectBuilders(files, pkg);
+    expect(builders).toBe(null);
+    expect(errors.length).toBe(1);
+  }
+
+  {
+    // no package.json + api
+    const files = ['api/[endpoint].js', 'api/[endpoint]/[id].js'];
+
+    const { builders } = await detectBuilders(files);
+    expect(builders.length).toBe(2);
+  }
+
+  {
+    // no package.json + no api
+    const files = ['index.html'];
+
+    const { builders, errors } = await detectBuilders(files);
+    expect(builders).toBe(null);
+    expect(errors).toBe(null);
+  }
+
+  {
+    // package.json + api + canary
+    const pkg = {
+      scripts: { build: 'next build' },
+      dependencies: { next: '9.0.0' },
+    };
+    const files = [
+      'pages/index.js',
+      'api/[endpoint].js',
+      'api/[endpoint]/[id].js',
+    ];
+
+    const { builders } = await detectBuilders(files, pkg, { tag: 'canary' });
+    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[1].use).toBe('@now/node@canary');
+    expect(builders[2].use).toBe('@now/next@canary');
+    expect(builders.length).toBe(3);
   }
 });
 
-it('Test `detectApiRoutes`', async () => {
+it('Test `detectRoutes`', async () => {
   {
     const files = ['api/user.go', 'api/team.js', 'api/package.json'];
 
-    const { defaultRoutes } = await detectApiRoutes(files);
+    const { builders } = await detectBuilders(files);
+    const { defaultRoutes } = await detectRoutes(files, builders);
     expect(defaultRoutes.length).toBe(2);
     expect(defaultRoutes[0].dest).toBe('/api/team.js');
     expect(defaultRoutes[1].dest).toBe('/api/user.go');
@@ -235,39 +462,58 @@ it('Test `detectApiRoutes`', async () => {
   {
     const files = ['api/user.go', 'api/user.js'];
 
-    const { error } = await detectApiRoutes(files);
+    const { builders } = await detectBuilders(files);
+    const { error } = await detectRoutes(files, builders);
     expect(error.code).toBe('conflicting_file_path');
   }
 
   {
     const files = ['api/[user].go', 'api/[team]/[id].js'];
 
-    const { error } = await detectApiRoutes(files);
+    const { builders } = await detectBuilders(files);
+    const { error } = await detectRoutes(files, builders);
     expect(error.code).toBe('conflicting_file_path');
   }
 
   {
     const files = ['api/[team]/[team].js'];
 
-    const { error } = await detectApiRoutes(files);
+    const { builders } = await detectBuilders(files);
+    const { error } = await detectRoutes(files, builders);
     expect(error.code).toBe('conflicting_path_segment');
   }
 
   {
     const files = ['api/[endpoint].js', 'api/[endpoint]/[id].js'];
 
-    const { defaultRoutes } = await detectApiRoutes(files);
+    const { builders } = await detectBuilders(files);
+    const { defaultRoutes } = await detectRoutes(files, builders);
     expect(defaultRoutes.length).toBe(2);
   }
 
   {
     const files = [
-      'api/_utils/handler.js',
-      'api/[endpoint]/.helper.js',
+      'public/index.html',
+      'api/[endpoint].js',
       'api/[endpoint]/[id].js',
     ];
 
-    const builders = await detectApiBuilders(files);
-    expect(builders.length).toBe(1);
+    const { builders } = await detectBuilders(files);
+    const { defaultRoutes } = await detectRoutes(files, builders);
+    expect(defaultRoutes[2].src).toBe('/(.*)');
+    expect(defaultRoutes[2].dest).toBe('/public/$1');
+    expect(defaultRoutes.length).toBe(3);
+  }
+
+  {
+    const pkg = {
+      scripts: { build: 'next build' },
+      devDependencies: { next: '9.0.0' },
+    };
+    const files = ['public/index.html', 'api/[endpoint].js'];
+
+    const { builders } = await detectBuilders(files, pkg);
+    const { defaultRoutes } = await detectRoutes(files, builders);
+    expect(defaultRoutes.length).toBe(1);
   }
 });

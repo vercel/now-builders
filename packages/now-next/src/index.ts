@@ -1,4 +1,4 @@
-import { ChildProcess, fork, SpawnOptions } from 'child_process';
+import { ChildProcess, fork } from 'child_process';
 import {
   pathExists,
   readFile,
@@ -16,33 +16,34 @@ import {
   FileBlob,
   FileFsRef,
   Files,
+  getNodeVersion,
+  getSpawnOptions,
   glob,
   Lambda,
   PrepareCacheOptions,
   runNpmInstall,
   runPackageJsonScript,
-  getNodeVersion,
-  getSpawnOptions,
+  Route,
 } from '@now/build-utils';
 
+import createServerlessConfig from './create-serverless-config';
 import nextLegacyVersions from './legacy-versions';
 import {
   EnvConfig,
   excludeFiles,
+  filesFromDirectory,
+  getDynamicRoutes,
   getNextConfig,
   getPathsInside,
   getRoutes,
   includeOnlyEntryDirectory,
+  isDynamicRoute,
   normalizePackageJson,
-  filesFromDirectory,
+  normalizePage,
   stringMap,
   syncEnvVars,
   validateEntrypoint,
-  normalizePage,
-  getDynamicRoutes,
-  isDynamicRoute,
 } from './utils';
-import createServerlessConfig from './create-serverless-config';
 
 interface BuildParamsMeta {
   isDev: boolean | undefined;
@@ -157,7 +158,7 @@ export const build = async ({
   entrypoint,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType): Promise<{
-  routes?: ({ src?: string; dest?: string } | { handle: string })[];
+  routes: Route[];
   output: Files;
   watch?: string[];
   childProcesses: ChildProcess[];
@@ -301,7 +302,7 @@ export const build = async ({
     await unlinkFile(path.join(entryPath, '.npmrc'));
   }
 
-  const exportedPageRoutes: { src: string; dest: string }[] = [];
+  const exportedPageRoutes: Route[] = [];
   const lambdas: { [key: string]: Lambda } = {};
   const staticPages: { [key: string]: FileFsRef } = {};
   const dynamicPages: string[] = [];
@@ -330,7 +331,7 @@ export const build = async ({
     );
     const launcherFiles = {
       'now__bridge.js': new FileFsRef({
-        fsPath: require('@now/node-bridge'),
+        fsPath: path.join(__dirname, 'now__bridge.js'),
       }),
     };
     const nextFiles: { [key: string]: FileFsRef } = {
@@ -394,7 +395,7 @@ export const build = async ({
     console.log('preparing lambda files...');
     const launcherFiles = {
       'now__bridge.js': new FileFsRef({
-        fsPath: require('@now/node-bridge'),
+        fsPath: path.join(__dirname, 'now__bridge.js'),
       }),
       'now__launcher.js': new FileFsRef({
         fsPath: path.join(__dirname, 'launcher.js'),
@@ -536,6 +537,16 @@ export const build = async ({
     routes: [
       // Static exported pages (.html rewrites)
       ...exportedPageRoutes,
+      // Before we handle static files we need to set proper caching headers
+      {
+        // This ensures we only match known emitted-by-Next.js files and not
+        // user-emitted files which may be missing a hash in their filename.
+        src: '/_next/static/(?:[^/]+/pages|chunks|runtime)/.+',
+        // Next.js assets contain a hash or entropy in their filenames, so they
+        // are guaranteed to be unique and cacheable indefinitely.
+        headers: { 'cache-control': 'public,max-age=31536000,immutable' },
+        continue: true,
+      },
       // Next.js page lambdas, `static/` folder, reserved assets, and `public/`
       // folder
       { handle: 'filesystem' },
@@ -547,6 +558,7 @@ export const build = async ({
             {
               src: path.join('/', entryDirectory, '.*'),
               dest: path.join('/', entryDirectory, '_error'),
+              status: 404,
             },
           ]),
     ],

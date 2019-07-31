@@ -23,6 +23,8 @@ export interface Route {
   headers?: {
     [key: string]: string;
   };
+  continue?: boolean;
+  status?: number;
 }
 
 export interface Config {
