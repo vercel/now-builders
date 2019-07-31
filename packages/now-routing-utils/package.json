@@ -21,8 +21,6 @@
     "watch": "tsc --watch",
     "test": "tsc && mocha",
     "coverage": "tsc && nyc mocha",
-    "lint": "prettier --check \"**/*.ts\" \"!**/*.d.ts\"",
-    "lint-fix": "prettier --write \"**/*.ts\" \"!**/*.d.ts\"",
     "report": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
   },
   "devDependencies": {
@@ -33,15 +31,9 @@
     "codecov": "3.5.0",
     "mocha": "6.1.4",
     "nyc": "14.1.1",
-    "prettier": "1.17.1",
-    "typescript": "3.3.4000"
+    "typescript": "3.5.2"
   },
   "peerDependencies": {
     "ajv": "^6.0.0"
-  },
-  "prettier": {
-    "semi": false,
-    "singleQuote": true,
-    "trailingComma": "es5"
   }
 }
