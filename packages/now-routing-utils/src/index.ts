@@ -1,46 +1,46 @@
 export type NowError = {
-  code: string
-  message: string
+  code: string;
+  message: string;
   errors: {
-    message: string
-    src?: string
-    handle?: string
-  }[]
-  sha?: string // File errors
-}
+    message: string;
+    src?: string;
+    handle?: string;
+  }[];
+  sha?: string; // File errors
+};
 
 export type Source = {
-  src: string
-  dest?: string
-  headers?: {}
-  methods?: string[]
-  continue?: boolean
-  status?: number
-}
+  src: string;
+  dest?: string;
+  headers?: {};
+  methods?: string[];
+  continue?: boolean;
+  status?: number;
+};
 
 export type Handler = {
-  handle: string
-}
+  handle: string;
+};
 
-export type Route = Source | Handler
+export type Route = Source | Handler;
 
 export function isHandler(route: Route): route is Handler {
-  return typeof (<Handler>route).handle !== 'undefined'
+  return typeof (<Handler>route).handle !== 'undefined';
 }
 
 export function normalizeRoutes(
   inputRoutes: Array<Route> | null
 ): { routes: Array<Route> | null; error: NowError | null } {
   if (!inputRoutes || inputRoutes.length === 0) {
-    return { routes: inputRoutes, error: null }
+    return { routes: inputRoutes, error: null };
   }
 
-  const routes: Route[] = []
-  const handling: string[] = []
-  const errors = []
+  const routes: Route[] = [];
+  const handling: string[] = [];
+  const errors = [];
 
   // We don't want to treat the input routes as references
-  inputRoutes.forEach(r => routes.push(Object.assign({}, r)))
+  inputRoutes.forEach(r => routes.push(Object.assign({}, r)));
 
   for (const route of routes) {
     if (isHandler(route)) {
@@ -51,13 +51,13 @@ export function normalizeRoutes(
             route.handle
           })`,
           handle: route.handle,
-        })
+        });
       }
       if (!['filesystem'].includes(route.handle)) {
         errors.push({
           message: `This is not a valid handler (handle: ${route.handle})`,
           handle: route.handle,
-        })
+        });
       }
       if (handling.includes(route.handle)) {
         errors.push({
@@ -65,9 +65,9 @@ export function normalizeRoutes(
             route.handle
           })`,
           handle: route.handle,
-        })
+        });
       } else {
-        handling.push(route.handle)
+        handling.push(route.handle);
       }
     } else if (route.src) {
       // typeof normal route
@@ -75,32 +75,32 @@ export function normalizeRoutes(
         errors.push({
           message: `Cannot use both continue and dest`,
           src: route.src,
-        })
+        });
       }
 
       // Route src should always start with a '^'
       if (!route.src.startsWith('^')) {
-        route.src = `^${route.src}`
+        route.src = `^${route.src}`;
       }
 
       // Route src should always end with a '$'
       if (!route.src.endsWith('$')) {
-        route.src = `${route.src}$`
+        route.src = `${route.src}$`;
       }
 
       try {
         // This feels a bit dangerous if there would be a vulnerability in RegExp.
-        new RegExp(route.src)
+        new RegExp(route.src);
       } catch (err) {
         errors.push({
           message: `Invalid regular expression: "${route.src}"`,
           src: route.src,
-        })
+        });
       }
     } else {
       errors.push({
         message: 'A route must set either handle or src',
-      })
+      });
     }
   }
 
@@ -115,9 +115,9 @@ export function normalizeRoutes(
           )}`,
           errors,
         }
-      : null
+      : null;
 
-  return { routes, error }
+  return { routes, error };
 }
 
 /**
@@ -172,4 +172,4 @@ export const schema = {
       },
     },
   },
-}
+};

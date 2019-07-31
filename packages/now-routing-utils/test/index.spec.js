@@ -1,33 +1,26 @@
-import assert from 'assert'
-import Ajv from 'ajv'
-import {
-  normalizeRoutes,
-  NowError,
-  Route,
-  Source,
-  isHandler,
-  schema,
-} from '../lib'
+const assert = require('assert');
+const Ajv = require('ajv');
+const { normalizeRoutes, isHandler, schema } = require('../dist');
 
-const ajv = new Ajv()
-const assertValid = (routes: Route[]) => {
-  const validate = ajv.compile(schema)
-  const valid = validate(routes)
+const ajv = new Ajv();
+const assertValid = (routes) => {
+  const validate = ajv.compile(schema);
+  const valid = validate(routes);
 
-  if (!valid) console.log(validate.errors)
-  assert.equal(valid, true)
-}
-const assertError = (routes: Route[], errors: Ajv.ErrorObject[]) => {
-  const validate = ajv.compile(schema)
-  const valid = validate(routes)
+  if (!valid) console.log(validate.errors);
+  assert.equal(valid, true);
+};
+const assertError = (routes, errors) => {
+  const validate = ajv.compile(schema);
+  const valid = validate(routes);
 
-  assert.equal(valid, false)
-  assert.deepEqual(validate.errors, errors)
-}
+  assert.equal(valid, false);
+  assert.deepEqual(validate.errors, errors);
+};
 
 describe('normalizeRoutes', () => {
-  it('accepts valid routes', () => {
-    const routes: Route[] = [
+  test('accepts valid routes', () => {
+    const routes = [
       { src: '^/about$' },
       {
         src: '^/blog$',
@@ -37,19 +30,19 @@ describe('normalizeRoutes', () => {
       },
       { handle: 'filesystem' },
       { src: '^/(?<slug>[^/]+)$', dest: 'blog?slug=$slug' },
-    ]
+    ];
 
-    assertValid(routes)
+    assertValid(routes);
 
-    const normalized = normalizeRoutes(routes)
-    assert.equal(normalized.error, null)
-    assert.deepStrictEqual(normalized.routes, routes)
-  })
+    const normalized = normalizeRoutes(routes);
+    assert.equal(normalized.error, null);
+    assert.deepStrictEqual(normalized.routes, routes);
+  });
 
-  it('normalizes src', () => {
-    const expected = '^/about$',
-      expected2 = '^\\/about$'
-    const sources: Source[] = [
+  test('normalizes src', () => {
+    const expected = '^/about$';
+    const expected2 = '^\\/about$';
+    const sources = [
       { src: '/about' },
       { src: '/about$' },
       { src: '\\/about' },
@@ -58,106 +51,106 @@ describe('normalizeRoutes', () => {
       { src: '^/about$' },
       { src: '^\\/about' },
       { src: '^\\/about$' },
-    ]
+    ];
 
-    assertValid(sources)
+    assertValid(sources);
 
-    const normalized = normalizeRoutes(sources)
+    const normalized = normalizeRoutes(sources);
 
-    assert.equal(normalized.error, null)
-    assert.notEqual(normalized.routes, null)
+    assert.equal(normalized.error, null);
+    assert.notEqual(normalized.routes, null);
 
     if (normalized.routes) {
-      normalized.routes.forEach(route => {
+      normalized.routes.forEach((route) => {
         if (isHandler(route)) {
           assert.fail(
             `Normalizer returned: { handle: ${
               route.handle
-            } } instead of { src: ${expected} }`
-          )
+            } } instead of { src: ${expected} }`,
+          );
         } else {
-          assert.ok(route.src === expected || route.src === expected2)
+          assert.ok(route.src === expected || route.src === expected2);
         }
-      })
+      });
     }
-  })
+  });
 
-  it('returns if null', () => {
-    const input = null
-    const { error, routes } = normalizeRoutes(input)
+  test('returns if null', () => {
+    const input = null;
+    const { error, routes } = normalizeRoutes(input);
 
-    assert.strictEqual(error, null)
-    assert.strictEqual(routes, input)
-  })
+    assert.strictEqual(error, null);
+    assert.strictEqual(routes, input);
+  });
 
-  it('returns if empty', () => {
-    const input: Route[] = []
-    const { error, routes } = normalizeRoutes(input)
+  test('returns if empty', () => {
+    const input = [];
+    const { error, routes } = normalizeRoutes(input);
 
-    assert.strictEqual(error, null)
-    assert.strictEqual(routes, input)
-  })
+    assert.strictEqual(error, null);
+    assert.strictEqual(routes, input);
+  });
 
-  it('fails with abnormal routes', () => {
-    const errors: NowError['errors'] = []
-    const routes: Route[] = []
+  test('fails with abnormal routes', () => {
+    const errors = [];
+    const routes = [];
 
-    routes.push({ handle: 'doesnotexist' })
+    routes.push({ handle: 'doesnotexist' });
     errors.push({
       message: 'This is not a valid handler (handle: doesnotexist)',
       handle: 'doesnotexist',
-    })
+    });
 
     // @ts-ignore
-    routes.push({ handle: 'filesystem', illegal: true })
+    routes.push({ handle: 'filesystem', illegal: true });
     errors.push({
       message:
         'Cannot have any other keys when handle is used (handle: filesystem)',
       handle: 'filesystem',
-    })
+    });
 
-    routes.push({ handle: 'filesystem' })
+    routes.push({ handle: 'filesystem' });
     errors.push({
       message: 'You can only handle something once (handle: filesystem)',
       handle: 'filesystem',
-    })
+    });
 
-    routes.push({ src: '^/about$', dest: '/about', continue: true })
+    routes.push({ src: '^/about$', dest: '/about', continue: true });
     errors.push({
       message: 'Cannot use both continue and dest',
       src: '^/about$',
-    })
+    });
 
-    routes.push({ src: '^/(broken]$' })
+    routes.push({ src: '^/(broken]$' });
     errors.push({
       message: 'Invalid regular expression: "^/(broken]$"',
       src: '^/(broken]$',
-    })
+    });
 
     // @ts-ignore
-    routes.push({ doesNotExist: true })
+    routes.push({ doesNotExist: true });
     errors.push({
       message: 'A route must set either handle or src',
-    })
+    });
 
     // @ts-ignore
-    routes.push({ src: '^/about$', doesNotExist: true })
+    routes.push({ src: '^/about$', doesNotExist: true });
 
-    const normalized = normalizeRoutes(routes)
+    const normalized = normalizeRoutes(routes);
 
-    assert.deepStrictEqual(normalized.routes, routes)
+    assert.deepStrictEqual(normalized.routes, routes);
     assert.deepStrictEqual(normalized.error, {
       code: 'invalid_routes',
       message: `One or more invalid routes were found: \n${JSON.stringify(
         errors,
         null,
-        2
+        2,
       )}`,
       errors,
-    })
-  })
+    });
+  });
 
-  it('fails with invalid routes', () => {
+  test('fails if over 1024 routes', () => {
     // @ts-ignore
     assertError('string', [
       {
@@ -169,12 +162,10 @@ describe('normalizeRoutes', () => {
         },
         schemaPath: '#/type',
       },
-    ])
+    ]);
 
-    const arr = []
-    for (let i = 0; i < 1026; i++) {
-      arr.push(true)
-    }
+    const arr = new Array(1026);
+    arr.fill(true);
 
     // @ts-ignore
     assertError(arr, [
@@ -187,8 +178,10 @@ describe('normalizeRoutes', () => {
         },
         schemaPath: '#/maxItems',
       },
-    ])
+    ]);
+  });
 
+  test('fails is src is not string', () => {
     assertError(
       [
         // @ts-ignore
@@ -206,9 +199,11 @@ describe('normalizeRoutes', () => {
           },
           schemaPath: '#/items/properties/src/type',
         },
-      ]
-    )
+      ],
+    );
+  });
 
+  test('fails if dest is not string', () => {
     assertError(
       [
         // @ts-ignore
@@ -226,9 +221,11 @@ describe('normalizeRoutes', () => {
           },
           schemaPath: '#/items/properties/dest/type',
         },
-      ]
-    )
+      ],
+    );
+  });
 
+  test('fails if methods is not array', () => {
     assertError(
       [
         // @ts-ignore
@@ -246,9 +243,11 @@ describe('normalizeRoutes', () => {
           },
           schemaPath: '#/items/properties/methods/type',
         },
-      ]
-    )
+      ],
+    );
+  });
 
+  test('fails if methods is not string', () => {
     assertError(
       [
         // @ts-ignore
@@ -266,9 +265,11 @@ describe('normalizeRoutes', () => {
           },
           schemaPath: '#/items/properties/methods/items/type',
         },
-      ]
-    )
+      ],
+    );
+  });
 
+  test('fails if headers is not an object', () => {
     assertError(
       [
         // @ts-ignore
@@ -286,9 +287,11 @@ describe('normalizeRoutes', () => {
           },
           schemaPath: '#/items/properties/headers/type',
         },
-      ]
-    )
+      ],
+    );
+  });
 
+  test('fails if header is not a string', () => {
     assertError(
       [
         // @ts-ignore
@@ -309,9 +312,11 @@ describe('normalizeRoutes', () => {
           schemaPath:
             '#/items/properties/headers/patternProperties/%5E.%7B1%2C256%7D%24/type',
         },
-      ]
-    )
+      ],
+    );
+  });
 
+  test('fails if handle is not string', () => {
     assertError(
       [
         // @ts-ignore
@@ -329,9 +334,11 @@ describe('normalizeRoutes', () => {
           },
           schemaPath: '#/items/properties/handle/type',
         },
-      ]
-    )
+      ],
+    );
+  });
 
+  test('fails if continue is not boolean', () => {
     assertError(
       [
         // @ts-ignore
@@ -349,9 +356,11 @@ describe('normalizeRoutes', () => {
           },
           schemaPath: '#/items/properties/continue/type',
         },
-      ]
-    )
+      ],
+    );
+  });
 
+  test('fails if status is not number', () => {
     assertError(
       [
         // @ts-ignore
@@ -369,9 +378,11 @@ describe('normalizeRoutes', () => {
           },
           schemaPath: '#/items/properties/status/type',
         },
-      ]
-    )
+      ],
+    );
+  });
 
+  test('fails if property does not exist', () => {
     assertError(
       [
         {
@@ -389,7 +400,7 @@ describe('normalizeRoutes', () => {
           },
           schemaPath: '#/items/additionalProperties',
         },
-      ]
-    )
-  })
-})
+      ],
+    );
+  });
+});
