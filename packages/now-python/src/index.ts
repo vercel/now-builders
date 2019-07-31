@@ -73,7 +73,7 @@ async function pipInstallUser(pipPath: string, ...args: string[]) {
 async function pipenvInstall(pyUserBase: string, srcDir: string) {
   console.log('running pipfile2req');
   try {
-    const out = await execa.stdout(join(pyUserBase, 'bin', 'pipfile2req'), [], {
+    const out = await execa.stdout(join(pyUserBase, 'bin', 'pipfile2req'), ['--no-warn-script-location'], {
       cwd: srcDir,
     });
     fs.writeFileSync(join(srcDir, 'requirements.txt'), out);
