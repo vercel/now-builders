@@ -6,6 +6,7 @@ const {
   download,
   createLambda,
   shouldServe,
+  debug,
 } = require('@now/build-utils'); // eslint-disable-line import/no-extraneous-dependencies
 
 // From this list: https://import.pw/importpw/import/docs/config.md
@@ -22,7 +23,7 @@ exports.analyze = ({ files, entrypoint }) => files[entrypoint].digest;
 exports.build = async ({
   workPath, files, entrypoint, meta, config,
 }) => {
-  console.log('downloading files...');
+  debug('downloading files...');
   await download(files, workPath, meta);
 
   const distPath = join(workPath, 'dist');
@@ -59,7 +60,7 @@ exports.build = async ({
   await execa(builderPath, [entrypoint], {
     env,
     cwd: workPath,
-    stdio: 'inherit',
+    stdio: 'pipe',
   });
 
   const lambda = await createLambda({
