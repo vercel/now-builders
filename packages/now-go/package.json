@@ -12,7 +12,7 @@
     "build": "tsc",
     "test": "tsc && jest",
     "prepublish": "tsc",
-    "postinstall": "node install.js"
+    "now-install": "node install.js"
   },
   "files": [
     "*.js",
