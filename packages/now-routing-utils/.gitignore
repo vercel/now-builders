@@ -1,0 +1,10 @@
+node_modules
+coverage.lcov
+*.js
+*.d.ts
+*.map
+*.log
+*.tgz
+.env
+.next
+.nyc_output

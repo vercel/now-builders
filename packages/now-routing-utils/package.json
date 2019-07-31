@@ -1,0 +1,47 @@
+{
+  "name": "@now/routing-utils",
+  "version": "1.2.0",
+  "description": "ZEIT Now route validation utilities",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/*.js",
+    "lib/*.d.ts",
+    "*.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeit/now-builders.git",
+    "directory": "packages/now-routing-utils"
+  },
+  "license": "MIT",
+  "scripts": {
+    "prepublishOnly": "npm run lint && npm run test",
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "tsc && mocha",
+    "coverage": "tsc && nyc mocha",
+    "lint": "prettier --check \"**/*.ts\" \"!**/*.d.ts\"",
+    "lint-fix": "prettier --write \"**/*.ts\" \"!**/*.d.ts\"",
+    "report": "nyc report --reporter=text-lcov > coverage.lcov && codecov"
+  },
+  "devDependencies": {
+    "@types/ajv": "1.0.0",
+    "@types/mocha": "5.2.6",
+    "@types/node": "11.12.0",
+    "ajv": "6.10.0",
+    "codecov": "3.5.0",
+    "mocha": "6.1.4",
+    "nyc": "14.1.1",
+    "prettier": "1.17.1",
+    "typescript": "3.3.4000"
+  },
+  "peerDependencies": {
+    "ajv": "^6.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  }
+}
