@@ -1,6 +1,6 @@
 {
   "name": "@now/go",
-  "version": "0.5.1-canary.10",
+  "version": "0.5.1-canary.11",
   "license": "MIT",
   "homepage": "https://zeit.co/docs/v2/deployments/official-builders/go-now-go",
   "repository": {
@@ -11,7 +11,8 @@
   "scripts": {
     "build": "tsc",
     "test": "tsc && jest",
-    "prepublish": "tsc"
+    "prepublish": "tsc",
+    "now-postinstall": "node install.js"
   },
   "files": [
     "*.js",
