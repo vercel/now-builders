@@ -20,10 +20,10 @@
     "test": "tsc && jest"
   },
   "devDependencies": {
-    "ajv": "6.10.0",
+    "ajv": "^6.0.0",
     "typescript": "3.5.2"
   },
-  "peerDependencies": {
+  "optionalDependencies": {
     "ajv": "^6.0.0"
   }
 }
