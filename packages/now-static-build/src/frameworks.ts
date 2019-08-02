@@ -232,4 +232,9 @@ export default [
     dependency: 'sapper',
     getOutputDirName: async () => '__sapper__/export',
   },
+  {
+    name: 'Eleventy',
+    dependency: 'eleventy',
+    getOutputDirName: async () => '_site',
+  },
 ];

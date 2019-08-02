@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@now/static-build",
+      "config": { "zeroConfig": true }
+    }
+  ],
+  "probes": [
+    { "path": "/", "mustContain": "Latest" },
+    { "path": "/posts", "mustContain": "first" },
+    { "path": "/about", "mustContain": "person" },
+    { "path": "/posts/fourthpost", "mustContain": "agile frameworks" }
+  ]
+}
