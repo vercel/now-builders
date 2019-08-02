@@ -236,5 +236,14 @@ export default [
     name: 'Eleventy',
     dependency: 'eleventy',
     getOutputDirName: async () => '_site',
+    defaultRoutes: [
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '/(.*)',
+        dest: '/index.html',
+      },
+    ],
   },
 ];
