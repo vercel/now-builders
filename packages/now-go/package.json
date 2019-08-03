@@ -2,6 +2,7 @@
   "name": "@now/go",
   "version": "0.5.1-canary.12",
   "license": "MIT",
+  "main": "./dist/index",
   "homepage": "https://zeit.co/docs/v2/deployments/official-builders/go-now-go",
   "repository": {
     "type": "git",
@@ -12,7 +13,7 @@
     "build": "./build.sh",
     "test": "./build.sh && jest",
     "prepublish": "./build.sh",
-    "now-postinstall": "node ./dist/install"
+    "now-postinstall": "node dist/install/index.js"
   },
   "files": [
     "dist"
