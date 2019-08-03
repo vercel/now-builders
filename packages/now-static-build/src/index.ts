@@ -300,7 +300,7 @@ export async function build({
         distPath = path.join(outputDirPrefix, outputDirName);
       } else if (!config || !config.distDir) {
         // Select either `dist` or `public` as directory
-        const publicPath = join(entrypointDir, 'public');
+        const publicPath = path.join(entrypointDir, 'public');
 
         if (
           !existsSync(distPath) &&
