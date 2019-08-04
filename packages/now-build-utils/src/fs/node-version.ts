@@ -7,9 +7,9 @@ const supportedOptions: NodeVersion[] = [
 ];
 
 // This version should match Fargate's default in the PATH
-// Today that is Node 10
+// Today that is Node 8
 export const defaultSelection = supportedOptions.find(
-  o => o.major === 10
+  o => o.major === 8
 ) as NodeVersion;
 
 export async function getSupportedNodeVersion(
