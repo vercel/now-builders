@@ -80,16 +80,18 @@ export async function getNodeVersion(
 ): Promise<NodeVersion> {
   const { packageJson } = await scanParentDirs(destPath, true);
   let range: string | undefined;
+  let silent = false;
   if (packageJson && packageJson.engines && packageJson.engines.node) {
     range = packageJson.engines.node;
   } else if (minNodeVersion) {
     range = minNodeVersion;
+    silent = true;
   } else if (config && config.zeroConfig) {
-    // Assume the user wants the latest node version
-    // when using zero config convention
+    // Use latest node version zero config detected
     range = '10.x';
+    silent = true;
   }
-  return getSupportedNodeVersion(range, typeof minNodeVersion !== 'undefined');
+  return getSupportedNodeVersion(range, silent);
 }
 
 async function scanParentDirs(destPath: string, readPackageJson = false) {
