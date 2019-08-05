@@ -48,11 +48,6 @@ async function nowDeploy (bodies, randomness) {
     );
   }
 
-  console.log({
-    id: deployment.id,
-    url: `https://${deployment.url}`,
-  });
-
   await fs.remove(tmpDir);
 
   return { deploymentId: deployment.id, deploymentUrl: deployment.url };
