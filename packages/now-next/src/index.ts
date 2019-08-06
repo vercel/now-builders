@@ -31,6 +31,7 @@ import nextLegacyVersions from './legacy-versions';
 import {
   EnvConfig,
   excludeFiles,
+  ExperimentalTraceVersion,
   filesFromDirectory,
   getDynamicRoutes,
   getNextConfig,
@@ -445,16 +446,36 @@ export const build = async ({
       );
     }
 
-    // An optional assets folder that is placed alongside every page entrypoint
-    const assets = await glob(
-      'assets/**',
-      path.join(entryPath, '.next', 'serverless')
-    );
+    // Assume tracing to be safe, bail if we know we don't need it.
+    let requiresTracing = true;
+    try {
+      if (semver.satisfies(nextVersion, `<${ExperimentalTraceVersion}`)) {
+        requiresTracing = false;
+      }
+    } catch {}
 
-    const assetKeys = Object.keys(assets);
-    if (assetKeys.length > 0) {
-      console.log('detected assets to be bundled with lambda:');
-      assetKeys.forEach(assetFile => console.log(`\t${assetFile}`));
+    let assets: {
+      [filePath: string]: FileFsRef;
+    };
+    if (requiresTracing) {
+    } else {
+      // An optional assets folder that is placed alongside every page
+      // entrypoint.
+      // This is a legacy feature that was needed before we began tracing
+      // lambdas.
+      assets = await glob(
+        'assets/**',
+        path.join(entryPath, '.next', 'serverless')
+      );
+
+      const assetKeys = Object.keys(assets);
+      if (assetKeys.length > 0) {
+        console.log('detected (legacy) assets to be bundled with lambda:');
+        assetKeys.forEach(assetFile => console.log(`\t${assetFile}`));
+        console.log(
+          '\nPlease upgrade to Next.js 9.1 to leverage modern asset handling.'
+        );
+      }
     }
 
     await Promise.all(
