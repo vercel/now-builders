@@ -285,7 +285,7 @@ export const build = async ({
   let realNextVersion: string | undefined;
   try {
     realNextVersion = require('next/package.json').version;
-  } catch {}
+  } catch (_ignored) {}
 
   if (!isLegacy) {
     await createServerlessConfig(workPath, realNextVersion);
@@ -453,7 +453,7 @@ export const build = async ({
       if (semver.satisfies(nextVersion, `<${ExperimentalTraceVersion}`)) {
         requiresTracing = false;
       }
-    } catch {}
+    } catch (_ignored) {}
 
     let assets:
       | {
@@ -470,7 +470,7 @@ export const build = async ({
         path.join(entryPath, '.next', 'serverless')
       );
 
-      const assetKeys = Object.keys(assets);
+      const assetKeys = Object.keys(assets!);
       if (assetKeys.length > 0) {
         console.log('detected (legacy) assets to be bundled with lambda:');
         assetKeys.forEach(assetFile => console.log(`\t${assetFile}`));
