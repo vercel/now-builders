@@ -280,13 +280,13 @@ export const build = async ({
   console.log('installing dependencies...');
   await runNpmInstall(entryPath, ['--prefer-offline'], spawnOpts);
 
-  if (!isLegacy) {
-    let absoluteNextVersion: string | undefined;
-    try {
-      absoluteNextVersion = require('next/package.json').version;
-    } catch {}
+  let realNextVersion: string | undefined;
+  try {
+    realNextVersion = require('next/package.json').version;
+  } catch {}
 
-    await createServerlessConfig(workPath, absoluteNextVersion);
+  if (!isLegacy) {
+    await createServerlessConfig(workPath, realNextVersion);
   }
 
   console.log('running user script...');
