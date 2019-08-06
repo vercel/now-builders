@@ -25,6 +25,7 @@ import {
   runNpmInstall,
   runPackageJsonScript,
 } from '@now/build-utils';
+import nodeFileTrace from '@zeit/node-file-trace';
 
 import createServerlessConfig from './create-serverless-config';
 import nextLegacyVersions from './legacy-versions';
@@ -454,9 +455,11 @@ export const build = async ({
       }
     } catch {}
 
-    let assets: {
-      [filePath: string]: FileFsRef;
-    };
+    let assets:
+      | {
+          [filePath: string]: FileFsRef;
+        }
+      | undefined;
     if (!requiresTracing) {
       // An optional assets folder that is placed alongside every page
       // entrypoint.
@@ -491,13 +494,27 @@ export const build = async ({
         }
 
         const label = `Creating lambda for page: "${page}"...`;
-
         console.time(label);
+
+        let tracedFiles:
+          | {
+              [filePath: string]: FileFsRef;
+            }
+          | undefined;
+        if (requiresTracing) {
+          const { fileList } = await nodeFileTrace([pages[page].fsPath], {
+            base: workPath,
+          });
+          console.log(fileList);
+          // TODO: fileList needs to be put into tracedFiles
+        }
+
         lambdas[path.join(entryDirectory, pathname)] = await createLambda({
           files: {
             ...launcherFiles,
             ...assets,
-            'page.js': pages[page],
+            ...tracedFiles,
+            'page.js': pages[page], // TODO: page needs to retain its original path structure and not be rooted
           },
           handler: 'now__launcher.launcher',
           runtime: nodeVersion.runtime,
