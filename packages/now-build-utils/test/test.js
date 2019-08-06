@@ -576,7 +576,6 @@ it('Test `detectRoutes`', async () => {
       'api/food.ts',
       'api/ts/gold.ts',
     ];
-
     const { builders } = await detectBuilders(files);
     const { defaultRoutes } = await detectRoutes(files, builders);
 
