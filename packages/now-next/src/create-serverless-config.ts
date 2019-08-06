@@ -2,6 +2,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import semver from 'semver';
 
+import { ExperimentalTraceVersion } from './utils';
+
 function getCustomData(importName: string, target: string) {
   return `
 module.exports = function(...args) {
@@ -45,7 +47,7 @@ export default async function createServerlessConfig(
   let target = 'serverless';
   if (nextVersion) {
     try {
-      if (semver.satisfies(nextVersion, '>=9.0.4-canary.1')) {
+      if (semver.satisfies(nextVersion, `>=${ExperimentalTraceVersion}`)) {
         target = 'experimental-serverless-trace';
       }
     } catch {}
