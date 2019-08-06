@@ -457,8 +457,7 @@ export const build = async ({
     let assets: {
       [filePath: string]: FileFsRef;
     };
-    if (requiresTracing) {
-    } else {
+    if (!requiresTracing) {
       // An optional assets folder that is placed alongside every page
       // entrypoint.
       // This is a legacy feature that was needed before we began tracing
@@ -491,7 +490,9 @@ export const build = async ({
           dynamicPages.push(normalizePage(pathname));
         }
 
-        console.log(`Creating lambda for page: "${page}"...`);
+        const label = `Creating lambda for page: "${page}"...`;
+
+        console.time(label);
         lambdas[path.join(entryDirectory, pathname)] = await createLambda({
           files: {
             ...launcherFiles,
@@ -501,7 +502,7 @@ export const build = async ({
           handler: 'now__launcher.launcher',
           runtime: nodeVersion.runtime,
         });
-        console.log(`Created lambda for page: "${page}"`);
+        console.timeEnd(label);
       })
     );
   }
