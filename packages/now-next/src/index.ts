@@ -21,9 +21,9 @@ import {
   glob,
   Lambda,
   PrepareCacheOptions,
+  Route,
   runNpmInstall,
   runPackageJsonScript,
-  Route,
 } from '@now/build-utils';
 
 import createServerlessConfig from './create-serverless-config';
@@ -176,10 +176,6 @@ export const build = async ({
   const pkg = await readPackageJson(entryPath);
   const nextVersion = getNextVersion(pkg);
 
-  if (!meta.isDev) {
-    await createServerlessConfig(workPath);
-  }
-
   const nodeVersion = await getNodeVersion(entryPath, undefined, config);
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
 
@@ -283,6 +279,15 @@ export const build = async ({
 
   console.log('installing dependencies...');
   await runNpmInstall(entryPath, ['--prefer-offline'], spawnOpts);
+
+  if (!isLegacy) {
+    let absoluteNextVersion: string | undefined;
+    try {
+      absoluteNextVersion = require('next/package.json').version;
+    } catch {}
+
+    await createServerlessConfig(workPath, absoluteNextVersion);
+  }
 
   console.log('running user script...');
   const memoryToConsume = Math.floor(os.totalmem() / 1024 ** 2) - 128;
