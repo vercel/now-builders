@@ -574,9 +574,13 @@ it('Test `detectRoutes`', async () => {
       'api/users/index.ts',
       'api/users/index.d.ts',
     ];
+
     const { builders } = await detectBuilders(files);
     const { defaultRoutes } = await detectRoutes(files, builders);
+
+    expect(builders.length).toBe(2);
     expect(builders[0].use).toBe('@now/node');
-    expect(defaultRoutes.length).toBe(2);
+    expect(builders[1].use).toBe('@now/node');
+    expect(defaultRoutes.length).toBe(3);
   }
 });
