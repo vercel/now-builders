@@ -5,6 +5,7 @@ import {
   unlink as unlinkFile,
   writeFile,
 } from 'fs-extra';
+import JSZip from 'jszip';
 import os from 'os';
 import path from 'path';
 import resolveFrom from 'resolve-from';
@@ -474,9 +475,7 @@ export const build = async ({
           [filePath: string]: FileFsRef;
         }
       | undefined;
-    const tracedFiles: {
-      [filePath: string]: FileFsRef;
-    } = {};
+    let tracedFilesBuffer: Buffer | undefined;
     if (requiresTracing) {
       const tracingLabel = 'Tracing Next.js lambdas for external files ...';
       console.time(tracingLabel);
@@ -488,6 +487,11 @@ export const build = async ({
       if (config.debug) {
         console.log(`node-file-trace result for pages: ${fileList}`);
       }
+
+      const tracedFiles: {
+        [filePath: string]: FileFsRef;
+      } = {};
+      // TODO: drop input files
       fileList.forEach(file => {
         tracedFiles[file] = new FileFsRef({
           fsPath: path.join(workPath, file),
@@ -495,6 +499,17 @@ export const build = async ({
       });
 
       console.timeEnd(tracingLabel);
+
+      const zippingLabel = 'Compressing external files ...';
+      console.time(zippingLabel);
+      const { zipBuffer } = await createLambda({
+        files: tracedFiles,
+        handler: 'noop',
+        runtime: 'noop',
+      });
+      console.timeEnd(zippingLabel);
+
+      tracedFilesBuffer = zipBuffer;
     } else {
       // An optional assets folder that is placed alongside every page
       // entrypoint.
@@ -547,16 +562,21 @@ export const build = async ({
           'now__launcher.js': new FileBlob({ data: launcher }),
         };
 
-        lambdas[path.join(entryDirectory, pathname)] = await createLambda({
+        const pageLambda = await createLambda({
           files: {
             ...launcherFiles,
             ...assets,
-            ...tracedFiles,
             [requiresTracing ? pageFileName : 'page.js']: pages[page],
           },
           handler: 'now__launcher.launcher',
           runtime: nodeVersion.runtime,
         });
+        if (tracedFilesBuffer) {
+          pageLambda.zipBuffer = await JSZip.loadAsync(tracedFilesBuffer)
+            .then((zip: any) => zip.loadAsync(pageLambda.zipBuffer))
+            .then((zip: any) => zip.generateAsync({ type: 'nodebuffer' }));
+        }
+        lambdas[path.join(entryDirectory, pathname)] = pageLambda;
         console.timeEnd(label);
       })
     );
