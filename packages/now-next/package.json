@@ -24,7 +24,6 @@
     "@zeit/node-file-trace": "0.2.6",
     "fs-extra": "7.0.0",
     "get-port": "5.0.0",
-    "jszip": "3.2.2",
     "resolve-from": "5.0.0",
     "semver": "6.1.1",
     "typescript": "3.5.2"
