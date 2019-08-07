@@ -468,10 +468,12 @@ export const build = async ({
         }
         requiresTracing = false;
       }
-    } catch (_ignored) {
-      console.log(
-        'Assuming we need to trace the file system -- could not deduce from Next.js version.'
-      );
+    } catch (err) {
+      if (config.debug) {
+        console.log(
+          'Failed to check Next.js version for tracing compatibility: ' + err
+        );
+      }
     }
 
     let assets:
