@@ -285,7 +285,9 @@ export const build = async ({
   let realNextVersion: string | undefined;
   try {
     realNextVersion = require('next/package.json').version;
-  } catch (_ignored) {}
+  } catch (_ignored) {
+    console.warn('Failed to identify real Next.js version.');
+  }
 
   if (!isLegacy) {
     await createServerlessConfig(workPath, realNextVersion);
@@ -453,7 +455,11 @@ export const build = async ({
       if (semver.satisfies(nextVersion, `<${ExperimentalTraceVersion}`)) {
         requiresTracing = false;
       }
-    } catch (_ignored) {}
+    } catch (_ignored) {
+      console.log(
+        'Assuming we need to trace the file system -- could not deduce from Next.js version.'
+      );
+    }
 
     let assets:
       | {
