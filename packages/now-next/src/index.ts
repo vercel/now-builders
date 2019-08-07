@@ -287,8 +287,10 @@ export const build = async ({
   try {
     realNextVersion = require(resolveFrom(entryPath, 'next/package.json'))
       .version;
+
+    console.log(`detected Next.js version: ${realNextVersion}`);
   } catch (_ignored) {
-    console.warn('Failed to identify real Next.js version.');
+    console.warn(`could not identify real Next.js version, that's OK!`);
   }
 
   if (!isLegacy) {
@@ -458,6 +460,12 @@ export const build = async ({
         realNextVersion &&
         semver.satisfies(realNextVersion, `<${ExperimentalTraceVersion}`)
       ) {
+        if (config.debug) {
+          console.log(
+            'Next.js version is too old for us to trace the required dependencies.\n' +
+              'Assuming Next.js has handled it!'
+          );
+        }
         requiresTracing = false;
       }
     } catch (_ignored) {
@@ -514,7 +522,9 @@ export const build = async ({
           const { fileList } = await nodeFileTrace([pages[page].fsPath], {
             base: workPath,
           });
-          console.log('nextFileTrace for Lambda:', fileList);
+          if (config.debug) {
+            console.log(`node-file-trace result for "${page}": ${fileList}`);
+          }
           fileList.forEach(file => {
             tracedFiles[file] = new FileFsRef({
               fsPath: path.join(workPath, file),
