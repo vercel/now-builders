@@ -408,14 +408,6 @@ export const build = async ({
     );
   } else {
     console.log('preparing lambda files...');
-    const launcherFiles = {
-      'now__bridge.js': new FileFsRef({
-        fsPath: path.join(__dirname, 'now__bridge.js'),
-      }),
-      'now__launcher.js': new FileFsRef({
-        fsPath: path.join(__dirname, 'launcher.js'),
-      }),
-    };
     const pagesDir = path.join(entryPath, '.next', 'serverless', 'pages');
 
     const pages = await glob('**/*.js', pagesDir);
@@ -502,6 +494,8 @@ export const build = async ({
       }
     }
 
+    const launcherPath = path.join(__dirname, 'templated-launcher.js');
+    const launcherData = await readFile(launcherPath, 'utf8');
     await Promise.all(
       pageKeys.map(async page => {
         // These default pages don't have to be handled as they'd always 404
@@ -535,12 +529,32 @@ export const build = async ({
           });
         }
 
+        const launcher = launcherData.replace(
+          /__LAUNCHER_PAGE_PATH__/g,
+          JSON.stringify(
+            requiresTracing
+              ? path.join('./', path.relative(workPath, pages[page].fsPath))
+              : './page'
+          )
+        );
+        const launcherFiles = {
+          'now__bridge.js': new FileFsRef({
+            fsPath: path.join(__dirname, 'now__bridge.js'),
+          }),
+          'now__launcher.js': new FileBlob({ data: launcher }),
+        };
+
         lambdas[path.join(entryDirectory, pathname)] = await createLambda({
           files: {
             ...launcherFiles,
             ...assets,
             ...tracedFiles,
-            'page.js': pages[page], // TODO: page needs to retain its original path structure and not be rooted
+            ...(requiresTracing
+              ? // The traced file list will include the page file itself.
+                undefined
+              : {
+                  'page.js': pages[page],
+                }),
           },
           handler: 'now__launcher.launcher',
           runtime: nodeVersion.runtime,

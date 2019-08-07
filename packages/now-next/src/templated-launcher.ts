@@ -5,7 +5,8 @@ if (!process.env.NODE_ENV) {
 
 import { Server } from 'http';
 import { Bridge } from './now__bridge';
-const page = require('./page'); // TODO: this needs to be templated, also, why are we mixing CJS/ESM?
+// @ts-ignore
+const page = require(__LAUNCHER_PAGE_PATH__);
 
 // page.render is for React rendering
 // page.default is for /api rendering
