@@ -1,4 +1,3 @@
-import { Sema } from 'async-sema';
 import { ChildProcess, fork } from 'child_process';
 import {
   pathExists,
@@ -483,7 +482,7 @@ export const build = async ({
       console.time(tracingLabel);
 
       const { fileList } = await nodeFileTrace(
-        pageKeys.map(page => pages[page].fsPath),
+        Object.keys(pages).map(page => pages[page].fsPath),
         { base: workPath }
       );
       if (config.debug) {
@@ -516,8 +515,6 @@ export const build = async ({
       }
     }
 
-    const lambdaZipSema = new Sema(5, { capacity: pageKeys.length });
-
     const launcherPath = path.join(__dirname, 'templated-launcher.js');
     const launcherData = await readFile(launcherPath, 'utf8');
     await Promise.all(
@@ -533,40 +530,34 @@ export const build = async ({
           dynamicPages.push(normalizePage(pathname));
         }
 
-        await lambdaZipSema.acquire();
+        const label = `Creating lambda for page: "${page}"...`;
+        console.time(label);
 
-        try {
-          const label = `Creating lambda for page: "${page}"...`;
-          console.time(label);
+        const pageFileName = path.relative(workPath, pages[page].fsPath);
+        const launcher = launcherData.replace(
+          /__LAUNCHER_PAGE_PATH__/g,
+          JSON.stringify(
+            requiresTracing ? path.join('./', pageFileName) : './page'
+          )
+        );
+        const launcherFiles = {
+          'now__bridge.js': new FileFsRef({
+            fsPath: path.join(__dirname, 'now__bridge.js'),
+          }),
+          'now__launcher.js': new FileBlob({ data: launcher }),
+        };
 
-          const pageFileName = path.relative(workPath, pages[page].fsPath);
-          const launcher = launcherData.replace(
-            /__LAUNCHER_PAGE_PATH__/g,
-            JSON.stringify(
-              requiresTracing ? path.join('./', pageFileName) : './page'
-            )
-          );
-          const launcherFiles = {
-            'now__bridge.js': new FileFsRef({
-              fsPath: path.join(__dirname, 'now__bridge.js'),
-            }),
-            'now__launcher.js': new FileBlob({ data: launcher }),
-          };
-
-          lambdas[path.join(entryDirectory, pathname)] = await createLambda({
-            files: {
-              ...launcherFiles,
-              ...assets,
-              ...tracedFiles,
-              [requiresTracing ? pageFileName : 'page.js']: pages[page],
-            },
-            handler: 'now__launcher.launcher',
-            runtime: nodeVersion.runtime,
-          });
-          console.timeEnd(label);
-        } finally {
-          lambdaZipSema.release();
-        }
+        lambdas[path.join(entryDirectory, pathname)] = await createLambda({
+          files: {
+            ...launcherFiles,
+            ...assets,
+            ...tracedFiles,
+            [requiresTracing ? pageFileName : 'page.js']: pages[page],
+          },
+          handler: 'now__launcher.launcher',
+          runtime: nodeVersion.runtime,
+        });
+        console.timeEnd(label);
       })
     );
   }
