@@ -5,7 +5,7 @@ if (!process.env.NODE_ENV) {
 
 import { Server } from 'http';
 import { Bridge } from './now__bridge';
-const page = require('./page');
+const page = require('./page'); // TODO: this needs to be templated, also, why are we mixing CJS/ESM?
 
 // page.render is for React rendering
 // page.default is for /api rendering
