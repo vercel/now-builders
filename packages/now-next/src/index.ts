@@ -285,7 +285,7 @@ export const build = async ({
 
   let realNextVersion: string | undefined;
   try {
-    realNextVersion = require(resolveFrom(entryDirectory, 'next/package.json'))
+    realNextVersion = require(resolveFrom(entryPath, 'next/package.json'))
       .version;
   } catch (_ignored) {
     console.warn('Failed to identify real Next.js version.');
