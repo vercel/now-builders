@@ -505,7 +505,7 @@ export const build = async ({
           const { fileList } = await nodeFileTrace([pages[page].fsPath], {
             base: workPath,
           });
-          console.log(fileList);
+          console.log('nextFileTrace for Lambda:', fileList);
           // TODO: fileList needs to be put into tracedFiles
         }
 
