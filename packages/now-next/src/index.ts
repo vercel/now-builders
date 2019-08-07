@@ -12,6 +12,7 @@ import semver from 'semver';
 
 import {
   BuildOptions,
+  Config,
   createLambda,
   download,
   FileBlob,
@@ -159,7 +160,7 @@ export const build = async ({
   files,
   workPath,
   entrypoint,
-  config,
+  config = {} as Config,
   meta = {} as BuildParamsMeta,
 }: BuildParamsType): Promise<{
   routes: Route[];
