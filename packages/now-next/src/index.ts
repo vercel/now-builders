@@ -474,7 +474,28 @@ export const build = async ({
           [filePath: string]: FileFsRef;
         }
       | undefined;
-    if (!requiresTracing) {
+    const tracedFiles: {
+      [filePath: string]: FileFsRef;
+    } = {};
+    if (requiresTracing) {
+      const tracingLabel = 'Tracing Next.js lambdas for external files ...';
+      console.time(tracingLabel);
+
+      const { fileList } = await nodeFileTrace(
+        Object.keys(pages).map(page => pages[page].fsPath),
+        { base: workPath }
+      );
+      if (config.debug) {
+        console.log(`node-file-trace result for pages: ${fileList}`);
+      }
+      fileList.forEach(file => {
+        tracedFiles[file] = new FileFsRef({
+          fsPath: path.join(workPath, file),
+        });
+      });
+
+      console.timeEnd(tracingLabel);
+    } else {
       // An optional assets folder that is placed alongside every page
       // entrypoint.
       // This is a legacy feature that was needed before we began tracing
@@ -512,29 +533,11 @@ export const build = async ({
         const label = `Creating lambda for page: "${page}"...`;
         console.time(label);
 
-        const tracedFiles: {
-          [filePath: string]: FileFsRef;
-        } = {};
-        if (requiresTracing) {
-          const { fileList } = await nodeFileTrace([pages[page].fsPath], {
-            base: workPath,
-          });
-          if (config.debug) {
-            console.log(`node-file-trace result for "${page}": ${fileList}`);
-          }
-          fileList.forEach(file => {
-            tracedFiles[file] = new FileFsRef({
-              fsPath: path.join(workPath, file),
-            });
-          });
-        }
-
+        const pageFileName = path.relative(workPath, pages[page].fsPath);
         const launcher = launcherData.replace(
           /__LAUNCHER_PAGE_PATH__/g,
           JSON.stringify(
-            requiresTracing
-              ? path.join('./', path.relative(workPath, pages[page].fsPath))
-              : './page'
+            requiresTracing ? path.join('./', pageFileName) : './page'
           )
         );
         const launcherFiles = {
@@ -549,12 +552,7 @@ export const build = async ({
             ...launcherFiles,
             ...assets,
             ...tracedFiles,
-            ...(requiresTracing
-              ? // The traced file list will include the page file itself.
-                undefined
-              : {
-                  'page.js': pages[page],
-                }),
+            [requiresTracing ? pageFileName : 'page.js']: pages[page],
           },
           handler: 'now__launcher.launcher',
           runtime: nodeVersion.runtime,
