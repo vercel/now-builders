@@ -186,6 +186,9 @@ export default [
         dest: '/sockjs-node/$1',
       },
       {
+        handle: 'filesystem',
+      },
+      {
         src: '/(.*)',
         headers: { 'cache-control': 's-maxage=0' },
         dest: '/index.html',
