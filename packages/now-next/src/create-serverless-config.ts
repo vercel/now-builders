@@ -50,7 +50,7 @@ export default async function createServerlessConfig(
       if (semver.satisfies(nextVersion, `>=${ExperimentalTraceVersion}`)) {
         target = 'experimental-serverless-trace';
       }
-    } catch {}
+    } catch (_ignored) {}
   }
 
   const configPath = path.join(workPath, 'next.config.js');

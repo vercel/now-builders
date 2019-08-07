@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "builds": [{ "src": "package.json", "use": "@now/next" }],
+  "probes": [
+    { "path": "/nested/moar/fb", "mustContain": "Hello Firebase: <!-- -->0" }
+  ]
+}
