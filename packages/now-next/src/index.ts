@@ -507,17 +507,19 @@ export const build = async ({
         const label = `Creating lambda for page: "${page}"...`;
         console.time(label);
 
-        let tracedFiles:
-          | {
-              [filePath: string]: FileFsRef;
-            }
-          | undefined;
+        const tracedFiles: {
+          [filePath: string]: FileFsRef;
+        } = {};
         if (requiresTracing) {
           const { fileList } = await nodeFileTrace([pages[page].fsPath], {
             base: workPath,
           });
           console.log('nextFileTrace for Lambda:', fileList);
-          // TODO: fileList needs to be put into tracedFiles
+          fileList.forEach(file => {
+            tracedFiles[file] = new FileFsRef({
+              fsPath: path.join(workPath, file),
+            });
+          });
         }
 
         lambdas[path.join(entryDirectory, pathname)] = await createLambda({
