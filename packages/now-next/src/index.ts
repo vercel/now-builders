@@ -7,6 +7,7 @@ import {
 } from 'fs-extra';
 import os from 'os';
 import path from 'path';
+import resolveFrom from 'resolve-from';
 import semver from 'semver';
 
 import {
@@ -284,7 +285,8 @@ export const build = async ({
 
   let realNextVersion: string | undefined;
   try {
-    realNextVersion = require('next/package.json').version;
+    realNextVersion = require(resolveFrom(entryDirectory, 'next/package.json'))
+      .version;
   } catch (_ignored) {
     console.warn('Failed to identify real Next.js version.');
   }
