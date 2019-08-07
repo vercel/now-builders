@@ -454,7 +454,10 @@ export const build = async ({
     // Assume tracing to be safe, bail if we know we don't need it.
     let requiresTracing = true;
     try {
-      if (semver.satisfies(nextVersion, `<${ExperimentalTraceVersion}`)) {
+      if (
+        realNextVersion &&
+        semver.satisfies(realNextVersion, `<${ExperimentalTraceVersion}`)
+      ) {
         requiresTracing = false;
       }
     } catch (_ignored) {
