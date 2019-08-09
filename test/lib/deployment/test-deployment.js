@@ -90,6 +90,16 @@ async function testDeployment (
     const { text, resp } = await fetchDeploymentUrl(probeUrl, fetchOpts);
     console.log('finished testing', JSON.stringify(probe));
 
+    if (probe.status) {
+      if (probe.status !== resp.status) {
+        throw new Error(
+          `Fetched page ${probeUrl} does not return the status ${
+            probe.status
+          } Instead it has ${resp.status}`
+        );
+      }
+    }
+
     if (probe.mustContain) {
       if (!text.includes(probe.mustContain)) {
         await fs.writeFile(path.join(__dirname, 'failed-page.txt'), text);
