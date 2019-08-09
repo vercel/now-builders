@@ -60,12 +60,15 @@ function createRouteFromPath(filePath: string): Route {
         const isIndex = fileName === 'index';
         const prefix = isIndex ? '\\/' : '';
 
-        const name1 = prefix + escapeName(fileName);
-        const name2 = prefix + escapeName(fileName) + escapeName(ext);
+        const names = [
+          prefix,
+          prefix + escapeName(fileName),
+          prefix + escapeName(fileName) + escapeName(ext),
+        ].filter(Boolean);
 
         // Either filename with extension, filename without extension
         // or nothing when the filename is `index`
-        return `(${name1}|${name2})${isIndex ? '?' : ''}`;
+        return `(${names.join('|')})${isIndex ? '?' : ''}`;
       }
 
       return segment;
