@@ -1,4 +1,5 @@
 import { ServerResponse, IncomingMessage } from 'http';
+import { build } from '.';
 
 export type NowRequestCookies = { [key: string]: string };
 export type NowRequestQuery = { [key: string]: string | string[] };
@@ -15,3 +16,5 @@ export type NowResponse = ServerResponse & {
   json: (jsonBody: any) => NowResponse;
   status: (statusCode: number) => NowResponse;
 };
+
+export { build };

@@ -300,6 +300,8 @@ export async function build({
 }: BuildOptions) {
   const shouldAddHelpers = config.helpers !== false;
 
+  console.log('arguments[0]', arguments[0]);
+
   const {
     entrypointPath,
     entrypointFsDirname,

@@ -17,6 +17,7 @@ import {
   BuildOptions,
   Config,
 } from '@now/build-utils';
+import { build as nodeBuilder } from '@now/node';
 
 interface PackageJson {
   scripts?: {
@@ -324,7 +325,18 @@ export async function build({
     }
 
     const watch = [path.join(mountpoint.replace(/^\.\/?/, ''), '**/*')];
-    return { routes, watch, output };
+    const result = { routes, watch, output };
+
+    if (pkg.main && (!meta.isDev || !pkg.scripts[devScript])) {
+      const nodeConfig = {
+        ...arguments[0], // All the args passed to this build.
+        entrypoint: pkg.main,
+      };
+      const nodeResult = await nodeBuilder(nodeConfig);
+      result.watch.push(...nodeResult.watch);
+      Object.assign(result.output, nodeResult.output);
+    }
+    return result;
   }
 
   if (!config.zeroConfig && entrypointName.endsWith('.sh')) {
