@@ -615,6 +615,16 @@ it('Test `detectBuilders` and `detectRoutes`', async () => {
       status: 200,
     },
     {
+      path: '/api/team/zeit',
+      mustContain: 'team/zeit',
+      status: 200,
+    },
+    {
+      path: '/api/user/myself',
+      mustContain: 'user/myself',
+      status: 200,
+    },
+    {
       path: '/api/not-okay/',
       status: 404,
     },
