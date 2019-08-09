@@ -127,7 +127,7 @@ async function testDeployment (
           );
         }
       });
-    } else {
+    } else if (!probe.status) {
       assert(false, 'probe must have a test condition');
     }
   }
