@@ -680,8 +680,17 @@ it('Test `detectBuilders` and `detectRoutes` with `index` files', async () => {
       status: 200,
     },
     {
-      path: '/api/date',
+      path: '/api/date.js',
       mustContain: 'hello from api/date.js',
+      status: 200,
+    },
+    {
+      // Someone might expect this to be `date.js`,
+      // but I doubt that there is any case were both
+      // `date/index.js` and `date.js` exists,
+      // so it is not special cased
+      path: '/api/date',
+      mustContain: 'hello from api/date/index.js',
       status: 200,
     },
     {
