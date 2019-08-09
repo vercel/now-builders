@@ -66,6 +66,10 @@ export function ignoreApiFilter(file: string) {
     return false;
   }
 
+  if (file.endsWith('.d.ts')) {
+    return false;
+  }
+
   // If the file does not match any builder we also
   // don't want to create a route e.g. `package.json`
   if (API_BUILDERS.every(({ src }) => !minimatch(file, src))) {
