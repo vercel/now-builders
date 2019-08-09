@@ -16,6 +16,7 @@ import {
   PrepareCacheOptions,
   BuildOptions,
   shouldServe,
+  Config,
   debug,
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
@@ -33,6 +34,7 @@ interface DownloadOptions {
   files: Files;
   entrypoint: string;
   workPath: string;
+  config: Config;
   meta: Meta;
 }
 
@@ -54,6 +56,7 @@ async function downloadInstallAndBundle({
   files,
   entrypoint,
   workPath,
+  config,
   meta,
 }: DownloadOptions) {
   debug('downloading user files...');
@@ -64,7 +67,11 @@ async function downloadInstallAndBundle({
   debug("installing dependencies for user's code...");
   const installTime = Date.now();
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
-  const nodeVersion = await getNodeVersion(entrypointFsDirname);
+  const nodeVersion = await getNodeVersion(
+    entrypointFsDirname,
+    undefined,
+    config
+  );
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
   await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
   debug(`install complete [${Date.now() - installTime}ms]`);
@@ -233,7 +240,12 @@ async function compile(
       }
     }
     // Rename .ts -> .js (except for entry)
-    if (path !== entrypoint && tsCompiled.has(path)) {
+    // There is a bug on Windows where entrypoint uses forward slashes
+    // and workPath uses backslashes so we use resolve before comparing.
+    if (
+      resolve(workPath, path) !== resolve(workPath, entrypoint) &&
+      tsCompiled.has(path)
+    ) {
       preparedFiles[
         path.slice(0, -3 - Number(path.endsWith('x'))) + '.js'
       ] = entry;
@@ -298,6 +310,7 @@ export async function build({
     files,
     entrypoint,
     workPath,
+    config,
     meta,
   });
 
