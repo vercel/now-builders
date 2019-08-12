@@ -15,6 +15,19 @@ All PRs should be submitted to the `canary` branch.
 
 Once a PR is merged into the `canary` branch, it should be published to npm immediately using the Canary Channel.
 
+### Builder Versioning
+
+Since Builders are published to [npmjs.com](https://npmjs.com), this makes versioning works the same for Builders as it does for any npm package. The `use` statement in [now.json](https://zeit.co/docs/v2/advanced/configuration#builds) has a similar syntax to `npm install`.
+
+The following are valid examples [@now/node](https://www.npmjs.com/package/@now/node?activeTab=versions):
+
+- `@now/node`
+- `@now/node@0.7.3`
+- `@now/node@canary`
+- `@now/node@0.7.2-canary.2`
+
+We always recommend using the latest version by leaving off the dist-tag suffix, `@now/node` for example.
+
 ### Publishing to npm
 
 For the Canary Channel, publish the modified Builders to npm with the following:
@@ -56,10 +69,10 @@ If for some reason GitHub Actions fails to publish the npm package, you may do s
 manually by running `npm publish` from the package directory. Make sure to
 use `npm publish --tag canary` if you are publishing a canary release!
 
-### Contributing
+## Contributing
 
 See the [Contribution guidelines for this project](CONTRIBUTING.md), it also contains guidance on interpreting tests failures.
 
-### Creating Your Own Builder
+## Creating Your Own Builder
 
 To create your own Builder, see [the Builder's Developer Reference](DEVELOPING_A_BUILDER.md).
