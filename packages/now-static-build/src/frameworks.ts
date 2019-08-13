@@ -69,7 +69,7 @@ export default [
         handle: 'filesystem',
       },
       {
-        src: '^(/(?:img|js|css)/.*)',
+        src: '^(/(?:img|js|css|fonts|media)/.*)',
         headers: { 'cache-control': 'max-age=31536000, immutable' },
         dest: '$1',
       },
