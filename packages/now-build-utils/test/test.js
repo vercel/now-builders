@@ -4,21 +4,21 @@ const fs = require('fs-extra');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const execa = require('execa');
 const assert = require('assert');
-const { glob, download } = require('../');
 const { createZip } = require('../dist/lambda');
+const {
+  glob, download, detectBuilders, detectRoutes,
+} = require('../');
 const {
   getSupportedNodeVersion,
   defaultSelection,
 } = require('../dist/fs/node-version');
-
 const {
   packAndDeploy,
   testDeployment,
-} = require('../../../test/lib/deployment/test-deployment.js');
-
-const { detectBuilders, detectRoutes } = require('../dist');
+} = require('../../../test/lib/deployment/test-deployment');
 
 jest.setTimeout(4 * 60 * 1000);
+
 const builderUrl = '@canary';
 let buildUtilsUrl;
 
@@ -116,12 +116,47 @@ it('should match all semver ranges', () => {
   );
 });
 
+it('should support require by path for legacy builders', () => {
+  const index = require('@now/build-utils');
+
+  const download2 = require('@now/build-utils/fs/download.js');
+  const getWriteableDirectory2 = require('@now/build-utils/fs/get-writable-directory.js');
+  const glob2 = require('@now/build-utils/fs/glob.js');
+  const rename2 = require('@now/build-utils/fs/rename.js');
+  const {
+    runNpmInstall: runNpmInstall2,
+  } = require('@now/build-utils/fs/run-user-scripts.js');
+  const streamToBuffer2 = require('@now/build-utils/fs/stream-to-buffer.js');
+
+  const FileBlob2 = require('@now/build-utils/file-blob.js');
+  const FileFsRef2 = require('@now/build-utils/file-fs-ref.js');
+  const FileRef2 = require('@now/build-utils/file-ref.js');
+  const { Lambda: Lambda2 } = require('@now/build-utils/lambda.js');
+
+  expect(download2).toBe(index.download);
+  expect(getWriteableDirectory2).toBe(index.getWriteableDirectory);
+  expect(glob2).toBe(index.glob);
+  expect(rename2).toBe(index.rename);
+  expect(runNpmInstall2).toBe(index.runNpmInstall);
+  expect(streamToBuffer2).toBe(index.streamToBuffer);
+
+  expect(FileBlob2).toBe(index.FileBlob);
+  expect(FileFsRef2).toBe(index.FileFsRef);
+  expect(FileRef2).toBe(index.FileRef);
+  expect(Lambda2).toBe(index.Lambda);
+});
+
 // own fixtures
 
 const fixturesPath = path.resolve(__dirname, 'fixtures');
 
 // eslint-disable-next-line no-restricted-syntax
 for (const fixture of fs.readdirSync(fixturesPath)) {
+  if (fixture.includes('zero-config')) {
+    // Those have separate tests
+    continue; // eslint-disable-line no-continue
+  }
+
   // eslint-disable-next-line no-loop-func
   it(`should build ${fixture}`, async () => {
     await expect(
@@ -355,7 +390,7 @@ it('Test `detectBuilders`', async () => {
     const files = ['package.json', 'pages/index.js'];
 
     const { builders } = await detectBuilders(files, pkg);
-    expect(builders[0].use).toBe('@now/nuxt');
+    expect(builders[0].use).toBe('@now/static-build');
     expect(builders[0].src).toBe('package.json');
     expect(builders.length).toBe(1);
   }
@@ -397,6 +432,25 @@ it('Test `detectBuilders`', async () => {
     expect(builders).toBe(null);
     expect(errors).toBe(null);
   }
+
+  {
+    // package.json + api + canary
+    const pkg = {
+      scripts: { build: 'next build' },
+      dependencies: { next: '9.0.0' },
+    };
+    const files = [
+      'pages/index.js',
+      'api/[endpoint].js',
+      'api/[endpoint]/[id].js',
+    ];
+
+    const { builders } = await detectBuilders(files, pkg, { tag: 'canary' });
+    expect(builders[0].use).toBe('@now/node@canary');
+    expect(builders[1].use).toBe('@now/node@canary');
+    expect(builders[2].use).toBe('@now/next@canary');
+    expect(builders.length).toBe(3);
+  }
 });
 
 it('Test `detectRoutes`', async () => {
@@ -405,9 +459,11 @@ it('Test `detectRoutes`', async () => {
 
     const { builders } = await detectBuilders(files);
     const { defaultRoutes } = await detectRoutes(files, builders);
-    expect(defaultRoutes.length).toBe(2);
+    expect(defaultRoutes.length).toBe(3);
     expect(defaultRoutes[0].dest).toBe('/api/team.js');
     expect(defaultRoutes[1].dest).toBe('/api/user.go');
+    expect(defaultRoutes[2].dest).not.toBeDefined();
+    expect(defaultRoutes[2].status).toBe(404);
   }
 
   {
@@ -435,11 +491,20 @@ it('Test `detectRoutes`', async () => {
   }
 
   {
+    const files = ['api/date/index.js', 'api/date/index.go'];
+
+    const { builders } = await detectBuilders(files);
+    const { defaultRoutes, error } = await detectRoutes(files, builders);
+    expect(defaultRoutes).toBe(null);
+    expect(error.code).toBe('conflicting_file_path');
+  }
+
+  {
     const files = ['api/[endpoint].js', 'api/[endpoint]/[id].js'];
 
     const { builders } = await detectBuilders(files);
     const { defaultRoutes } = await detectRoutes(files, builders);
-    expect(defaultRoutes.length).toBe(2);
+    expect(defaultRoutes.length).toBe(3);
   }
 
   {
@@ -451,9 +516,11 @@ it('Test `detectRoutes`', async () => {
 
     const { builders } = await detectBuilders(files);
     const { defaultRoutes } = await detectRoutes(files, builders);
-    expect(defaultRoutes[2].src).toBe('/(.*)');
-    expect(defaultRoutes[2].dest).toBe('/public/$1');
-    expect(defaultRoutes.length).toBe(3);
+    expect(defaultRoutes[2].status).toBe(404);
+    expect(defaultRoutes[2].src).toBe('/api(\\/.*)?$');
+    expect(defaultRoutes[3].src).toBe('/(.*)');
+    expect(defaultRoutes[3].dest).toBe('/public/$1');
+    expect(defaultRoutes.length).toBe(4);
   }
 
   {
@@ -465,6 +532,210 @@ it('Test `detectRoutes`', async () => {
 
     const { builders } = await detectBuilders(files, pkg);
     const { defaultRoutes } = await detectRoutes(files, builders);
+    expect(defaultRoutes[1].status).toBe(404);
+    expect(defaultRoutes[1].src).toBe('/api(\\/.*)?$');
+    expect(defaultRoutes.length).toBe(2);
+  }
+
+  {
+    const files = ['public/index.html'];
+
+    const { builders } = await detectBuilders(files);
+    const { defaultRoutes } = await detectRoutes(files, builders);
+
     expect(defaultRoutes.length).toBe(1);
   }
+
+  {
+    const files = ['api/date/index.js', 'api/date.js'];
+
+    const { builders } = await detectBuilders(files);
+    const { defaultRoutes } = await detectRoutes(files, builders);
+
+    expect(defaultRoutes.length).toBe(3);
+    expect(defaultRoutes[0].src).toBe(
+      '^/api/date(\\/|\\/index|\\/index\\.js)?$',
+    );
+    expect(defaultRoutes[0].dest).toBe('/api/date/index.js');
+    expect(defaultRoutes[1].src).toBe('^/api/(date|date\\.js)$');
+    expect(defaultRoutes[1].dest).toBe('/api/date.js');
+  }
+
+  {
+    const files = ['api/date.js', 'api/[date]/index.js'];
+
+    const { builders } = await detectBuilders(files);
+    const { defaultRoutes } = await detectRoutes(files, builders);
+
+    expect(defaultRoutes.length).toBe(3);
+    expect(defaultRoutes[0].src).toBe(
+      '^/api/([^\\/]+)(\\/|\\/index|\\/index\\.js)?$',
+    );
+    expect(defaultRoutes[0].dest).toBe('/api/[date]/index.js?date=$1');
+    expect(defaultRoutes[1].src).toBe('^/api/(date|date\\.js)$');
+    expect(defaultRoutes[1].dest).toBe('/api/date.js');
+  }
+
+  {
+    const files = [
+      'api/index.ts',
+      'api/index.d.ts',
+      'api/users/index.ts',
+      'api/users/index.d.ts',
+      'api/food.ts',
+      'api/ts/gold.ts',
+    ];
+    const { builders } = await detectBuilders(files);
+    const { defaultRoutes } = await detectRoutes(files, builders);
+
+    expect(builders.length).toBe(4);
+    expect(builders[0].use).toBe('@now/node');
+    expect(builders[1].use).toBe('@now/node');
+    expect(builders[2].use).toBe('@now/node');
+    expect(builders[3].use).toBe('@now/node');
+    expect(defaultRoutes.length).toBe(5);
+  }
+});
+
+it('Test `detectBuilders` and `detectRoutes`', async () => {
+  const fixture = path.join(__dirname, 'fixtures', '01-zero-config-api');
+  const pkg = await fs.readJSON(path.join(fixture, 'package.json'));
+  const fileList = await glob('**', fixture);
+  const files = Object.keys(fileList);
+
+  const probes = [
+    {
+      path: '/api/my-endpoint',
+      mustContain: 'my-endpoint',
+      status: 200,
+    },
+    {
+      path: '/api/other-endpoint',
+      mustContain: 'other-endpoint',
+      status: 200,
+    },
+    {
+      path: '/api/team/zeit',
+      mustContain: 'team/zeit',
+      status: 200,
+    },
+    {
+      path: '/api/user/myself',
+      mustContain: 'user/myself',
+      status: 200,
+    },
+    {
+      path: '/api/not-okay/',
+      status: 404,
+    },
+    {
+      path: '/api',
+      status: 404,
+    },
+    {
+      path: '/api/',
+      status: 404,
+    },
+    {
+      path: '/',
+      mustContain: 'hello from index.txt',
+    },
+  ];
+
+  const { builders } = await detectBuilders(files, pkg);
+  const { defaultRoutes } = await detectRoutes(files, builders);
+
+  const nowConfig = { builds: builders, routes: defaultRoutes, probes };
+  await fs.writeFile(
+    path.join(fixture, 'now.json'),
+    JSON.stringify(nowConfig, null, 2),
+  );
+
+  const deployment = await testDeployment(
+    { builderUrl, buildUtilsUrl },
+    fixture,
+  );
+  expect(deployment).toBeDefined();
+});
+
+it('Test `detectBuilders` and `detectRoutes` with `index` files', async () => {
+  const fixture = path.join(__dirname, 'fixtures', '02-zero-config-api');
+  const pkg = await fs.readJSON(path.join(fixture, 'package.json'));
+  const fileList = await glob('**', fixture);
+  const files = Object.keys(fileList);
+
+  const probes = [
+    {
+      path: '/api/not-okay',
+      status: 404,
+    },
+    {
+      path: '/api',
+      mustContain: 'hello from api/index.js',
+      status: 200,
+    },
+    {
+      path: '/api/',
+      mustContain: 'hello from api/index.js',
+      status: 200,
+    },
+    {
+      path: '/api/index',
+      mustContain: 'hello from api/index.js',
+      status: 200,
+    },
+    {
+      path: '/api/index.js',
+      mustContain: 'hello from api/index.js',
+      status: 200,
+    },
+    {
+      path: '/api/date.js',
+      mustContain: 'hello from api/date.js',
+      status: 200,
+    },
+    {
+      // Someone might expect this to be `date.js`,
+      // but I doubt that there is any case were both
+      // `date/index.js` and `date.js` exists,
+      // so it is not special cased
+      path: '/api/date',
+      mustContain: 'hello from api/date/index.js',
+      status: 200,
+    },
+    {
+      path: '/api/date/',
+      mustContain: 'hello from api/date/index.js',
+      status: 200,
+    },
+    {
+      path: '/api/date/index',
+      mustContain: 'hello from api/date/index.js',
+      status: 200,
+    },
+    {
+      path: '/api/date/index.js',
+      mustContain: 'hello from api/date/index.js',
+      status: 200,
+    },
+    {
+      path: '/',
+      mustContain: 'hello from index.txt',
+    },
+  ];
+
+  const { builders } = await detectBuilders(files, pkg);
+  const { defaultRoutes } = await detectRoutes(files, builders);
+
+  const nowConfig = { builds: builders, routes: defaultRoutes, probes };
+  await fs.writeFile(
+    path.join(fixture, 'now.json'),
+    JSON.stringify(nowConfig, null, 2),
+  );
+
+  const deployment = await testDeployment(
+    { builderUrl, buildUtilsUrl },
+    fixture,
+  );
+  expect(deployment).toBeDefined();
 });

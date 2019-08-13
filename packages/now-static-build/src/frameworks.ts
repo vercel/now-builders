@@ -66,22 +66,22 @@ export default [
     getOutputDirName: async () => 'dist',
     defaultRoutes: [
       {
-        handle: 'filesystem',
-      },
-      {
         src: '^/js/(.*)',
         headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '/js/$1',
+        continue: true,
       },
       {
         src: '^/css/(.*)',
         headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '/css/$1',
+        continue: true,
       },
       {
         src: '^/img/(.*)',
         headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '/img/$1',
+        continue: true,
+      },
+      {
+        handle: 'filesystem',
       },
       {
         src: '/(.*)',
@@ -158,32 +158,19 @@ export default [
       {
         src: '/static/(.*)',
         headers: { 'cache-control': 's-maxage=31536000, immutable' },
-        dest: '/static/$1',
-      },
-      {
-        src: '/favicon.ico',
-        dest: '/favicon.ico',
-      },
-      {
-        src: '/asset-manifest.json',
-        dest: '/asset-manifest.json',
-      },
-      {
-        src: '/manifest.json',
-        dest: '/manifest.json',
-      },
-      {
-        src: '/precache-manifest.(.*)',
-        dest: '/precache-manifest.$1',
+        continue: true,
       },
       {
         src: '/service-worker.js',
         headers: { 'cache-control': 's-maxage=0' },
-        dest: '/service-worker.js',
+        continue: true,
       },
       {
         src: '/sockjs-node/(.*)',
         dest: '/sockjs-node/$1',
+      },
+      {
+        handle: 'filesystem',
       },
       {
         src: '/(.*)',
@@ -226,5 +213,10 @@ export default [
 
       return base;
     },
+  },
+  {
+    name: 'Sapper',
+    dependency: 'sapper',
+    getOutputDirName: async () => '__sapper__/export',
   },
 ];
