@@ -234,7 +234,7 @@ export const build = async ({
   }
 
   if (await pathExists(dotNextStatic)) {
-    debug(
+    console.warn(
       'WARNING: You should not upload the `.next` directory. See https://zeit.co/docs/v2/deployments/official-builders/next-js-now-next/ for more details.'
     );
   }
@@ -256,7 +256,7 @@ export const build = async ({
       debug('no package-lock.json removed');
     }
 
-    debug(
+    console.warn(
       "WARNING: your application is being deployed in @now/next's legacy mode. http://err.sh/zeit/now-builders/now-next-legacy-mode"
     );
 
