@@ -80,7 +80,7 @@ class MemoryCache {
  * Default register options.
  */
 const DEFAULTS: Options = {
-  files: null,
+  files: true /** Include all files such as global .d.ts */,
   pretty: null,
   compiler: undefined,
   compilerOptions: undefined,
@@ -148,7 +148,7 @@ export function register(opts: Options = {}): Register {
 
   // Require the TypeScript compiler and configuration.
   const cwd = options.basePath || process.cwd();
-  const nowNodeBase = resolve(__dirname, '../../../');
+  const nowNodeBase = resolve(__dirname, '..', '..', '..');
   try {
     var compiler = require.resolve(options.compiler || 'typescript', {
       paths: [cwd, nowNodeBase],
