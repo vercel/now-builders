@@ -112,7 +112,7 @@ function normalizeSlashes(value: string): string {
 /**
  * Return type for registering `ts-node`.
  */
-export type Compile = (
+export type Register = (
   code: string,
   fileName: string,
   skipTypeCheck?: boolean
@@ -136,7 +136,7 @@ function cachedLookup<T>(fn: (arg: string) => T): (arg: string) => T {
 /**
  * Register TypeScript compiler.
  */
-export function init(opts: Options = {}): Compile {
+export function register(opts: Options = {}): Register {
   const options = Object.assign({}, DEFAULTS, opts);
 
   const ignoreDiagnostics = [

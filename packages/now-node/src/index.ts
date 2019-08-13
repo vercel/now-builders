@@ -21,7 +21,7 @@ import {
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
 import { readFileSync, lstatSync, readlinkSync, statSync } from 'fs';
-import { Compile } from './typescript';
+import { Register, register } from './typescript';
 
 interface CompilerConfig {
   debug?: boolean;
@@ -134,14 +134,14 @@ async function compile(
 
   const preparedFiles: Files = {};
 
-  let tsCompile: Compile;
+  let tsCompile: Register;
   function compileTypeScript(path: string, source: string): string {
     const relPath = relative(workPath, path);
     if (config.debug) {
       console.log('compiling typescript file ' + relPath);
     }
     if (!tsCompile) {
-      tsCompile = require('./typescript').init({
+      tsCompile = register({
         basePath: workPath,
         logError: true,
       });
