@@ -184,7 +184,7 @@ export function register(opts: Options = {}): Register {
 
   function reportTSError(
     diagnostics: _ts.Diagnostic[],
-    shouldThrow: boolean | undefined
+    shouldExit: boolean | undefined
   ) {
     if (!diagnostics || diagnostics.length === 0) {
       return;
@@ -192,8 +192,8 @@ export function register(opts: Options = {}): Register {
     const error = createTSError(diagnostics);
     // Print error in red color and continue execution.
     console.error('\x1b[31m%s\x1b[0m', error);
-    if (shouldThrow) {
-      throw error;
+    if (shouldExit) {
+      process.exit(1);
     }
   }
 
