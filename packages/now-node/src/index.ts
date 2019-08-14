@@ -126,21 +126,17 @@ async function compile(
     }
   }
 
-  if (config.debug) {
-    debug(
-      'tracing input files: ' +
-        [...inputFiles].map(p => relative(workPath, p)).join(', ')
-    );
-  }
+  debug(
+    'tracing input files: ' +
+      [...inputFiles].map(p => relative(workPath, p)).join(', ')
+  );
 
   const preparedFiles: Files = {};
 
   let tsCompile: Compile;
   function compileTypeScript(path: string, source: string): string {
     const relPath = relative(workPath, path);
-    if (config.debug) {
-      debug('compiling typescript file ' + relPath);
-    }
+    debug('compiling typescript file ' + relPath);
     if (!tsCompile) {
       tsCompile = require('./typescript').init({
         basePath: workPath,
@@ -206,10 +202,8 @@ async function compile(
     },
   });
 
-  if (config.debug) {
-    debug('traced files:');
-    debug('\t' + fileList.join('\n\t'));
-  }
+  debug('traced files:');
+  debug('\t' + fileList.join('\n\t'));
 
   for (const path of fileList) {
     let entry = fsCache.get(path);
