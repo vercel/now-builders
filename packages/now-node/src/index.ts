@@ -141,23 +141,9 @@ async function compile(
       console.log('compiling typescript file ' + relPath);
     }
     if (!tsCompile) {
-      tsCompile = register({
-        basePath: workPath,
-        logError: true,
-      });
+      tsCompile = register({ basePath: workPath });
     }
-    try {
-      var { code, map } = tsCompile(source, path);
-    } catch (e) {
-      if (config.debug) {
-        console.error(e);
-        console.log(
-          'TypeScript compilation failed, falling back to basic transformModule'
-        );
-      }
-      // If TypeScript compile fails, attempt a direct non-typecheck compile
-      var { code, map } = tsCompile(source, path, true);
-    }
+    const { code, map } = tsCompile(source, path);
     tsCompiled.add(relPath);
     preparedFiles[
       relPath.slice(0, -3 - Number(path.endsWith('x'))) + '.js.map'

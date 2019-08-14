@@ -116,7 +116,7 @@ export type Register = (
   code: string,
   fileName: string,
   skipTypeCheck?: boolean
-) => { code: string; map: string };
+) => SourceOutput;
 
 /**
  * Cached fs operation wrapper.
@@ -182,13 +182,17 @@ export function register(opts: Options = {}): Register {
     return new Error(diagnosticText);
   }
 
-  function reportTSError(configDiagnosticList: _ts.Diagnostic[]) {
-    const error = createTSError(configDiagnosticList);
-    if (options.logError) {
-      // Print error in red color and continue execution.
-      console.error('\x1b[31m%s\x1b[0m', error);
-    } else {
-      // Throw error and exit the script.
+  function reportTSError(
+    diagnostics: _ts.Diagnostic[],
+    shouldThrow: boolean | undefined
+  ) {
+    if (!diagnostics || diagnostics.length === 0) {
+      return;
+    }
+    const error = createTSError(diagnostics);
+    // Print error in red color and continue execution.
+    console.error('\x1b[31m%s\x1b[0m', error);
+    if (shouldThrow) {
       throw error;
     }
   }
@@ -204,7 +208,7 @@ export function register(opts: Options = {}): Register {
     /**
      * Create the basic required function using transpile mode.
      */
-    let getOutput = function(code: string, fileName: string): [string, string] {
+    let getOutput = function(code: string, fileName: string): SourceOutput {
       const result = ts.transpileModule(code, {
         fileName,
         transformers,
@@ -216,16 +220,13 @@ export function register(opts: Options = {}): Register {
         ? filterDiagnostics(result.diagnostics, ignoreDiagnostics)
         : [];
 
-      if (diagnosticList.length) reportTSError(diagnosticList);
+      reportTSError(diagnosticList, config.options.noEmitOnError);
 
-      return [result.outputText, result.sourceMapText as string];
+      return { code: result.outputText, map: result.sourceMapText as string };
     };
 
     // Use full language services when the fast option is disabled.
-    let getOutputTypeCheck: (
-      code: string,
-      fileName: string
-    ) => [string, string];
+    let getOutputTypeCheck: (code: string, fileName: string) => SourceOutput;
     {
       const memoryCache = new MemoryCache(config.fileNames);
       const cachedReadFile = cachedLookup(debugFn('readFile', readFile));
@@ -302,7 +303,7 @@ export function register(opts: Options = {}): Register {
           ignoreDiagnostics
         );
 
-        if (diagnosticList.length) reportTSError(diagnosticList);
+        reportTSError(diagnosticList, config.options.noEmitOnError);
 
         if (output.emitSkipped) {
           throw new TypeError(`${relative(cwd, fileName)}: Emit skipped`);
@@ -319,7 +320,10 @@ export function register(opts: Options = {}): Register {
           );
         }
 
-        return [output.outputFiles[1].text, output.outputFiles[0].text];
+        return {
+          code: output.outputFiles[1].text,
+          map: output.outputFiles[0].text,
+        };
       };
     }
 
@@ -369,7 +373,7 @@ export function register(opts: Options = {}): Register {
           ignoreDiagnostics
         );
         // Render the configuration errors.
-        if (configDiagnosticList.length) reportTSError(configDiagnosticList);
+        reportTSError(configDiagnosticList, true);
         return errorResult;
       }
 
@@ -407,17 +411,21 @@ export function register(opts: Options = {}): Register {
         ignoreDiagnostics
       );
       // Render the configuration errors.
-      if (configDiagnosticList.length) reportTSError(configDiagnosticList);
+      reportTSError(configDiagnosticList, configResult.options.noEmitOnError);
     }
 
     return configResult;
   }
 
   // Create a simple TypeScript compiler proxy.
-  function compile(code: string, fileName: string, skipTypeCheck?: boolean) {
+  function compile(
+    code: string,
+    fileName: string,
+    skipTypeCheck?: boolean
+  ): SourceOutput {
     const configFileName = detectConfig(fileName);
     const build = getBuild(configFileName);
-    const [value, sourceMap] = (skipTypeCheck
+    const { code: value, map: sourceMap } = (skipTypeCheck
       ? build.getOutput
       : build.getOutputTypeCheck)(code, fileName);
     const output = {
@@ -435,8 +443,8 @@ export function register(opts: Options = {}): Register {
 }
 
 interface Build {
-  getOutput(code: string, fileName: string): [string, string];
-  getOutputTypeCheck(code: string, fileName: string): [string, string];
+  getOutput(code: string, fileName: string): SourceOutput;
+  getOutputTypeCheck(code: string, fileName: string): SourceOutput;
 }
 
 /**
@@ -470,6 +478,11 @@ function fixConfig(ts: TSCommon, config: _ts.ParsedCommandLine) {
 
   return config;
 }
+
+/**
+ * Internal source output.
+ */
+type SourceOutput = { code: string; map: string };
 
 /**
  * Filter diagnostics.
