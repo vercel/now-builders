@@ -4,7 +4,7 @@
   "probes": [
     {
       "path": "/",
-      "mustContain": "index.ts:4"
+      "mustContain": "no-emit-on-error-true:RANDOMNESS_PLACEHOLDER"
     }
   ]
 }
