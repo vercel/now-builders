@@ -1,6 +1,6 @@
 {
   "engines": {
-    "node": "8.x"
+    "node": "8.10.x"
   },
   "dependencies": {
     "next": "canary",
