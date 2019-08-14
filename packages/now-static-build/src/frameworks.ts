@@ -66,15 +66,13 @@ export default [
     getOutputDirName: async () => 'dist',
     defaultRoutes: [
       {
-        src: '^(/(?:img|js|css|fonts|media)/.*)',
+        src: '^/(?:img|js|css|fonts|media)/.*',
         headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '$1',
         continue: true,
       },
       {
-        src: '^(/[^/]*\\.(?:js|txt|ico|json))',
+        src: '^/[^/]*\\.(?:js|txt|ico|json)',
         headers: { 'cache-control': 'max-age=300' },
-        dest: '$1',
         continue: true,
       },
       {
