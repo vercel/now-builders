@@ -79,7 +79,7 @@ export default [
         handle: 'filesystem',
       },
       {
-        src: '/(.*)',
+        src: '^.*',
         dest: '/index.html',
       },
     ],
