@@ -38,7 +38,7 @@ async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
       }
     );
   } catch (err) {
-    debug(
+    console.log(
       `failed to run "pip install --disable-pip-version-check --target ${target} --upgrade ${args.join(
         ' '
       )}"...`
@@ -62,7 +62,7 @@ async function pipInstallUser(pipPath: string, ...args: string[]) {
       }
     );
   } catch (err) {
-    debug(
+    console.log(
       `failed to run "pip install --disable-pip-version-check --user ${args.join(
         ' '
       )}"`
@@ -79,7 +79,7 @@ async function pipenvInstall(pyUserBase: string, srcDir: string) {
     });
     fs.writeFileSync(join(srcDir, 'requirements.txt'), out);
   } catch (err) {
-    debug('failed to run "pipfile2req"');
+    console.log('failed to run "pipfile2req"');
     throw err;
   }
 }
@@ -126,7 +126,7 @@ export const build = async ({
       await writeFile(setupCfg, '[install]\nprefix=\n');
     }
   } catch (err) {
-    debug('failed to create "setup.cfg" file');
+    console.log('failed to create "setup.cfg" file');
     throw err;
   }
 
