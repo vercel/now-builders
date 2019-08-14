@@ -43,6 +43,7 @@ export interface Config {
   rust?: string;
   debug?: boolean;
   zeroConfig?: boolean;
+  basePath?: string;
   import?: { [key: string]: string };
 }
 

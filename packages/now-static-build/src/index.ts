@@ -194,7 +194,7 @@ export async function build({
       if (framework && framework.defaultRoutes) {
         // We need to delete the routes for `now dev`
         // since in this case it will get proxied to
-        // a custom server we don't have controll over
+        // a custom server we don't have control over
         delete framework.defaultRoutes;
       }
 
@@ -257,7 +257,9 @@ export async function build({
         console.log('Detected dev server for %j', entrypoint);
       }
 
-      let srcBase = mountpoint.replace(/^\.\/?/, '');
+      let srcBase = config.basePath
+        ? config.basePath.replace(/^\//, '')
+        : mountpoint.replace(/^\.\/?/, '');
 
       if (srcBase.length > 0) {
         srcBase = `/${srcBase}`;
@@ -324,16 +326,21 @@ export async function build({
       }
     }
 
-    const watch = [path.join(mountpoint.replace(/^\.\/?/, ''), '**/*')];
+    const watch: Array<string> = [];
+    // const watch = [path.join(mountpoint.replace(/^\.\/?/, ''), '**/*')];
     const result = { routes, watch, output };
 
-    if (pkg.main && (!meta.isDev || !pkg.scripts[devScript])) {
+    const hasMain = pkg.main || config.main;
+    const useMain = !meta.isDev || !pkg.scripts[devScript];
+    if (hasMain && useMain) {
+      const mainPath = config.main || path.join(workPath, pkg.main);
       const nodeConfig = {
         ...arguments[0], // All the args passed to this build.
-        entrypoint: pkg.main,
+        entrypoint: mainPath,
       };
       const nodeResult = await nodeBuilder(nodeConfig);
-      result.watch.push(...nodeResult.watch);
+      console.log('nodeResult.watch', nodeResult.watch);
+      // result.watch.push(...nodeResult.watch);
       Object.assign(result.output, nodeResult.output);
     }
     return result;
