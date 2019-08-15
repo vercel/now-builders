@@ -27,7 +27,7 @@
       "mustContain": "`"
     },
     {
-      "path": "/es5",
+      "path": "/functions/es5.ts",
       "mustContain": "+"
     },
     {
