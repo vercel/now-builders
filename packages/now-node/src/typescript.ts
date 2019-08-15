@@ -345,7 +345,7 @@ export function register(opts: Options = {}): Register {
     // Read project configuration when available.
     configFileName = options.project
       ? normalizeSlashes(resolve(cwd, options.project))
-      : ts.findConfigFile(normalizeSlashes(cwd), fileExists);
+      : ts.findConfigFile(basePath, fileExists);
 
     if (configFileName) return normalizeSlashes(configFileName);
   }

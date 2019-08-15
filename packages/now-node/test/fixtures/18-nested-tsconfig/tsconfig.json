@@ -24,7 +24,8 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "noEmitOnError": true
   },
   "exclude": ["./functions/**"],
   "include": ["**/*.ts", "**/*.tsx"]
