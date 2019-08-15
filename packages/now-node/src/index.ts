@@ -141,7 +141,11 @@ async function compile(
       console.log('compiling typescript file ' + relPath);
     }
     if (!tsCompile) {
-      tsCompile = register({ basePath: workPath });
+      tsCompile = register({
+        basePath: workPath, // The base is the same as root now.json dir
+        files: true, // Include all files such as global `.d.ts`
+        project: relPath, // Resolve tsconfig.json from entrypoint dir
+      });
     }
     const { code, map } = tsCompile(source, path);
     tsCompiled.add(relPath);

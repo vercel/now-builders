@@ -80,7 +80,7 @@ class MemoryCache {
  * Default register options.
  */
 const DEFAULTS: Options = {
-  files: true /** Include all files such as global .d.ts */,
+  files: null,
   pretty: null,
   compiler: undefined,
   compilerOptions: undefined,
@@ -345,7 +345,7 @@ export function register(opts: Options = {}): Register {
     // Read project configuration when available.
     configFileName = options.project
       ? normalizeSlashes(resolve(cwd, options.project))
-      : ts.findConfigFile(basePath, fileExists);
+      : ts.findConfigFile(cwd, fileExists);
 
     if (configFileName) return normalizeSlashes(configFileName);
   }
