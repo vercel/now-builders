@@ -143,8 +143,8 @@ async function compile(
     if (!tsCompile) {
       tsCompile = register({
         basePath: workPath, // The base is the same as root now.json dir
+        project: path, // Resolve tsconfig.json from entrypoint dir
         files: true, // Include all files such as global `.d.ts`
-        project: relPath, // Resolve tsconfig.json from entrypoint dir
       });
     }
     const { code, map } = tsCompile(source, path);

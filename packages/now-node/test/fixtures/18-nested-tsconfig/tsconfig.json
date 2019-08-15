@@ -6,7 +6,7 @@
     "target": "esnext",
     "module": "esnext",
     "lib": ["dom", "es2017"],
-    "noEmit": true,
+    "noEmitOnError": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -24,8 +24,7 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmitOnError": true
+    "isolatedModules": true
   },
   "exclude": ["./functions/**"],
   "include": ["**/*.ts", "**/*.tsx"]
