@@ -24,7 +24,11 @@
   "probes": [
     {
       "path": "/",
-      "mustContain": "root:RANDOMNESS_PLACEHOLDER"
+      "mustContain": "`"
+    },
+    {
+      "path": "/es5",
+      "mustContain": "+"
     },
     {
       "path": "/pricing/",
