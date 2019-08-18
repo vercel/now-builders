@@ -103,8 +103,6 @@ async function detectApiBuilders(files: string[]): Promise<Builder[]> {
       return result ? { ...result, src: file } : null;
     });
 
-  console.log(builds);
-
   const finishedBuilds = builds.filter(Boolean);
   return finishedBuilds as Builder[];
 }
