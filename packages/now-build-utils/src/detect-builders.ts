@@ -161,7 +161,10 @@ export async function detectBuilders(
     const tag = options && options.tag;
 
     if (tag) {
-      builders = builders.map((builder: Builder) => {
+      builders = builders.map((originBuilder: Builder) => {
+        // Copy builder to make sure it is not a reference
+        const builder = { ...originBuilder };
+
         // @now/static has no canary builder
         if (builder.use !== '@now/static') {
           builder.use = `${builder.use}@${tag}`;
