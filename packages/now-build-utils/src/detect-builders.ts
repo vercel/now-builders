@@ -13,17 +13,19 @@ interface Options {
 const src: string = 'package.json';
 const config: Config = { zeroConfig: true };
 
-// Static builders are special cased in `@now/static-build`
-const BUILDERS = new Map<string, Builder>([
-  ['next', { src, use: '@now/next', config }],
-]);
-
 const MISSING_BUILD_SCRIPT_ERROR: ErrorResponse = {
   code: 'missing_build_script',
   message:
     'Your `package.json` file is missing a `build` property inside the `script` property.' +
     '\nMore details: https://zeit.co/docs/v2/advanced/platform/frequently-asked-questions#missing-build-script',
 };
+
+// Static builders are special cased in `@now/static-build`
+function getBuilders(): Map<string, Builder> {
+  return new Map<string, Builder>([
+    ['next', { src, use: '@now/next', config }],
+  ]);
+}
 
 // Must be a function to ensure that the returned
 // object won't be a reference
@@ -47,7 +49,7 @@ function hasBuildScript(pkg: PackageJson | undefined) {
 }
 
 async function detectBuilder(pkg: PackageJson): Promise<Builder> {
-  for (const [dependency, builder] of BUILDERS) {
+  for (const [dependency, builder] of getBuilders()) {
     const deps = Object.assign({}, pkg.dependencies, pkg.devDependencies);
 
     // Return the builder when a dependency matches
@@ -100,6 +102,8 @@ async function detectApiBuilders(files: string[]): Promise<Builder[]> {
 
       return result ? { ...result, src: file } : null;
     });
+
+  console.log(builds);
 
   const finishedBuilds = builds.filter(Boolean);
   return finishedBuilds as Builder[];
