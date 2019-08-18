@@ -7,7 +7,7 @@ interface ErrorResponse {
 }
 
 interface Options {
-  tag?: 'canary' | 'latest';
+  tag?: 'canary' | 'latest' | string;
 }
 
 const src: string = 'package.json';
@@ -18,20 +18,24 @@ const BUILDERS = new Map<string, Builder>([
   ['next', { src, use: '@now/next', config }],
 ]);
 
-const API_BUILDERS: Builder[] = [
-  { src: 'api/**/*.js', use: '@now/node', config },
-  { src: 'api/**/*.ts', use: '@now/node', config },
-  { src: 'api/**/*.go', use: '@now/go', config },
-  { src: 'api/**/*.py', use: '@now/python', config },
-  { src: 'api/**/*.rb', use: '@now/ruby', config },
-];
-
 const MISSING_BUILD_SCRIPT_ERROR: ErrorResponse = {
   code: 'missing_build_script',
   message:
     'Your `package.json` file is missing a `build` property inside the `script` property.' +
     '\nMore details: https://zeit.co/docs/v2/advanced/platform/frequently-asked-questions#missing-build-script',
 };
+
+// Must be a function to ensure that the returned
+// object won't be a reference
+function getApiBuilders(): Builder[] {
+  return [
+    { src: 'api/**/*.js', use: '@now/node', config },
+    { src: 'api/**/*.ts', use: '@now/node', config },
+    { src: 'api/**/*.go', use: '@now/go', config },
+    { src: 'api/**/*.py', use: '@now/python', config },
+    { src: 'api/**/*.rb', use: '@now/ruby', config },
+  ];
+}
 
 function hasPublicDirectory(files: string[]) {
   return files.some(name => name.startsWith('public/'));
@@ -72,7 +76,7 @@ export function ignoreApiFilter(file: string) {
 
   // If the file does not match any builder we also
   // don't want to create a route e.g. `package.json`
-  if (API_BUILDERS.every(({ src }) => !minimatch(file, src))) {
+  if (getApiBuilders().every(({ src }) => !minimatch(file, src))) {
     return false;
   }
 
@@ -90,7 +94,7 @@ async function detectApiBuilders(files: string[]): Promise<Builder[]> {
     .sort(sortFiles)
     .filter(ignoreApiFilter)
     .map(file => {
-      const result = API_BUILDERS.find(
+      const result = getApiBuilders().find(
         ({ src }): boolean => minimatch(file, src)
       );
 
