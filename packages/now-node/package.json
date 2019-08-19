@@ -1,6 +1,6 @@
 {
   "name": "@now/node",
-  "version": "0.7.4-canary.56",
+  "version": "0.7.4-canary.59",
   "license": "MIT",
   "main": "./dist/index",
   "homepage": "https://zeit.co/docs/v2/deployments/official-builders/node-js-now-node",
@@ -28,7 +28,7 @@
     "@types/etag": "1.8.0",
     "@types/test-listen": "1.1.0",
     "@zeit/ncc": "0.20.4",
-    "@zeit/node-file-trace": "0.2.9",
+    "@zeit/node-file-trace": "0.2.11",
     "content-type": "1.0.4",
     "cookie": "0.4.0",
     "etag": "1.8.1",
