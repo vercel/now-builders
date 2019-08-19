@@ -233,7 +233,6 @@ export async function build({
           await timeout(
             new Promise(resolve => {
               const checkForPort = () => {
-                // Check is the devPort is reachable
                 isPortReachable(devPort).then(resolve);
               };
               if (child.stdout) {
