@@ -316,7 +316,7 @@ Learn more: https://zeit.co/docs/v2/advanced/builders/#go
       // ensure go.mod up-to-date
       await go.mod();
     } catch (err) {
-      debug('failed to `go mod tidy`');
+      console.log('failed to `go mod tidy`');
       throw err;
     }
 
@@ -328,7 +328,7 @@ Learn more: https://zeit.co/docs/v2/advanced/builders/#go
 
       await go.build(src, destPath, config.ldsflags);
     } catch (err) {
-      debug('failed to `go build`');
+      console.log('failed to `go build`');
       throw err;
     }
     if (meta.isDev) {
@@ -380,7 +380,7 @@ Learn more: https://zeit.co/docs/v2/advanced/builders/#go
     try {
       await go.get();
     } catch (err) {
-      debug('failed to `go get`');
+      console.log('failed to `go get`');
       throw err;
     }
 
