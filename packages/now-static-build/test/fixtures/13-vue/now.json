@@ -36,12 +36,6 @@
       "mustContain": "Disallow"
     },
     {
-      "path": "/favicon.ico",
-      "headers": {
-        "cache-control": "max-age=300"
-      }
-    },
-    {
       "path": "/manifest.json",
       "headers": {
         "cache-control": "max-age=300"
