@@ -13,7 +13,7 @@
       "mustContain": "Your Awesome Title"
     },
     {
-      "path": "/_saber/js/client.17ab58b1.js",
+      "path": "/_saber/js/client.js",
       "headers": { "cache-control": "max-age=31536000, immutable" },
       "mustContain": "function"
     },
