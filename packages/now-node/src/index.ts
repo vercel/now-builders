@@ -17,11 +17,12 @@ import {
   BuildOptions,
   shouldServe,
   Config,
+  debug,
 } from '@now/build-utils';
 export { NowRequest, NowResponse } from './types';
 import { makeLauncher } from './launcher';
 import { readFileSync, lstatSync, readlinkSync, statSync } from 'fs';
-import { Compile } from './typescript';
+import { Register, register } from './typescript';
 
 interface CompilerConfig {
   debug?: boolean;
@@ -58,12 +59,12 @@ async function downloadInstallAndBundle({
   config,
   meta,
 }: DownloadOptions) {
-  console.log('downloading user files...');
+  debug('downloading user files...');
   const downloadTime = Date.now();
   const downloadedFiles = await download(files, workPath, meta);
-  console.log(`download complete [${Date.now() - downloadTime}ms]`);
+  debug(`download complete [${Date.now() - downloadTime}ms]`);
 
-  console.log("installing dependencies for user's code...");
+  debug("installing dependencies for user's code...");
   const installTime = Date.now();
   const entrypointFsDirname = join(workPath, dirname(entrypoint));
   const nodeVersion = await getNodeVersion(
@@ -73,7 +74,7 @@ async function downloadInstallAndBundle({
   );
   const spawnOpts = getSpawnOptions(meta, nodeVersion);
   await runNpmInstall(entrypointFsDirname, ['--prefer-offline'], spawnOpts);
-  console.log(`install complete [${Date.now() - installTime}ms]`);
+  debug(`install complete [${Date.now() - installTime}ms]`);
 
   const entrypointPath = downloadedFiles[entrypoint].fsPath;
   return { entrypointPath, entrypointFsDirname, nodeVersion, spawnOpts };
@@ -125,39 +126,25 @@ async function compile(
     }
   }
 
-  if (config.debug) {
-    console.log(
-      'tracing input files: ' +
-        [...inputFiles].map(p => relative(workPath, p)).join(', ')
-    );
-  }
+  debug(
+    'tracing input files: ' +
+      [...inputFiles].map(p => relative(workPath, p)).join(', ')
+  );
 
   const preparedFiles: Files = {};
 
-  let tsCompile: Compile;
+  let tsCompile: Register;
   function compileTypeScript(path: string, source: string): string {
     const relPath = relative(workPath, path);
-    if (config.debug) {
-      console.log('compiling typescript file ' + relPath);
-    }
+    debug('compiling typescript file ' + relPath);
     if (!tsCompile) {
-      tsCompile = require('./typescript').init({
-        basePath: workPath,
-        logError: true,
+      tsCompile = register({
+        basePath: workPath, // The base is the same as root now.json dir
+        project: path, // Resolve tsconfig.json from entrypoint dir
+        files: true, // Include all files such as global `.d.ts`
       });
     }
-    try {
-      var { code, map } = tsCompile(source, path);
-    } catch (e) {
-      if (config.debug) {
-        console.error(e);
-        console.log(
-          'TypeScript compilation failed, falling back to basic transformModule'
-        );
-      }
-      // If TypeScript compile fails, attempt a direct non-typecheck compile
-      var { code, map } = tsCompile(source, path, true);
-    }
+    const { code, map } = tsCompile(source, path);
     tsCompiled.add(relPath);
     preparedFiles[
       relPath.slice(0, -3 - Number(path.endsWith('x'))) + '.js.map'
@@ -205,10 +192,8 @@ async function compile(
     },
   });
 
-  if (config.debug) {
-    console.log('traced files:');
-    console.log('\t' + fileList.join('\n\t'));
-  }
+  debug('traced files:');
+  debug('\t' + fileList.join('\n\t'));
 
   for (const path of fileList) {
     let entry = fsCache.get(path);
@@ -262,7 +247,7 @@ async function compile(
     const babelCompile = require('./babel').compile;
     for (const path of esmPaths) {
       if (config.debug) {
-        console.log('compiling es module file ' + path);
+        debug('compiling es module file ' + path);
       }
 
       const filename = basename(path);
@@ -313,12 +298,12 @@ export async function build({
     meta,
   });
 
-  console.log('running user script...');
+  debug('running user script...');
   const runScriptTime = Date.now();
   await runPackageJsonScript(entrypointFsDirname, 'now-build', spawnOpts);
-  console.log(`script complete [${Date.now() - runScriptTime}ms]`);
+  debug(`script complete [${Date.now() - runScriptTime}ms]`);
 
-  console.log('tracing input files...');
+  debug('tracing input files...');
   const traceTime = Date.now();
   const { preparedFiles, shouldAddSourcemapSupport, watch } = await compile(
     workPath,
@@ -326,7 +311,7 @@ export async function build({
     entrypoint,
     config
   );
-  console.log(`trace complete [${Date.now() - traceTime}ms]`);
+  debug(`trace complete [${Date.now() - traceTime}ms]`);
 
   const launcherFiles: Files = {
     [`${LAUNCHER_FILENAME}.js`]: new FileBlob({

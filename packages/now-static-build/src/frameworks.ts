@@ -66,17 +66,12 @@ export default [
     getOutputDirName: async () => 'dist',
     defaultRoutes: [
       {
-        src: '^/js/(.*)',
-        headers: { 'cache-control': 'max-age=31536000, immutable' },
+        src: '^/[^/]*\\.(js|txt|ico|json)',
+        headers: { 'cache-control': 'max-age=300' },
         continue: true,
       },
       {
-        src: '^/css/(.*)',
-        headers: { 'cache-control': 'max-age=31536000, immutable' },
-        continue: true,
-      },
-      {
-        src: '^/img/(.*)',
+        src: '^/(img|js|css|fonts|media)/.*',
         headers: { 'cache-control': 'max-age=31536000, immutable' },
         continue: true,
       },
@@ -84,7 +79,7 @@ export default [
         handle: 'filesystem',
       },
       {
-        src: '/(.*)',
+        src: '^.*',
         dest: '/index.html',
       },
     ],
@@ -218,5 +213,24 @@ export default [
     name: 'Sapper',
     dependency: 'sapper',
     getOutputDirName: async () => '__sapper__/export',
+  },
+  {
+    name: 'Saber',
+    dependency: 'saber',
+    getOutputDirName: async () => 'public',
+    defaultRoutes: [
+      {
+        src: '/_saber/.*',
+        headers: { 'cache-control': 'max-age=31536000, immutable' },
+      },
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '.*',
+        status: 404,
+        dest: '404.html',
+      },
+    ],
   },
 ];
