@@ -16,6 +16,7 @@ import {
   Route,
   BuildOptions,
   Config,
+  debug,
 } from '@now/build-utils';
 
 interface PackageJson {
@@ -38,39 +39,45 @@ interface Framework {
   minNodeRange?: string;
 }
 
-function validateDistDir(distDir: string, isDev: boolean | undefined) {
+function validateDistDir(
+  distDir: string,
+  isDev: boolean | undefined,
+  config: Config
+) {
+  const distDirName = path.basename(distDir);
+  const exists = () => existsSync(distDir);
+  const isDirectory = () => statSync(distDir).isDirectory();
+  const isEmpty = () => readdirSync(distDir).length === 0;
+
   const hash = isDev
     ? '#local-development'
     : '#configuring-the-build-output-directory';
   const docsUrl = `https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build${hash}`;
-  const distDirName = path.basename(distDir);
-  if (!existsSync(distDir)) {
-    const message =
-      `Build was unable to create the distDir: "${distDirName}".` +
-      `\nMake sure you configure the the correct distDir: ${docsUrl}`;
-    throw new Error(message);
-  }
-  const stat = statSync(distDir);
-  if (!stat.isDirectory()) {
-    const message =
-      `Build failed because distDir is not a directory: "${distDirName}".` +
-      `\nMake sure you configure the the correct distDir: ${docsUrl}`;
-    throw new Error(message);
+
+  const info = config.zeroConfig
+    ? '\nMore details: https://zeit.co/docs/v2/advanced/platform/frequently-asked-questions#missing-public-directory'
+    : `\nMake sure you configure the the correct distDir: ${docsUrl}`;
+
+  if (!exists()) {
+    throw new Error(`No output directory named "${distDirName}" found.${info}`);
   }
 
-  const contents = readdirSync(distDir);
-  if (contents.length === 0) {
-    const message =
-      `Build failed because distDir is empty: "${distDirName}".` +
-      `\nMake sure you configure the the correct distDir: ${docsUrl}`;
-    throw new Error(message);
+  if (!isDirectory()) {
+    throw new Error(
+      `Build failed because distDir is not a directory: "${distDirName}".${info}`
+    );
+  }
+
+  if (isEmpty()) {
+    throw new Error(
+      `Build failed because distDir is empty: "${distDirName}".${info}`
+    );
   }
 }
 
-function getCommand(pkg: PackageJson, cmd: string, config: Config) {
+function getCommand(pkg: PackageJson, cmd: string, { zeroConfig }: Config) {
   // The `dev` script can be `now dev`
   const nowCmd = `now-${cmd}`;
-  const { zeroConfig } = config;
 
   if (!zeroConfig && cmd === 'dev') {
     return nowCmd;
@@ -86,7 +93,7 @@ function getCommand(pkg: PackageJson, cmd: string, config: Config) {
     return cmd;
   }
 
-  return nowCmd;
+  return zeroConfig ? cmd : nowCmd;
 }
 
 export const version = 2;
@@ -113,7 +120,7 @@ export async function build({
   config,
   meta = {},
 }: BuildOptions) {
-  console.log('Downloading user files...');
+  debug('Downloading user files...');
   await download(files, workPath, meta);
 
   const mountpoint = path.dirname(entrypoint);
@@ -139,6 +146,9 @@ export async function build({
     const devScript = getCommand(pkg, 'dev', config as Config);
 
     if (config.zeroConfig) {
+      // `public` is the default for zero config
+      distPath = path.join(workPath, path.dirname(entrypoint), 'public');
+
       const dependencies = Object.assign(
         {},
         pkg.dependencies,
@@ -149,19 +159,19 @@ export async function build({
     }
 
     if (framework) {
-      console.log(
+      debug(
         `Detected ${framework.name} framework. Optimizing your deployment...`
       );
 
       if (framework.minNodeRange) {
         minNodeRange = framework.minNodeRange;
-        console.log(
+        debug(
           `${framework.name} requires Node.js ${
             framework.minNodeRange
           }. Switching...`
         );
       } else {
-        console.log(
+        debug(
           `${
             framework.name
           } does not require a specific Node.js version. Continuing ...`
@@ -169,7 +179,11 @@ export async function build({
       }
     }
 
-    const nodeVersion = await getNodeVersion(entrypointDir, minNodeRange);
+    const nodeVersion = await getNodeVersion(
+      entrypointDir,
+      minNodeRange,
+      config
+    );
     const spawnOpts = getSpawnOptions(meta, nodeVersion);
 
     await runNpmInstall(entrypointDir, ['--prefer-offline'], spawnOpts);
@@ -185,11 +199,7 @@ export async function build({
       }
 
       if (typeof devPort === 'number') {
-        console.log(
-          '`%s` server already running for %j',
-          devScript,
-          entrypoint
-        );
+        debug('`%s` server already running for %j', devScript, entrypoint);
       } else {
         // Run the `now-dev` or `dev` script out-of-bounds, since it is assumed that
         // it will launch a dev server that never "completes"
@@ -240,7 +250,7 @@ export async function build({
           );
         }
 
-        console.log('Detected dev server for %j', entrypoint);
+        debug('Detected dev server for %j', entrypoint);
       }
 
       let srcBase = mountpoint.replace(/^\.\/?/, '');
@@ -263,14 +273,14 @@ export async function build({
       );
     } else {
       if (meta.isDev) {
-        console.log(`WARN: "${devScript}" script is missing from package.json`);
-        console.log(
+        debug(`WARN: "${devScript}" script is missing from package.json`);
+        debug(
           'See the local development docs: https://zeit.co/docs/v2/deployments/official-builders/static-build-now-static-build/#local-development'
         );
       }
 
       const buildScript = getCommand(pkg, 'build', config as Config);
-      console.log(`Running "${buildScript}" script in "${entrypoint}"`);
+      debug(`Running "${buildScript}" script in "${entrypoint}"`);
 
       const found = await runPackageJsonScript(
         entrypointDir,
@@ -289,9 +299,20 @@ export async function build({
         const outputDirName = await framework.getOutputDirName(outputDirPrefix);
 
         distPath = path.join(outputDirPrefix, outputDirName);
+      } else if (!config || !config.distDir) {
+        // Select either `dist` or `public` as directory
+        const publicPath = path.join(entrypointDir, 'public');
+
+        if (
+          !existsSync(distPath) &&
+          existsSync(publicPath) &&
+          statSync(publicPath).isDirectory()
+        ) {
+          distPath = publicPath;
+        }
       }
 
-      validateDistDir(distPath, meta.isDev);
+      validateDistDir(distPath, meta.isDev, config);
       output = await glob('**', distPath, mountpoint);
 
       if (framework && framework.defaultRoutes) {
@@ -304,13 +325,19 @@ export async function build({
   }
 
   if (!config.zeroConfig && entrypointName.endsWith('.sh')) {
-    console.log(`Running build script "${entrypoint}"`);
-    const nodeVersion = await getNodeVersion(entrypointDir);
+    debug(`Running build script "${entrypoint}"`);
+    const nodeVersion = await getNodeVersion(entrypointDir, undefined, config);
     const spawnOpts = getSpawnOptions(meta, nodeVersion);
     await runShellScript(path.join(workPath, entrypoint), [], spawnOpts);
-    validateDistDir(distPath, meta.isDev);
+    validateDistDir(distPath, meta.isDev, config);
 
-    return glob('**', distPath, mountpoint);
+    const output = await glob('**', distPath, mountpoint);
+
+    return {
+      output,
+      routes: [],
+      watch: [],
+    };
   }
 
   let message = `Build "src" is "${entrypoint}" but expected "package.json"`;

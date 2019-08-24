@@ -1,6 +1,16 @@
-import { Route } from './types';
+import { Route, Builder } from './types';
 import { parse as parsePath } from 'path';
-import { ignoreApiFilter, sortFiles } from './detect-builder';
+import { ignoreApiFilter, sortFiles } from './detect-builders';
+
+function escapeName(name: string) {
+  const special = '[]^$.|?*+()'.split('');
+
+  for (const char of special) {
+    name = name.replace(new RegExp(`\\${char}`, 'g'), `\\${char}`);
+  }
+
+  return name;
+}
 
 function joinPath(...segments: string[]) {
   const joinedPath = segments.join('/');
@@ -46,15 +56,32 @@ function createRouteFromPath(filePath: string): Route {
         query.push(`${name}=$${counter++}`);
         return `([^\\/]+)`;
       } else if (isLast) {
-        const { name: fileName } = parsePath(segment);
-        return fileName;
+        const { name: fileName, ext } = parsePath(segment);
+        const isIndex = fileName === 'index';
+        const prefix = isIndex ? '\\/' : '';
+
+        const names = [
+          prefix,
+          prefix + escapeName(fileName),
+          prefix + escapeName(fileName) + escapeName(ext),
+        ].filter(Boolean);
+
+        // Either filename with extension, filename without extension
+        // or nothing when the filename is `index`
+        return `(${names.join('|')})${isIndex ? '?' : ''}`;
       }
 
       return segment;
     }
   );
 
-  const src = `^/${srcParts.join('/')}$`;
+  const { name: fileName } = parsePath(filePath);
+  const isIndex = fileName === 'index';
+
+  const src = isIndex
+    ? `^/${srcParts.slice(0, -1).join('/')}${srcParts.slice(-1)[0]}$`
+    : `^/${srcParts.join('/')}$`;
+
   const dest = `/${filePath}${query.length ? '?' : ''}${query.join('&')}`;
 
   return { src, dest };
@@ -167,12 +194,12 @@ function sortFilesBySegmentCount(fileA: string, fileB: string): number {
   return 0;
 }
 
-export async function detectApiRoutes(
-  files: string[]
-): Promise<{
+interface RoutesResult {
   defaultRoutes: Route[] | null;
   error: { [key: string]: string } | null;
-}> {
+}
+
+async function detectApiRoutes(files: string[]): Promise<RoutesResult> {
   if (!files || files.length === 0) {
     return { defaultRoutes: null, error: null };
   }
@@ -232,5 +259,39 @@ export async function detectApiRoutes(
     defaultRoutes.push(createRouteFromPath(file));
   }
 
+  // 404 Route to disable directory listing
+  if (defaultRoutes.length) {
+    defaultRoutes.push({
+      status: 404,
+      src: '/api(\\/.*)?$',
+    });
+  }
+
   return { defaultRoutes, error: null };
+}
+
+function hasPublicBuilder(builders: Builder[]): boolean {
+  return builders.some(
+    builder =>
+      builder.use === '@now/static' &&
+      builder.src === 'public/**/*' &&
+      builder.config &&
+      builder.config.zeroConfig === true
+  );
+}
+
+export async function detectRoutes(
+  files: string[],
+  builders: Builder[]
+): Promise<RoutesResult> {
+  const routesResult = await detectApiRoutes(files);
+
+  if (routesResult.defaultRoutes && hasPublicBuilder(builders)) {
+    routesResult.defaultRoutes.push({
+      src: '/(.*)',
+      dest: '/public/$1',
+    });
+  }
+
+  return routesResult;
 }

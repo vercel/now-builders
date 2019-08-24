@@ -228,7 +228,7 @@ function getRoutes(
 
     const relativeToPages = path.relative('pages', relativePath);
     const extension = path.extname(relativeToPages);
-    const pageName = relativeToPages.replace(extension, '');
+    const pageName = relativeToPages.replace(extension, '').replace(/\\/g, '/');
 
     if (pageName.startsWith('_')) {
       continue;
@@ -355,6 +355,8 @@ function syncEnvVars(base: EnvConfig, removeEnv: EnvConfig, addEnv: EnvConfig) {
   // Add in the keys from `addEnv`
   Object.assign(base, addEnv);
 }
+
+export const ExperimentalTraceVersion = `9.0.4-canary.1`;
 
 export {
   excludeFiles,

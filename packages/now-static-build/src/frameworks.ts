@@ -28,9 +28,28 @@ export default [
     getOutputDirName: async () => 'public',
   },
   {
+    name: 'Docusaurus 2.0',
+    dependency: '@docusaurus/core',
+    getOutputDirName: async () => 'build',
+  },
+  {
     name: 'Preact',
     dependency: 'preact-cli',
     getOutputDirName: async () => 'build',
+    defaultRoutes: [
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '/(.*)',
+        dest: '/index.html',
+      },
+    ],
+  },
+  {
+    name: 'Ember',
+    dependency: 'ember-cli',
+    getOutputDirName: async () => 'dist',
     defaultRoutes: [
       {
         handle: 'filesystem',
@@ -47,25 +66,20 @@ export default [
     getOutputDirName: async () => 'dist',
     defaultRoutes: [
       {
+        src: '^/[^/]*\\.(js|txt|ico|json)',
+        headers: { 'cache-control': 'max-age=300' },
+        continue: true,
+      },
+      {
+        src: '^/(img|js|css|fonts|media)/.*',
+        headers: { 'cache-control': 'max-age=31536000, immutable' },
+        continue: true,
+      },
+      {
         handle: 'filesystem',
       },
       {
-        src: '^/js/(.*)',
-        headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '/js/$1',
-      },
-      {
-        src: '^/css/(.*)',
-        headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '/css/$1',
-      },
-      {
-        src: '^/img/(.*)',
-        headers: { 'cache-control': 'max-age=31536000, immutable' },
-        dest: '/img/$1',
-      },
-      {
-        src: '/(.*)',
+        src: '^.*',
         dest: '/index.html',
       },
     ],
@@ -139,32 +153,19 @@ export default [
       {
         src: '/static/(.*)',
         headers: { 'cache-control': 's-maxage=31536000, immutable' },
-        dest: '/static/$1',
-      },
-      {
-        src: '/favicon.ico',
-        dest: '/favicon.ico',
-      },
-      {
-        src: '/asset-manifest.json',
-        dest: '/asset-manifest.json',
-      },
-      {
-        src: '/manifest.json',
-        dest: '/manifest.json',
-      },
-      {
-        src: '/precache-manifest.(.*)',
-        dest: '/precache-manifest.$1',
+        continue: true,
       },
       {
         src: '/service-worker.js',
         headers: { 'cache-control': 's-maxage=0' },
-        dest: '/service-worker.js',
+        continue: true,
       },
       {
         src: '/sockjs-node/(.*)',
         dest: '/sockjs-node/$1',
+      },
+      {
+        handle: 'filesystem',
       },
       {
         src: '/(.*)',
@@ -193,7 +194,7 @@ export default [
     ],
   },
   {
-    name: 'Docusaurus',
+    name: 'Docusaurus 1.0',
     dependency: 'docusaurus',
     getOutputDirName: async (dirPrefix: string) => {
       const base = 'build';
@@ -207,5 +208,29 @@ export default [
 
       return base;
     },
+  },
+  {
+    name: 'Sapper',
+    dependency: 'sapper',
+    getOutputDirName: async () => '__sapper__/export',
+  },
+  {
+    name: 'Saber',
+    dependency: 'saber',
+    getOutputDirName: async () => 'public',
+    defaultRoutes: [
+      {
+        src: '/_saber/.*',
+        headers: { 'cache-control': 'max-age=31536000, immutable' },
+      },
+      {
+        handle: 'filesystem',
+      },
+      {
+        src: '.*',
+        status: 404,
+        dest: '404.html',
+      },
+    ],
   },
 ];

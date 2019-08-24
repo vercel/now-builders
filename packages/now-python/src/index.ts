@@ -11,11 +11,12 @@ import {
   createLambda,
   shouldServe,
   BuildOptions,
+  debug,
 } from '@now/build-utils';
 
 async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
   const target = '.';
-  console.log(
+  debug(
     `running "pip install --disable-pip-version-check --target ${target} --upgrade ${args.join(
       ' '
     )}"...`
@@ -33,7 +34,7 @@ async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
       ],
       {
         cwd: workDir,
-        stdio: 'inherit',
+        stdio: 'pipe',
       }
     );
   } catch (err) {
@@ -46,39 +47,15 @@ async function pipInstall(pipPath: string, workDir: string, ...args: string[]) {
   }
 }
 
-async function pipInstallUser(pipPath: string, ...args: string[]) {
-  console.log(
-    `running "pip install --disable-pip-version-check --user ${args.join(
-      ' '
-    )}"...`
-  );
+async function pipenvConvert(cmd: string, srcDir: string) {
+  debug('running pipfile2req');
   try {
-    await execa(
-      pipPath,
-      ['install', '--disable-pip-version-check', '--user', ...args],
-      {
-        stdio: 'inherit',
-      }
-    );
-  } catch (err) {
-    console.log(
-      `failed to run "pip install --disable-pip-version-check --user ${args.join(
-        ' '
-      )}"`
-    );
-    throw err;
-  }
-}
-
-async function pipenvInstall(pyUserBase: string, srcDir: string) {
-  console.log('running "pipenv_to_requirements -f');
-  try {
-    await execa(join(pyUserBase, 'bin', 'pipenv_to_requirements'), ['-f'], {
+    const out = await execa.stdout(cmd, [], {
       cwd: srcDir,
-      stdio: 'inherit',
     });
+    fs.writeFileSync(join(srcDir, 'requirements.txt'), out);
   } catch (err) {
-    console.log('failed to run "pipenv_to_requirements -f"');
+    console.log('failed to run "pipfile2req"');
     throw err;
   }
 }
@@ -90,7 +67,7 @@ export const build = async ({
   meta = {},
   config,
 }: BuildOptions) => {
-  console.log('downloading files...');
+  debug('downloading files...');
   let downloadedFiles = await download(originalFiles, workPath, meta);
 
   if (meta.isDev) {
@@ -108,8 +85,6 @@ export const build = async ({
     workPath = destNow;
   }
 
-  const pyUserBase = await getWriteableDirectory();
-  process.env.PYTHONUSERBASE = pyUserBase;
   const pipPath = 'pip3';
 
   try {
@@ -142,23 +117,36 @@ export const build = async ({
     : null;
 
   if (pipfileLockDir) {
-    console.log('found "Pipfile.lock"');
+    debug('found "Pipfile.lock"');
 
-    // Install pipenv.
-    await pipInstallUser(pipPath, ' pipenv_to_requirements');
+    // Convert Pipenv.Lock to requirements.txt.
+    // We use a different`workPath` here because we want `pipfile-requirements` and it's dependencies
+    // to not be part of the lambda environment. By using pip's `--target` directive we can isolate
+    // it into a separate folder.
+    const tempDir = await getWriteableDirectory();
+    await pipInstall(
+      pipPath,
+      tempDir,
+      'pipfile-requirements',
+      '--no-warn-script-location'
+    );
 
-    await pipenvInstall(pyUserBase, pipfileLockDir);
+    // Python needs to know where to look up all the packages we just installed.
+    // We tell it to use the same location as used with `--target`
+    process.env.PYTHONPATH = tempDir;
+    const convertCmd = join(tempDir, 'bin', 'pipfile2req');
+    await pipenvConvert(convertCmd, pipfileLockDir);
   }
 
   fsFiles = await glob('**', workPath);
   const requirementsTxt = join(entryDirectory, 'requirements.txt');
 
   if (fsFiles[requirementsTxt]) {
-    console.log('found local "requirements.txt"');
+    debug('found local "requirements.txt"');
     const requirementsTxtPath = fsFiles[requirementsTxt].fsPath;
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   } else if (fsFiles['requirements.txt']) {
-    console.log('found global "requirements.txt"');
+    debug('found global "requirements.txt"');
     const requirementsTxtPath = fsFiles['requirements.txt'].fsPath;
     await pipInstall(pipPath, workPath, '-r', requirementsTxtPath);
   }
@@ -168,7 +156,7 @@ export const build = async ({
 
   // will be used on `from $here import handler`
   // for example, `from api.users import handler`
-  console.log('entrypoint is', entrypoint);
+  debug('entrypoint is', entrypoint);
   const userHandlerFilePath = entrypoint
     .replace(/\//g, '.')
     .replace(/\.py$/, '');

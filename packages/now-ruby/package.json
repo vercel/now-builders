@@ -1,7 +1,7 @@
 {
   "name": "@now/ruby",
   "author": "Nathan Cahill <nathan@nathancahill.com>",
-  "version": "0.1.0-canary.8",
+  "version": "0.1.0-canary.10",
   "license": "MIT",
   "main": "./dist/index",
   "homepage": "https://zeit.co/docs/v2/deployments/official-builders/ruby-now-ruby",
@@ -15,15 +15,13 @@
     "directory": "packages/now-ruby"
   },
   "scripts": {
-    "build": "tsc",
-    "test": "tsc && jest",
-    "prepublishOnly": "tsc"
-  },
-  "dependencies": {
-    "execa": "^1.0.0",
-    "fs-extra": "^7.0.1"
+    "build": "./build.sh",
+    "test": "./build.sh && jest",
+    "prepublishOnly": "./build.sh"
   },
   "devDependencies": {
+    "execa": "^1.0.0",
+    "fs-extra": "^7.0.1",
     "typescript": "3.5.2"
   }
 }
